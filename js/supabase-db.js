@@ -159,7 +159,15 @@ window.dbSave = async function (table, lsKey, filters, data) {
   localStorage.setItem(lsKey, JSON.stringify(data));
   if (!sb()) return;
   try {
-    await sb().from(table).upsert({ ...filters, data });
+    // D'abord essayer update
+    let query = sb().from(table).update({ data });
+    Object.entries(filters).forEach(([k, v]) => { query = query.eq(k, v); });
+    const { data: updated, error: updateErr } = await query.select();
+    
+    // Si rien n'a été mis à jour (pas de ligne existante), insert
+    if (!updateErr && (!updated || updated.length === 0)) {
+      await sb().from(table).insert({ ...filters, data });
+    }
   } catch (e) { console.warn(`dbSave(${table}) error:`, e.message); }
 };
 
