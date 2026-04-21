@@ -1,0 +1,727 @@
+/* ============================================================
+   css/style.css — Thème sombre, layout et navigation
+   Application SunXP Pro
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   Variables CSS & thème sombre
+   ------------------------------------------------------------ */
+:root {
+  --bg-primary:    #141c2e;
+  --bg-sidebar:    #1a2540;
+  --bg-card:       #1e2d4a;
+  --bg-tab-hover:  #243556;
+  --bg-tab-active: #2a3d62;
+  --text-primary:  #e8edf5;
+  --text-muted:    #8a9bbd;
+  --accent:        #7c6af7;
+  --accent-dim:    rgba(124, 106, 247, 0.12);
+  --border:        rgba(255, 255, 255, 0.10);
+  --shadow-sm:     0 1px 3px rgba(0, 0, 0, 0.25);
+  --shadow-md:     0 4px 12px rgba(0, 0, 0, 0.3);
+  --radius:        8px;
+  --font-family:   'Segoe UI', system-ui, sans-serif;
+  --sidebar-width: 220px;
+  --transition:    0.2s ease;
+}
+
+/* Reset minimal */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Mode clair */
+body.light-mode {
+  --bg-primary:    #f2f4fa;
+  --bg-sidebar:    #e4e6f0;
+  --bg-card:       #ffffff;
+  --bg-tab-hover:  #dadce8;
+  --bg-tab-active: #d0d2e2;
+  --text-primary:  #1a1e30;
+  --text-muted:    #555a78;
+  --accent:        #6355d8;
+  --accent-dim:    rgba(99, 85, 216, 0.08);
+  --border:        rgba(0, 0, 0, 0.10);
+  --shadow-sm:     0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-md:     0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* ------------------------------------------------------------
+   Layout deux colonnes
+   ------------------------------------------------------------ */
+.app-layout {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  min-width: 1280px;
+}
+
+.app-layout[hidden] {
+  display: none;
+}
+
+.sidebar {
+  width: var(--sidebar-width);
+  min-width: var(--sidebar-width);
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+}
+
+.content-area {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-primary);
+}
+
+/* ------------------------------------------------------------
+   Navigation latérale et onglets
+   ------------------------------------------------------------ */
+.sidebar-header {
+  padding: 20px 16px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.nav-tabs { list-style: none; padding: 8px 0; margin: 0; flex: 1; }
+
+.nav-tab {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  cursor: pointer;
+  color: var(--text-muted);
+  border-left: 3px solid transparent;
+  transition: background-color var(--transition), color var(--transition), border-color var(--transition);
+  user-select: none;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  margin: 2px 8px 2px 0;
+}
+
+.nav-tab .icon { font-size: 16px; flex-shrink: 0; width: 20px; text-align: center; transition: transform var(--transition); }
+.nav-tab .label { font-size: 13.5px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.nav-tab:hover { background-color: var(--bg-tab-hover); color: var(--text-primary); }
+.nav-tab:hover .icon { transform: scale(1.1); }
+
+.nav-tab.active { background-color: var(--bg-tab-active); color: var(--accent); border-left-color: var(--accent); box-shadow: inset 0 0 0 1px rgba(124, 106, 247, 0.08); }
+.nav-tab.active .icon, .nav-tab.active .label { color: var(--accent); }
+
+/* ------------------------------------------------------------
+   Zone de contenu et vues modules
+   ------------------------------------------------------------ */
+.module-view { display: none; flex: 1; overflow: hidden; }
+
+.module-view.active {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  flex: 1;
+  overflow: hidden;
+}
+
+.module-view h1 {
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  text-align: center;
+  opacity: 0.9;
+  margin: auto;
+}
+
+.module-view .placeholder { margin-top: 12px; font-size: 14px; color: var(--text-muted); text-align: center; }
+
+/* Toolbar sticky dans les modules */
+.h-toolbar,
+.rep-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+#navbar-station-name { font-size: 13px; font-weight: 700; color: var(--accent); letter-spacing: 0.06em; }
+
+#btn-change-station {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: border-color var(--transition), color var(--transition);
+  align-self: flex-start;
+}
+#btn-change-station:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ── Topbar principale ────────────────────────────────────── */
+#main-topbar { font-family: var(--font-family); }
+body { padding-top: 36px; }
+#station-screen { padding-top: 12px; }
+
+/* ── Portail chauffeur mobile ─────────────────────────────── */
+#role-screen, #chauffeur-login { display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-height:100vh;padding:48px 24px 64px;background:var(--bg-primary);overflow-y:auto; }
+.portal-card { display:flex;flex-direction:column;align-items:center;gap:4px;padding:16px 18px;background:var(--bg-sidebar);border:1px solid var(--border);border-radius:12px;margin-bottom:10px;font-size:13px;text-align:center;box-shadow:var(--shadow-sm);transition:border-color var(--transition),box-shadow var(--transition); }
+.portal-card:hover { border-color:rgba(124,106,247,0.2);box-shadow:var(--shadow-md); }
+.portal-card span { font-size:12px;color:var(--text-muted); }
+.portal-card b { font-size:18px; }
+.portal-card div { font-size:12px;text-align:center; }
+@media (max-width:768px) {
+  .app-layout { min-width:auto !important; flex-direction:column; }
+  .sidebar { width:100% !important; min-width:auto !important; flex-direction:row; overflow-x:auto; }
+  .nav-tabs { display:flex; flex-direction:row; padding:0; }
+  .nav-tab { padding:8px 12px; border-left:none; border-bottom:3px solid transparent; border-radius:0; margin:0; }
+  .nav-tab.active { border-bottom-color:var(--accent); border-left-color:transparent; }
+}
+
+#role-screen[hidden], #chauffeur-login[hidden], #chauffeur-portal[hidden] { display:none !important; }
+
+/* ============================================================
+   Portail Chauffeur — Navigation mensuelle / hebdomadaire
+   ============================================================ */
+
+/* Barre de navigation (conteneur flex centré) */
+.portal-month-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 12px 0;
+  margin-bottom: 14px;
+  background: var(--bg-sidebar);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Boutons ◀ / ▶ */
+.portal-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color var(--transition), border-color var(--transition), color var(--transition);
+}
+
+.portal-nav-btn:hover {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.portal-nav-btn:active {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* Label mois / semaine */
+.portal-nav-label {
+  min-width: 140px;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  user-select: none;
+}
+
+/* ============================================================
+   Menu hamburger & panneau déroulant
+   ============================================================ */
+
+/* Bouton hamburger — haut à droite */
+.hamburger-btn {
+  position: fixed;
+  top: 6px;
+  right: 16px;
+  z-index: 10001;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  width: 28px;
+  height: 24px;
+  padding: 5px 4px;
+  background: var(--bg-sidebar);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition), box-shadow var(--transition);
+}
+.hamburger-btn:hover {
+  background: var(--bg-tab-hover);
+  border-color: var(--accent);
+  box-shadow: 0 0 8px rgba(124, 106, 247, 0.2);
+}
+.hamburger-btn span {
+  display: block;
+  height: 2px;
+  width: 100%;
+  background: var(--text-primary);
+  border-radius: 1px;
+  transition: background var(--transition);
+}
+.hamburger-btn:hover span {
+  background: var(--accent);
+}
+
+/* Panneau déroulant — glisse depuis la droite */
+.menu-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 10000;
+  width: 380px;
+  max-width: 90vw;
+  height: 100vh;
+  background: var(--bg-primary);
+  border-left: 1px solid var(--border);
+  box-shadow: -12px 0 40px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+}
+.menu-panel[hidden] { display: none; }
+
+/* Onglets du panneau — colonne à gauche */
+.menu-panel-tabs {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border);
+  background: var(--bg-sidebar);
+  flex-shrink: 0;
+  width: 48px;
+  padding-top: 40px;
+}
+.menu-panel-tab {
+  padding: 14px 0;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 16px;
+  font-family: var(--font-family);
+  cursor: pointer;
+  transition: color var(--transition), background var(--transition);
+  border-left: 2px solid transparent;
+  text-align: center;
+  position: relative;
+}
+.menu-panel-tab:hover {
+  color: var(--text-primary);
+  background: var(--bg-tab-hover);
+}
+.menu-panel-tab.active {
+  color: var(--accent);
+  border-left-color: var(--accent);
+  background: var(--bg-tab-active);
+}
+
+/* Contenu du panneau */
+.menu-panel-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Boutons paramètres */
+.menu-param-btn {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  margin-bottom: 4px;
+  background: var(--bg-tab-active);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 12px;
+  font-family: var(--font-family);
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--transition), border-color var(--transition);
+}
+.menu-param-btn:hover {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+}
+.menu-param-btn.active {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* Thèmes additionnels */
+body.theme-blue {
+  --bg-primary:    #0b1a30;
+  --bg-sidebar:    #102240;
+  --bg-card:       #142a4e;
+  --bg-tab-hover:  #183258;
+  --bg-tab-active: #1d3a65;
+  --text-primary:  #d4e4f8;
+  --text-muted:    #7898c4;
+  --accent:        #4a9eff;
+  --accent-dim:    rgba(74, 158, 255, 0.15);
+  --border:        rgba(255, 255, 255, 0.08);
+}
+
+body.theme-green {
+  --bg-primary:    #0b1a12;
+  --bg-sidebar:    #10281a;
+  --bg-card:       #143522;
+  --bg-tab-hover:  #183d28;
+  --bg-tab-active: #1d4830;
+  --text-primary:  #d0f0d8;
+  --text-muted:    #70b080;
+  --accent:        #4ade80;
+  --accent-dim:    rgba(74, 222, 128, 0.15);
+  --border:        rgba(255, 255, 255, 0.08);
+}
+
+/* ============================================================
+   Analyse & Performance — Mini-cards + courbes
+   ============================================================ */
+
+.analyse-mini-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 6px 4px;
+  background: var(--bg-sidebar);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition), transform 0.15s, box-shadow var(--transition);
+  user-select: none;
+  aspect-ratio: 1;
+}
+.analyse-mini-card:hover {
+  background: var(--bg-tab-hover);
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(124, 106, 247, 0.15);
+}
+.analyse-mini-card.active {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+  box-shadow: 0 2px 8px rgba(124, 106, 247, 0.2);
+}
+.analyse-mini-initials {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1;
+}
+.analyse-mini-icon {
+  font-size: 20px;
+}
+.analyse-mini-nom {
+  font-size: 9px;
+  color: var(--text-muted);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  line-height: 1.1;
+}
+
+.analyse-curve-card {
+  background: var(--bg-sidebar);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  box-shadow: var(--shadow-sm);
+}
+.analyse-curve-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Barre de recherche analyse */
+.analyse-search {
+  width: 100%;
+  padding: 7px 10px;
+  background: var(--bg-sidebar);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 12px;
+  font-family: var(--font-family);
+  transition: border-color var(--transition);
+}
+.analyse-search:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.analyse-search::placeholder {
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+/* ── Ressources Humaines — sous-onglets ── */
+.rh-tab-active {
+  background: var(--accent-dim) !important;
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+  font-weight: 600;
+}
+
+/* ── Stats — Panneau impacts POD / DWC ── */
+.stats-impact-panel {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 9999;
+  background: var(--bg-sidebar);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  min-width: 240px;
+  max-height: 300px;
+  overflow-y: auto;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.4);
+  padding: 8px 0;
+  margin-top: 4px;
+}
+.stats-impact-panel[hidden] { display: none; }
+.stats-impact-title {
+  padding: 4px 12px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 4px;
+}
+.stats-impact-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px;
+  font-size: 12px;
+}
+.stats-impact-row:hover { background: rgba(255,255,255,0.03); }
+.stats-impact-rank {
+  font-size: 10px;
+  color: var(--text-muted);
+  min-width: 16px;
+  text-align: right;
+}
+.stats-impact-nom {
+  flex: 1;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.stats-impact-val {
+  font-weight: 700;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.stats-impact-extra {
+  font-size: 10px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* ── Analyse — Récurrences impacts ── */
+.analyse-recurrence-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 12px;
+}
+.analyse-recurrence-nom {
+  min-width: 120px;
+  max-width: 120px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.analyse-recurrence-count {
+  min-width: 28px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-align: right;
+  font-size: 11px;
+}
+.analyse-recurrence-bar-bg {
+  flex: 1;
+  height: 6px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.analyse-recurrence-bar {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s;
+}
+.analyse-recurrence-pct {
+  min-width: 32px;
+  font-size: 10px;
+  color: var(--text-muted);
+  text-align: right;
+}
+
+/* ── Badges chauffeur ── */
+.badge-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 8px;
+  background: var(--bg-sidebar);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  text-align: center;
+  opacity: 0.4;
+  filter: grayscale(1);
+  transition: all 0.3s;
+  box-shadow: var(--shadow-sm);
+}
+.badge-card.badge-unlocked {
+  opacity: 1;
+  filter: none;
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  box-shadow: 0 2px 10px rgba(124, 106, 247, 0.2);
+}
+.badge-card.badge-animated {
+  border-color: #fbbf24;
+  animation: badgeGlow 2s ease-in-out infinite;
+}
+.badge-icon { font-size: 28px; line-height: 1; }
+.badge-name { font-size: 10px; font-weight: 600; color: var(--text-primary); }
+.badge-date { font-size: 9px; color: var(--text-muted); }
+.badge-progress-bar {
+  width: 100%;
+  height: 4px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 2px;
+}
+.badge-progress-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  transition: width 0.3s;
+}
+.badge-progress-text { font-size: 9px; color: var(--text-muted); }
+
+@keyframes badgeGlow {
+  0%, 100% { box-shadow: 0 0 8px rgba(251, 191, 36, 0.3); }
+  50% { box-shadow: 0 0 20px rgba(251, 191, 36, 0.6); }
+}
+@keyframes badgePop {
+  0% { transform: scale(0.5); opacity: 0; }
+  70% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* ============================================================
+   Mode clair — Corrections de lisibilité
+   ============================================================ */
+body.light-mode .h-table td {
+  border-bottom: 1px solid var(--border);
+}
+body.light-mode .rep-table td {
+  border-bottom: 1px solid var(--border);
+}
+body.light-mode .h-inp {
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--text-primary);
+}
+body.light-mode .h-inp:focus {
+  background: rgba(99, 85, 216, 0.08);
+}
+body.light-mode .h-dash-input {
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--text-primary);
+}
+body.light-mode .h-table tr:hover td {
+  filter: none;
+  background: var(--bg-tab-hover);
+}
+body.light-mode .h-alerte-popup-item:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+body.light-mode .badge-progress-bar {
+  background: rgba(0, 0, 0, 0.08);
+}
+body.light-mode .analyse-recurrence-bar-bg {
+  background: rgba(0, 0, 0, 0.06);
+}
+body.light-mode .stats-impact-row:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+body.light-mode .menu-panel {
+  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.12);
+}
+body.light-mode .h-autocomplete {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+body.light-mode .h-alerte-popup {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+body.light-mode .stats-impact-panel {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* ============================================================
+   Custom scrollbar — subtle and professional
+   ============================================================ */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(138, 155, 189, 0.25); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(138, 155, 189, 0.4); }
+body.light-mode ::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.15); }
+body.light-mode ::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.25); }
+
+/* ============================================================
+   Global polish — subtle improvements
+   ============================================================ */
+::selection { background: var(--accent); color: #fff; }
+input::placeholder, textarea::placeholder { color: var(--text-muted); opacity: 0.6; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }

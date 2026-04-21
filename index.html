@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SunXP Pro</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/stations.css">
+  <link rel="stylesheet" href="css/heures.css">
+  <link rel="stylesheet" href="css/repertoire.css">
+  <!-- SheetJS pour lecture Excel -->
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <!-- PDF.js pour lecture PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+
+  <!-- Écran de choix de rôle -->
+  <div id="role-screen">
+    <div class="station-logo">
+      <img src="img/matting_2026-4-21_fa553fc4-3d99-11f1-9b2d-16737e16766a.png" alt="SunXP Pro" style="width:200px;height:auto;margin-bottom:8px;">
+      <p class="station-logo-subtitle">Choisissez votre accès</p>
+    </div>
+    <div style="display:flex;gap:20px;justify-content:center;flex-wrap:wrap;">
+      <div class="station-card" id="role-responsable" style="cursor:pointer;">
+        <div class="station-card-name">🏢</div>
+        <div class="station-card-name">Responsable</div>
+        <div class="station-card-city">Gestion complète</div>
+        <button class="btn-acceder">Accéder</button>
+      </div>
+      <div class="station-card" id="role-chauffeur" style="cursor:pointer;">
+        <div class="station-card-name">🚛</div>
+        <div class="station-card-name">Chauffeur</div>
+        <div class="station-card-city">Mes statistiques</div>
+        <button class="btn-acceder">Accéder</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Écran login chauffeur -->
+  <div id="chauffeur-login" hidden>
+    <div class="station-logo">
+      <span class="station-logo-icon">🚛</span>
+      <h1 class="station-logo-title">Espace Chauffeur</h1>
+      <p class="station-logo-subtitle">Entrez votre ID Amazon</p>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:12px;max-width:360px;margin:0 auto;">
+      <input id="chauffeur-id-input" class="rep-input" placeholder="AZR123456789" style="width:100%;text-align:center;font-size:16px;padding:12px;">
+      <p id="chauffeur-login-error" hidden style="color:#f87171;font-size:13px;"></p>
+      <button class="btn-acceder" id="chauffeur-login-btn" style="width:100%;">Connexion</button>
+      <button class="h-btn" id="chauffeur-back-btn" style="margin-top:8px;">← Retour</button>
+    </div>
+  </div>
+
+  <!-- Portail chauffeur mobile -->
+  <div id="chauffeur-portal" hidden></div>
+
+  <!-- Écran de sélection de station -->
+  <div id="station-screen" hidden>
+    <div class="station-logo">
+      <img src="img/matting_2026-4-21_fa553fc4-3d99-11f1-9b2d-16737e16766a.png" alt="SunXP Pro" style="width:200px;height:auto;margin-bottom:8px;">
+      <p class="station-logo-subtitle">Sélectionnez votre station</p>
+    </div>
+
+    <div id="station-cards-grid"></div>
+    <p id="station-empty-msg" hidden>Aucune station disponible.</p>
+
+    <button id="btn-back-to-role" class="h-btn" style="margin-top:8px;opacity:0.6;">← Retour</button>
+  </div>
+
+  <!-- Bouton hamburger + panneau déroulant -->
+  <button id="hamburger-btn" class="hamburger-btn" title="Menu">
+    <span></span><span></span><span></span>
+  </button>
+  <div id="menu-panel" class="menu-panel" hidden>
+    <div class="menu-panel-tabs">
+      <button class="menu-panel-tab active" data-tab="parametres" onclick="setMenuTab('parametres')" title="Paramètres">⚙️</button>
+      <button class="menu-panel-tab" data-tab="documents" onclick="setMenuTab('documents')" title="Documents">📄</button>
+      <button class="menu-panel-tab" data-tab="analyse" onclick="setMenuTab('analyse')" title="Analyse & Performance">📊</button>
+    </div>
+    <div id="menu-panel-content" class="menu-panel-content"></div>
+  </div>
+
+  <!-- App principale (masquée jusqu'à sélection d'une station) -->
+  <div class="app-layout" hidden>
+    <nav class="sidebar">
+      <div class="sidebar-header">SunXP Pro</div>
+      <ul class="nav-tabs">
+        <li class="nav-tab active" data-module="heures">
+          <span class="icon">⏱</span>
+          <span class="label">Heures</span>
+        </li>
+        <li class="nav-tab" data-module="activite">
+          <span class="icon">📋</span>
+          <span class="label">Activité Journalière</span>
+        </li>
+        <li class="nav-tab" data-module="stats">
+          <span class="icon">📊</span>
+          <span class="label">Qualité</span>
+        </li>
+        <li class="nav-tab" data-module="primes">
+          <span class="icon">💰</span>
+          <span class="label">Primes</span>
+        </li>
+        <li class="nav-tab" data-module="rh">
+          <span class="icon">👨‍💼</span>
+          <span class="label">Ressources Humaines</span>
+        </li>
+        <li class="nav-tab" data-module="chef-equipe">
+          <span class="icon">👷</span>
+          <span class="label">Chef d'équipe</span>
+        </li>
+        <li class="nav-tab" data-module="flotte">
+          <span class="icon">🚛</span>
+          <span class="label">Flotte</span>
+        </li>
+        <li class="nav-tab" data-module="repertoire">
+          <span class="icon">📇</span>
+          <span class="label">Répertoire</span>
+        </li>
+      </ul>
+    </nav>
+
+    <main class="content-area">
+      <div class="module-view active" id="module-heures">
+        <h1>Heures</h1>
+      </div>
+      <div class="module-view" id="module-repertoire">
+        <h1>Répertoire</h1>
+      </div>
+      <div class="module-view" id="module-primes">
+        <h1>Primes</h1>
+      </div>
+      <div class="module-view" id="module-stats">
+        <h1>Statistiques</h1>
+      </div>
+      <div class="module-view" id="module-activite">
+        <h1>Activité Journalière</h1>
+      </div>
+      <div class="module-view" id="module-rh">
+        <h1>Ressources Humaines</h1>
+      </div>
+      <div class="module-view" id="module-flotte">
+        <h1>Flotte</h1>
+      </div>
+      <div class="module-view" id="module-chef-equipe">
+        <h1>Chef d'équipe</h1>
+      </div>
+    </main>
+  </div>
+
+  <script defer src="js/supabase-db.js"></script>
+  <script defer src="js/parametres.js"></script>
+  <script defer src="js/documents.js"></script>
+  <script defer src="js/analyse-performance.js"></script>
+  <script defer src="js/bouton-deroulant.js"></script>
+  <script defer src="js/stations.js"></script>
+  <script defer src="js/utils.js"></script>
+  <script defer src="js/heures-calculs.js"></script>
+  <script defer src="js/heures-dashboard.js"></script>
+  <script defer src="js/heures.js"></script>
+  <script defer src="js/identifier-chauffeurs.js"></script>
+  <script defer src="js/repertoire-form.js"></script>
+  <script defer src="js/repertoire.js"></script>
+  <script defer src="js/primes-calculs.js"></script>
+  <script defer src="js/primes-message.js"></script>
+  <script defer src="js/primes.js"></script>
+  <script defer src="js/stats-import.js"></script>
+  <script defer src="js/stats-impacts.js"></script>
+  <script defer src="js/rapport-chauffeur.js"></script>
+  <script defer src="js/rapport-concessions.js"></script>
+  <script defer src="js/stats.js"></script>
+  <script defer src="js/activite.js"></script>
+  <script defer src="js/chauffeur-portal.js"></script>
+  <script defer src="js/chauffeur-portal-extra.js"></script>
+  <script defer src="js/badges-calculs.js"></script>
+  <script defer src="js/badges.js"></script>
+  <script defer src="js/planning.js"></script>
+  <script defer src="js/repos-demandes.js"></script>
+  <script defer src="js/flotte.js"></script>
+  <script defer src="js/flotte-camions.js"></script>
+  <script defer src="js/flotte-degats.js"></script>
+  <script defer src="js/eos-extraction.js"></script>
+  <script defer src="js/chef-equipe.js"></script>
+  <script defer src="js/checkTSM.js"></script>
+  <script defer src="js/ressources-humaines.js"></script>
+  <script defer>
+    // Précharge les chauffeurs depuis data/chauffeurs.json dans window._chauffeurs
+    fetch('data/chauffeurs.json')
+      .then(r => r.json())
+      .then(data => {
+        window._chauffeurs = data;
+        // Aussi dans localStorage pour chaque station
+        Object.keys(data).forEach(sid => {
+          if (!localStorage.getItem('chauffeurs_' + sid))
+            localStorage.setItem('chauffeurs_' + sid, JSON.stringify(data[sid]));
+        });
+      })
+      .catch(() => { window._chauffeurs = {}; });
+  </script>
+</body>
+</html>

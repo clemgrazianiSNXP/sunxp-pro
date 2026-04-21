@@ -1,0 +1,165 @@
+/* ============================================================
+   css/stations.css — Écran de sélection de station (SunXP Pro)
+   ============================================================ */
+
+/* Plein-écran Station_Screen */
+#station-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 100vh;
+  padding: 48px 24px 64px;
+  background: var(--bg-primary);
+  overflow-y: auto;
+}
+
+/* Logo + titre SunXP Pro */
+.station-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 48px;
+}
+
+.station-logo-icon {
+  font-size: 56px;
+  line-height: 1;
+  margin-bottom: 12px;
+  filter: drop-shadow(0 0 18px rgba(255, 200, 50, 0.5));
+}
+
+.station-logo-title {
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.03em;
+  margin: 0;
+}
+
+.station-logo-subtitle {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+}
+
+/* Grille de cards */
+#station-cards-grid {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 24px;
+  justify-content: center;
+  align-items: stretch;
+  max-width: 900px;
+  width: 100%;
+  margin-bottom: 32px;
+}
+
+/* Station Card */
+.station-card {
+  background: var(--bg-sidebar);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 28px 32px;
+  width: 220px;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  transition: border-color var(--transition), transform var(--transition);
+  cursor: pointer;
+}
+
+.station-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+
+.station-card-name { font-size: 1.6rem; font-weight: 700; color: var(--text-primary); letter-spacing: 0.04em; }
+.station-card-city { font-size: 13px; color: var(--text-muted); margin-bottom: 12px; }
+
+.btn-acceder {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 22px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity var(--transition);
+}
+.btn-acceder:hover { opacity: 0.85; }
+
+/* Message vide */
+#station-empty-msg { color: var(--text-muted); font-size: 14px; margin-bottom: 24px; }
+
+/* Bouton Ajouter une station */
+#btn-add-station {
+  background: transparent;
+  border: 1px dashed var(--accent);
+  color: var(--accent);
+  border-radius: 8px;
+  padding: 10px 24px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--transition);
+  margin-bottom: 24px;
+}
+#btn-add-station:hover { background: var(--accent-dim); }
+
+/* Formulaire d'ajout de station */
+#station-form-container {
+  background: var(--bg-sidebar);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 24px 28px;
+  width: 100%;
+  max-width: 400px;
+}
+
+#station-form { display: flex; flex-direction: column; gap: 12px; }
+
+#station-form input {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 9px 12px;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: var(--font-family);
+  outline: none;
+  transition: border-color var(--transition);
+}
+#station-form input:focus { border-color: var(--accent); }
+
+.station-form-actions { display: flex; gap: 10px; }
+
+.station-form-actions button[type="submit"] {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  flex: 1;
+  transition: opacity var(--transition);
+}
+.station-form-actions button[type="submit"]:hover { opacity: 0.85; }
+
+#btn-cancel-form {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color var(--transition);
+}
+#btn-cancel-form:hover { border-color: var(--text-muted); }
+
+#station-form-error { color: #f87171; font-size: 12px; margin: 0; }

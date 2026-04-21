@@ -1,0 +1,10 @@
+{
+  "DWP2": [
+    { "nom": "Martin",  "prenom": "Lucas",  "telephone": "0612345678", "id_amazon": "AZR123456789" },
+    { "nom": "Dupont",  "prenom": "Camille","telephone": "0723456789", "id_amazon": "ABX987654321" },
+    { "nom": "Bernard", "prenom": "Théo",   "telephone": "0634567890", "id_amazon": "AKM456789123" },
+    { "nom": "Leroy",   "prenom": "Inès",   "telephone": "0745678901", "id_amazon": "APQ321654987" },
+    { "nom": "Moreau",  "prenom": "Nathan",  "telephone": "0656789012", "id_amazon": "AWD654321098" }
+  ],
+  "DWP8": []
+}

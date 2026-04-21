@@ -1,0 +1,110 @@
+/* css/repertoire.css — Styles de l'onglet Répertoire */
+
+.rep-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-sidebar);
+  flex-shrink: 0;
+}
+
+.rep-search {
+  flex: 1;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 7px 12px;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: var(--font-family);
+  outline: none;
+  transition: border-color var(--transition);
+}
+.rep-search:focus { border-color: var(--accent); }
+
+.rep-btn {
+  border: none;
+  border-radius: 5px;
+  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity var(--transition);
+  font-family: var(--font-family);
+}
+.rep-btn:hover { opacity: 0.85; }
+.rep-btn-primary  { background: var(--accent); color: #fff; }
+.rep-btn-secondary { background: var(--bg-tab-active); color: var(--text-muted); border: 1px solid var(--border); }
+.rep-btn-edit   { background: var(--bg-tab-active); color: var(--text-primary); border: 1px solid var(--border); font-size: 11px; padding: 4px 8px; }
+.rep-btn-delete { background: transparent; color: #f87171; border: 1px solid #f87171; font-size: 11px; padding: 4px 8px; }
+.rep-btn-wa     { font-size: 16px; text-decoration: none; padding: 2px 4px; }
+
+/* Tableau */
+.rep-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.rep-table th {
+  background: var(--bg-sidebar);
+  color: var(--text-muted);
+  font-weight: 600;
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  position: sticky;
+  top: 0;
+}
+.rep-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  vertical-align: middle;
+}
+.rep-table tr:hover td { background: var(--bg-tab-hover); }
+.rep-actions { display: flex; gap: 6px; align-items: center; }
+.rep-amazon-id { font-family: monospace; font-size: 12px; color: var(--accent); }
+
+/* Formulaire overlay */
+.rep-form-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+}
+.rep-form-box {
+  background: var(--bg-sidebar);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 28px 32px;
+  width: 420px;
+  max-width: 95vw;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.rep-form-title { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin: 0 0 4px; }
+.rep-field { display: flex; flex-direction: column; gap: 4px; }
+.rep-field label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.rep-field small { font-size: 10px; color: var(--text-muted); text-transform: none; letter-spacing: 0; }
+.rep-input {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: var(--font-family);
+  outline: none;
+  transition: border-color var(--transition);
+}
+.rep-input:focus { border-color: var(--accent); }
+.rep-error { font-size: 11px; color: #f87171; min-height: 14px; }
+.rep-form-actions { display: flex; gap: 10px; margin-top: 4px; }
