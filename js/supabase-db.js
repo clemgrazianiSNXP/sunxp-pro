@@ -341,7 +341,7 @@ window.preloadStationData = async function (stationId) {
     if (heuresData) {
       heuresData.forEach(h => {
         const key = stationId + '-heures-' + h.date_jour;
-        if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(h.data));
+        localStorage.setItem(key, JSON.stringify(h.data));
       });
       console.log(`  Heures: ${heuresData.length} jours`);
     }
@@ -351,7 +351,7 @@ window.preloadStationData = async function (stationId) {
     if (statsData) {
       statsData.forEach(s => {
         const key = stationId + '-stats-' + s.type + '-' + s.semaine;
-        if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(s.data));
+        localStorage.setItem(key, JSON.stringify(s.data));
       });
       console.log(`  Stats: ${statsData.length} entrées`);
     }
@@ -361,7 +361,7 @@ window.preloadStationData = async function (stationId) {
     if (primesData) {
       primesData.forEach(p => {
         const key = stationId + '-primes-' + p.annee + '-' + String(p.mois).padStart(2, '0');
-        if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(p.data));
+        localStorage.setItem(key, JSON.stringify(p.data));
       });
       console.log(`  Primes: ${primesData.length} mois`);
     }
@@ -371,7 +371,7 @@ window.preloadStationData = async function (stationId) {
     if (actData) {
       actData.forEach(a => {
         const key = stationId + '-activite-' + a.date_jour;
-        if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(a.data));
+        localStorage.setItem(key, JSON.stringify(a.data));
       });
       console.log(`  Activité: ${actData.length} jours`);
     }
@@ -381,7 +381,7 @@ window.preloadStationData = async function (stationId) {
     if (concData) {
       concData.forEach(c => {
         const key = stationId + '-concessions-' + c.semaine;
-        if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(c.data));
+        localStorage.setItem(key, JSON.stringify(c.data));
       });
     }
 
@@ -390,7 +390,7 @@ window.preloadStationData = async function (stationId) {
     if (retData) {
       retData.forEach(r => {
         const key = stationId + '-retards-' + r.semaine;
-        if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(r.data));
+        localStorage.setItem(key, JSON.stringify(r.data));
       });
     }
 
@@ -398,7 +398,14 @@ window.preloadStationData = async function (stationId) {
     const { data: degData } = await sb().from('degats').select('*').eq('station_id', stationId);
     if (degData && degData.length) {
       const degats = degData.map(d => ({ id: d.degat_id, plaque: d.plaque, chauffeur: d.chauffeur, date: d.date_incident, description: d.description, photos: d.photos || [] }));
-      if (!localStorage.getItem(stationId + '-degats')) localStorage.setItem(stationId + '-degats', JSON.stringify(degats));
+      localStorage.setItem(stationId + '-degats', JSON.stringify(degats));
+    }
+
+    // Chauffeurs
+    const { data: chData } = await sb().from('chauffeurs').select('*').eq('station_id', stationId);
+    if (chData && chData.length) {
+      const chauffeurs = chData.map(c => ({ nom: c.nom, prenom: c.prenom, telephone: c.telephone, id_amazon: c.id_amazon }));
+      localStorage.setItem(stationId + '-repertoire', JSON.stringify(chauffeurs));
     }
 
     console.log('✅ Préchargement terminé');
