@@ -397,7 +397,7 @@ window.preloadStationData = async function (stationId) {
 
     // Dégâts
     const { data: degData } = await sb().from('degats').select('*').eq('station_id', stationId);
-    if (degData && degData.length) {
+    if (degData) {
       const degats = degData.map(d => ({ id: d.degat_id, plaque: d.plaque, chauffeur: d.chauffeur, date: d.date_incident, description: d.description, photos: d.photos || [] }));
       localStorage.setItem(stationId + '-degats', JSON.stringify(degats));
     }
