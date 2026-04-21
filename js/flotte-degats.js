@@ -5,13 +5,16 @@ function getDegatsKey() { return (window.getActiveStationId ? window.getActiveSt
 function loadDegats() { try { return JSON.parse(localStorage.getItem(getDegatsKey())) || []; } catch(_) { return []; } }
 function saveDegats(list) {
   try { localStorage.setItem(getDegatsKey(), JSON.stringify(list)); } catch(_) {}
-  // Sync vers Supabase — on resync la liste complète
   const stationId = window.getActiveStationId ? window.getActiveStationId() : null;
   if (stationId && typeof sb === 'function' && sb()) {
-    sb().from('degats').delete().eq('station_id', stationId).then(() => {
+    sb().from('degats').delete().eq('station_id', stationId).then(({ error: delErr }) => {
+      if (delErr) console.warn('degats delete error:', delErr.message);
       if (list.length) {
-        const rows = list.map(d => ({ station_id: stationId, degat_id: d.id, plaque: d.plaque, chauffeur: d.chauffeur, date_incident: d.date, description: d.description || '', photos: d.photos || [] }));
-        sb().from('degats').insert(rows);
+        const rows = list.map(d => ({ station_id: stationId, degat_id: d.id, plaque: d.plaque, chauffeur: d.chauffeur, date_incident: d.date, description: d.description || '', photos: [] }));
+        sb().from('degats').insert(rows).then(({ error: insErr }) => {
+          if (insErr) console.warn('degats insert error:', insErr.message);
+          else console.log('✅ Dégâts synced:', rows.length);
+        });
       }
     });
   }

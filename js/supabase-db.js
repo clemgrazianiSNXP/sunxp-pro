@@ -23,6 +23,7 @@ function initSupabase() {
 }
 
 function sb() { return _supabaseReady ? _supabase : null; }
+window.sb = sb; // Rendre accessible globalement
 
 /* ── Helper : écriture double (Supabase + localStorage) ──── */
 /* On écrit toujours en localStorage ET en Supabase.
