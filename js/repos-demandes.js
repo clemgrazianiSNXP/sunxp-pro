@@ -280,11 +280,12 @@ function updateReposBell() {
     }
   }
 
-  // Topbar bell
+  // Topbar bell — uniquement visible pour le responsable connecté à une station
   const topBell = document.getElementById('topbar-bell');
   if (topBell) {
     const isDriver = typeof portalChauffeur !== 'undefined' && portalChauffeur !== null;
-    if (isDriver || !stationId) { topBell.style.display = 'none'; return; }
+    const appVisible = document.querySelector('.app-layout') && !document.querySelector('.app-layout').hidden;
+    if (isDriver || !stationId || !appVisible) { topBell.style.display = 'none'; return; }
     topBell.style.display = '';
     // Badge count
     let badge = topBell.querySelector('.topbar-bell-badge');
