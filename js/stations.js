@@ -130,6 +130,7 @@ function setActiveStation(station, skipSave) {
   if (!skipSave) saveActiveToStorage(station.id);
   updateNavbar(station);
   showAppLayout();
+  if (typeof showToolbar === 'function') showToolbar(true);
   // Preload data from Supabase for this station
   if (typeof preloadStationData === 'function') {
     preloadStationData(station.id).then(() => {
@@ -156,6 +157,7 @@ function clearActiveStation() {
   clearActiveFromStorage();
   document.querySelector('.sidebar-header').innerHTML = 'SunXP Pro';
   if (typeof closeMenuPanel === 'function') closeMenuPanel();
+  if (typeof showToolbar === 'function') showToolbar(false);
   showStationScreen();
 }
 
@@ -350,6 +352,7 @@ document.addEventListener('DOMContentLoaded', () => {
   getEl('btn-back-to-role')?.addEventListener('click', () => {
     localStorage.removeItem('sunxp_role');
     if (typeof closeMenuPanel === 'function') closeMenuPanel();
+    if (typeof showToolbar === 'function') showToolbar(false);
     document.getElementById('station-screen').hidden = true;
     document.getElementById('station-screen').style.display = 'none';
     document.getElementById('role-screen').hidden = false;
@@ -457,6 +460,7 @@ function loginChauffeur(idAmazon, stationId) {
 
     window.getActiveStationId = () => stationId;
     window.getActiveStation = () => ({ id: stationId });
+    if (typeof showToolbar === 'function') showToolbar(true);
 
     // Pré-charger les données depuis Supabase avant d'afficher le portail
     preloadStationData(stationId).then(() => {

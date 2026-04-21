@@ -75,6 +75,8 @@ function renderPortal() {
   c.querySelector('#portal-logout')?.addEventListener('click', () => {
     portalChauffeur = null;
     c.hidden = true;
+    if (typeof showToolbar === 'function') showToolbar(false);
+    if (typeof closeMenuPanel === 'function') closeMenuPanel();
     document.getElementById('role-screen').hidden = false;
   });
 }

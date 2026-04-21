@@ -91,7 +91,8 @@ document.addEventListener('DOMContentLoaded', initNavigation);
 
   // Droite : cloche notifications + bouton thème (décalé pour ne pas être caché par le hamburger)
   const right = document.createElement('div');
-  right.style.cssText = 'margin-right:40px;display:flex;align-items:center;gap:8px;';
+  right.id = 'topbar-right';
+  right.style.cssText = 'margin-right:40px;display:none;align-items:center;gap:8px;';
 
   // Cloche notifications repos
   const bellBtn = document.createElement('button');
@@ -157,3 +158,11 @@ document.addEventListener('DOMContentLoaded', initNavigation);
     }, () => { center.textContent = '📍 Localisation refusée'; });
   }
 })();
+
+/* ── Afficher/masquer la toolbar selon le rôle ────────────── */
+window.showToolbar = function (show) {
+  const hamburger = document.getElementById('hamburger-btn');
+  const topRight = document.getElementById('topbar-right');
+  if (hamburger) hamburger.style.display = show ? '' : 'none';
+  if (topRight) topRight.style.display = show ? 'flex' : 'none';
+};
