@@ -309,6 +309,47 @@ function renderStationsManager() {
   return wrap;
 }
 
+/* ── Login responsable ─────────────────────────────────────── */
+const RESPONSABLE_PWD = 'Sunxppro2026&';
+
+function showResponsableLogin(roleScreen, stationScreen) {
+  roleScreen.hidden = true;
+  const loginScreen = document.getElementById('responsable-login');
+  loginScreen.hidden = false;
+
+  const pwdInput = document.getElementById('responsable-pwd-input');
+  const errEl = document.getElementById('responsable-login-error');
+  pwdInput.value = '';
+  errEl.hidden = true;
+  pwdInput.focus();
+
+  const doLogin = () => {
+    const pwd = pwdInput.value;
+    if (pwd === RESPONSABLE_PWD) {
+      errEl.hidden = true;
+      loginScreen.hidden = true;
+      localStorage.setItem('sunxp_role', 'responsable');
+      clearActiveFromStorage();
+      activeStation = null;
+      stationScreen.hidden = false;
+      stationScreen.style.display = '';
+      loadStations();
+    } else {
+      errEl.textContent = 'Mot de passe incorrect.';
+      errEl.hidden = false;
+      pwdInput.value = '';
+      pwdInput.focus();
+    }
+  };
+
+  document.getElementById('responsable-login-btn').onclick = doLogin;
+  pwdInput.onkeydown = e => { if (e.key === 'Enter') doLogin(); };
+  document.getElementById('responsable-back-btn').onclick = () => {
+    loginScreen.hidden = true;
+    roleScreen.hidden = false;
+  };
+}
+
 /* ── Init ─────────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
   // Écran de choix de rôle
@@ -324,12 +365,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Attacher les listeners de rôle TOUJOURS
   document.getElementById('role-responsable').querySelector('.btn-acceder').addEventListener('click', () => {
-    localStorage.setItem('sunxp_role', 'responsable');
-    clearActiveFromStorage();
-    activeStation = null;
-    roleScreen.hidden = true;
-    stationScreen.hidden = false;
-    loadStations();
+    showResponsableLogin(roleScreen, stationScreen);
   });
   document.getElementById('role-chauffeur').querySelector('.btn-acceder').addEventListener('click', () => {
     roleScreen.hidden = true;

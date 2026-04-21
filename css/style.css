@@ -196,7 +196,8 @@ body { padding-top: 36px; }
   .nav-tab.active { border-bottom-color:var(--accent); border-left-color:transparent; }
 }
 
-#role-screen[hidden], #chauffeur-login[hidden], #chauffeur-portal[hidden], #station-screen[hidden] { display:none !important; }
+#role-screen[hidden], #chauffeur-login[hidden], #chauffeur-portal[hidden], #station-screen[hidden], #responsable-login[hidden] { display:none !important; }
+#responsable-login { display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-height:100vh;padding:48px 24px 64px;background:var(--bg-primary);overflow-y:auto; }
 
 /* ============================================================
    Portail Chauffeur — Navigation mensuelle / hebdomadaire
