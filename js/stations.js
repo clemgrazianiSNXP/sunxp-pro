@@ -368,7 +368,33 @@ function handleChauffeurLogin() {
   const idInput = document.getElementById('chauffeur-id-input').value.replace(/\s/g,'').toUpperCase();
   const errEl = document.getElementById('chauffeur-login-error');
   if (!idInput) { errEl.textContent = 'Veuillez entrer votre ID Amazon.'; errEl.hidden = false; return; }
-  const stationsRaw = localStorage.getItem('stations') || localStorage.getItem('sunxp_stations');
+
+  // Essayer Supabase d'abord
+  if (typeof sb === 'function' && sb()) {
+    sb().from('chauffeurs').select('*').ilike('id_amazon', idInput).then(({ data, error }) => {
+      if (!error && data && data.length) {
+        const found = data[0];
+        const stationId = found.station_id;
+        // Stocker dans localStorage pour le portail
+        localStorage.setItem(stationId + '-repertoire', JSON.stringify(
+          data.filter(c => c.station_id === stationId).map(c => ({ nom: c.nom, prenom: c.prenom, telephone: c.telephone, id_amazon: c.id_amazon }))
+        ));
+        localStorage.setItem('sunxp_role', 'chauffeur');
+        localStorage.setItem('sunxp_chauffeur_id', idInput);
+        localStorage.setItem('sunxp_chauffeur_station', stationId);
+        loginChauffeur(idInput, stationId);
+        return;
+      }
+      // Fallback localStorage
+      fallbackLocalLogin(idInput, errEl);
+    }).catch(() => fallbackLocalLogin(idInput, errEl));
+    return;
+  }
+  fallbackLocalLogin(idInput, errEl);
+}
+
+function fallbackLocalLogin(idInput, errEl) {
+  const stationsRaw = localStorage.getItem('stations');
   let stationsList = [];
   try { stationsList = JSON.parse(stationsRaw) || []; } catch(_) {}
   if (!stationsList.length) {
@@ -407,9 +433,9 @@ function searchChauffeurInStations(stationsList, idInput, errEl) {
 
 function loginChauffeur(idAmazon, stationId) {
   const cleanId = id => String(id||'').replace(/\s/g,'').toUpperCase();
-  try {
-    const raw = localStorage.getItem(stationId + '-repertoire');
-    const list = JSON.parse(raw);
+
+  // Essayer de charger depuis Supabase si localStorage vide
+  const tryLogin = (list) => {
     const chauffeur = list.find(c => cleanId(c.id_amazon) === cleanId(idAmazon) || cleanId(c.idAmazon) === cleanId(idAmazon));
     if (!chauffeur) { document.getElementById('role-screen').hidden = false; return; }
 
@@ -422,12 +448,32 @@ function loginChauffeur(idAmazon, stationId) {
     const portal = document.getElementById('chauffeur-portal');
     portal.hidden = false;
 
-    // Set station active pour les fonctions de calcul
     window.getActiveStationId = () => stationId;
     window.getActiveStation = () => ({ id: stationId });
 
     initChauffeurPortal(chauffeur, stationId);
-  } catch(_) {
+  };
+
+  try {
+    const raw = localStorage.getItem(stationId + '-repertoire');
+    if (raw) {
+      tryLogin(JSON.parse(raw));
+      return;
+    }
+  } catch (_) {}
+
+  // Fallback Supabase
+  if (typeof sb === 'function' && sb()) {
+    sb().from('chauffeurs').select('*').eq('station_id', stationId).then(({ data }) => {
+      if (data && data.length) {
+        const list = data.map(c => ({ nom: c.nom, prenom: c.prenom, telephone: c.telephone, id_amazon: c.id_amazon }));
+        localStorage.setItem(stationId + '-repertoire', JSON.stringify(list));
+        tryLogin(list);
+      } else {
+        document.getElementById('role-screen').hidden = false;
+      }
+    }).catch(() => { document.getElementById('role-screen').hidden = false; });
+  } else {
     document.getElementById('role-screen').hidden = false;
   }
 }
