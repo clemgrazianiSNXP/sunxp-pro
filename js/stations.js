@@ -130,7 +130,14 @@ function setActiveStation(station, skipSave) {
   if (!skipSave) saveActiveToStorage(station.id);
   updateNavbar(station);
   showAppLayout();
-  if (typeof initNavigation === 'function') initNavigation();
+  // Preload data from Supabase for this station
+  if (typeof preloadStationData === 'function') {
+    preloadStationData(station.id).then(() => {
+      if (typeof initNavigation === 'function') initNavigation();
+    });
+  } else {
+    if (typeof initNavigation === 'function') initNavigation();
+  }
 }
 
 function updateNavbar(station) {

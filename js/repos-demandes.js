@@ -15,7 +15,9 @@ function loadReposDemandes(stationId) {
 }
 
 function saveReposDemandes(stationId, demandes) {
-  try { localStorage.setItem(getReposKey(stationId), JSON.stringify(demandes)); } catch (_) {}
+  const key = getReposKey(stationId);
+  try { localStorage.setItem(key, JSON.stringify(demandes)); } catch (_) {}
+  if (typeof dbSave === 'function') dbSave('repos_demandes', key, { station_id: stationId }, demandes);
 }
 
 /**

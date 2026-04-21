@@ -408,6 +408,13 @@ window.preloadStationData = async function (stationId) {
       localStorage.setItem(stationId + '-repertoire', JSON.stringify(chauffeurs));
     }
 
+    // Repos demandes
+    const { data: reposData } = await sb().from('repos_demandes').select('data').eq('station_id', stationId).maybeSingle();
+    if (reposData && reposData.data) {
+      localStorage.setItem(stationId + '-repos-demandes', JSON.stringify(reposData.data));
+      console.log('  Repos: chargés');
+    }
+
     console.log('✅ Préchargement terminé');
   } catch (e) {
     console.warn('Préchargement partiel:', e.message);

@@ -59,7 +59,9 @@ function loadPrimesData(stationId, year, month) {
 }
 
 function savePrimesData(stationId, year, month, data) {
-  try { localStorage.setItem(primesStorageKey(stationId, year, month), JSON.stringify(data)); } catch(_) {}
+  const key = primesStorageKey(stationId, year, month);
+  try { localStorage.setItem(key, JSON.stringify(data)); } catch(_) {}
+  if (typeof dbSave === 'function') dbSave('primes', key, { station_id: stationId, annee: year, mois: month + 1 }, data);
 }
 
 function getReportPrecedent(stationId, year, month) {
