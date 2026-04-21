@@ -318,3 +318,83 @@ document.addEventListener('DOMContentLoaded', () => {
   // Attendre que le SDK Supabase soit chargé
   setTimeout(initSupabase, 500);
 });
+
+/* ══════════════════════════════════════════════════════════════
+   PRELOAD — Charge toutes les données d'une station depuis Supabase
+   vers localStorage (pour le portail chauffeur sur un autre appareil)
+   ══════════════════════════════════════════════════════════════ */
+window.preloadStationData = async function (stationId) {
+  if (!sb()) return;
+  console.log('📥 Préchargement données station', stationId, '...');
+
+  try {
+    // Heures
+    const { data: heuresData } = await sb().from('heures').select('date_jour, data').eq('station_id', stationId);
+    if (heuresData) {
+      heuresData.forEach(h => {
+        const key = stationId + '-heures-' + h.date_jour;
+        if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(h.data));
+      });
+      console.log(`  Heures: ${heuresData.length} jours`);
+    }
+
+    // Stats
+    const { data: statsData } = await sb().from('stats').select('type, semaine, data').eq('station_id', stationId);
+    if (statsData) {
+      statsData.forEach(s => {
+        const key = stationId + '-stats-' + s.type + '-' + s.semaine;
+        if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(s.data));
+      });
+      console.log(`  Stats: ${statsData.length} entrées`);
+    }
+
+    // Primes
+    const { data: primesData } = await sb().from('primes').select('annee, mois, data').eq('station_id', stationId);
+    if (primesData) {
+      primesData.forEach(p => {
+        const key = stationId + '-primes-' + p.annee + '-' + String(p.mois).padStart(2, '0');
+        if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(p.data));
+      });
+      console.log(`  Primes: ${primesData.length} mois`);
+    }
+
+    // Activité
+    const { data: actData } = await sb().from('activite').select('date_jour, data').eq('station_id', stationId);
+    if (actData) {
+      actData.forEach(a => {
+        const key = stationId + '-activite-' + a.date_jour;
+        if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(a.data));
+      });
+      console.log(`  Activité: ${actData.length} jours`);
+    }
+
+    // Concessions
+    const { data: concData } = await sb().from('concessions').select('semaine, data').eq('station_id', stationId);
+    if (concData) {
+      concData.forEach(c => {
+        const key = stationId + '-concessions-' + c.semaine;
+        if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(c.data));
+      });
+    }
+
+    // Retards
+    const { data: retData } = await sb().from('retards').select('semaine, data').eq('station_id', stationId);
+    if (retData) {
+      retData.forEach(r => {
+        const key = stationId + '-retards-' + r.semaine;
+        if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(r.data));
+      });
+    }
+
+    // Dégâts
+    const { data: degData } = await sb().from('degats').select('*').eq('station_id', stationId);
+    if (degData && degData.length) {
+      const degats = degData.map(d => ({ id: d.degat_id, plaque: d.plaque, chauffeur: d.chauffeur, date: d.date_incident, description: d.description, photos: d.photos || [] }));
+      if (!localStorage.getItem(stationId + '-degats')) localStorage.setItem(stationId + '-degats', JSON.stringify(degats));
+    }
+
+    console.log('✅ Préchargement terminé');
+  } catch (e) {
+    console.warn('Préchargement partiel:', e.message);
+  }
+};

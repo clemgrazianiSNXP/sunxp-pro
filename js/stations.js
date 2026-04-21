@@ -451,7 +451,10 @@ function loginChauffeur(idAmazon, stationId) {
     window.getActiveStationId = () => stationId;
     window.getActiveStation = () => ({ id: stationId });
 
-    initChauffeurPortal(chauffeur, stationId);
+    // Pré-charger les données depuis Supabase avant d'afficher le portail
+    preloadStationData(stationId).then(() => {
+      initChauffeurPortal(chauffeur, stationId);
+    });
   };
 
   try {
