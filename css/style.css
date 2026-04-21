@@ -196,7 +196,7 @@ body { padding-top: 36px; }
   .nav-tab.active { border-bottom-color:var(--accent); border-left-color:transparent; }
 }
 
-#role-screen[hidden], #chauffeur-login[hidden], #chauffeur-portal[hidden] { display:none !important; }
+#role-screen[hidden], #chauffeur-login[hidden], #chauffeur-portal[hidden], #station-screen[hidden] { display:none !important; }
 
 /* ============================================================
    Portail Chauffeur — Navigation mensuelle / hebdomadaire

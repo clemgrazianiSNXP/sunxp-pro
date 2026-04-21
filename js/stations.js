@@ -452,6 +452,7 @@ function loginChauffeur(idAmazon, stationId) {
     document.getElementById('role-screen').hidden = true;
     document.getElementById('chauffeur-login').hidden = true;
     document.getElementById('station-screen').hidden = true;
+    document.getElementById('station-screen').style.display = 'none';
     document.querySelector('.app-layout').hidden = true;
     document.querySelector('.app-layout').style.display = 'none';
 
