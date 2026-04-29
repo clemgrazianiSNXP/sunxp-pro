@@ -10,13 +10,44 @@ function saveDegats(list) {
     sb().from('degats').delete().eq('station_id', stationId).then(({ error: delErr }) => {
       if (delErr) console.warn('degats delete error:', delErr.message);
       if (list.length) {
-        const rows = list.map(d => ({ station_id: stationId, degat_id: d.id, plaque: d.plaque, chauffeur: d.chauffeur, date_incident: d.date, description: d.description || '', photos: [] }));
+        const rows = list.map(d => ({ station_id: stationId, degat_id: d.id, plaque: d.plaque, chauffeur: d.chauffeur, date_incident: d.date, description: d.description || '', photos: d.photos || [] }));
         sb().from('degats').insert(rows).then(({ error: insErr }) => {
           if (insErr) console.warn('degats insert error:', insErr.message);
           else console.log('✅ Dégâts synced:', rows.length);
         });
       }
     });
+  }
+}
+
+/* ── Upload photo vers Supabase Storage ───────────────────── */
+async function uploadDegatsPhoto(stationId, degatId, file) {
+  if (!sb()) return null;
+  const ext = file.name.split('.').pop() || 'jpg';
+  const path = `degats/${stationId}/${degatId}_${Date.now()}.${ext}`;
+  try {
+    const { data, error } = await sb().storage.from('photos').upload(path, file, { cacheControl: '3600', upsert: false });
+    if (error) { console.warn('Upload photo error:', error.message); return null; }
+    const { data: urlData } = sb().storage.from('photos').getPublicUrl(path);
+    return urlData?.publicUrl || null;
+  } catch (e) { console.warn('Upload photo exception:', e.message); return null; }
+}
+
+async function deleteDegatsPhoto(url) {
+  if (!sb() || !url) return;
+  try {
+    // Extraire le path depuis l'URL publique
+    const match = url.match(/\/storage\/v1\/object\/public\/photos\/(.+)$/);
+    if (!match) return;
+    const path = decodeURIComponent(match[1]);
+    await sb().storage.from('photos').remove([path]);
+  } catch (e) { console.warn('Delete photo error:', e.message); }
+}
+
+async function deleteDegatsPhotos(photos) {
+  if (!photos || !photos.length) return;
+  for (const url of photos) {
+    if (url && url.startsWith('http')) await deleteDegatsPhoto(url);
   }
 }
 
@@ -139,7 +170,12 @@ function showChauffeurDegats(nom, incidents) {
     const delBtn = document.createElement('button');
     delBtn.className = 'rep-btn rep-btn-delete'; delBtn.style.cssText = 'font-size:9px;margin-top:6px;';
     delBtn.textContent = '🗑';
-    delBtn.onclick = () => { showConfirmModal('Supprimer ce dégât ?', () => { saveDegats(loadDegats().filter(x => x.id !== d.id)); overlay.remove(); if (typeof renderFlotte === 'function') renderFlotte(); }); };
+    delBtn.onclick = () => { showConfirmModal('Supprimer ce dégât ?', async () => {
+      await deleteDegatsPhotos(d.photos);
+      saveDegats(loadDegats().filter(x => x.id !== d.id));
+      overlay.remove();
+      if (typeof renderFlotte === 'function') renderFlotte();
+    }); };
     card.appendChild(delBtn);
     box.appendChild(card);
   });
@@ -197,17 +233,21 @@ function showDegatsForm(camions, chauffeurs, stationId) {
   cancelBtn.className = 'h-btn'; cancelBtn.style.cssText = 'flex:1;';
   cancelBtn.textContent = 'Annuler';
   cancelBtn.onclick = () => overlay.remove();
-  saveBtn.onclick = () => {
+  saveBtn.onclick = async () => {
     if (!selCamion.value || !selChauffeur.value) { alert('Choisissez un camion et un chauffeur.'); return; }
+    saveBtn.disabled = true; saveBtn.textContent = '⏳ Upload...';
+    const degatId = 'dg_' + Date.now();
     const files = photoInp.files;
-    const readPhotos = Array.from(files).map(f => new Promise(res => { const r = new FileReader(); r.onload = e => res(e.target.result); r.readAsDataURL(f); }));
-    Promise.all(readPhotos).then(photos => {
-      const degats = loadDegats();
-      degats.push({ id: 'dg_' + Date.now(), plaque: selCamion.value, chauffeur: selChauffeur.value, date: dateInp.value, description: desc.value, photos });
-      saveDegats(degats);
-      overlay.remove();
-      if (typeof renderFlotte === 'function') renderFlotte();
-    });
+    const photos = [];
+    for (const f of files) {
+      const url = await uploadDegatsPhoto(stationId, degatId, f);
+      if (url) photos.push(url);
+    }
+    const degats = loadDegats();
+    degats.push({ id: degatId, plaque: selCamion.value, chauffeur: selChauffeur.value, date: dateInp.value, description: desc.value, photos });
+    saveDegats(degats);
+    overlay.remove();
+    if (typeof renderFlotte === 'function') renderFlotte();
   };
   btns.appendChild(saveBtn); btns.appendChild(cancelBtn);
   box.appendChild(btns);
