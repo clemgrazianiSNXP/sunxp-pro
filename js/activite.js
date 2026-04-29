@@ -235,8 +235,8 @@ function buildActTable() {
   activiteRoutes.forEach((r,idx)=>{
     const tr=document.createElement('tr');const arH=Math.round(r.arrets/7.25);const isRed=r.arrets>120;
     const rowBg=isRed?'#f4a0a0':(idx%2===0?'#ffffff':'#f0f0f0');const rowColor=isRed?'#8b0000':'#111';
-    const tdN=document.createElement('td');tdN.style.cssText=tdS(rowBg,rowColor)+'min-width:75px;';
-    const nI=document.createElement('input');nI.value=r.chauffeur;nI.style.cssText='border:none;background:transparent;font-weight:700;font-size:11px;color:'+rowColor+';width:72px;outline:none;text-align:center;';nI.onchange=()=>{r.chauffeur=nI.value;saveActivite();};tdN.appendChild(nI);
+    const tdN=document.createElement('td');tdN.style.cssText=tdS(rowBg,rowColor)+'min-width:150px;';
+    const nI=document.createElement('input');nI.value=r.chauffeur;nI.style.cssText='border:none;background:transparent;font-weight:700;font-size:11px;color:'+rowColor+';width:140px;outline:none;text-align:center;';nI.onchange=()=>{r.chauffeur=nI.value;saveActivite();};tdN.appendChild(nI);
     const tdR=document.createElement('td');tdR.style.cssText=tdS(rowBg,rowColor);tdR.textContent=r.route;
     const tdAH=document.createElement('td');tdAH.style.cssText=tdS(isRed?'#f4a0a0':'#c8e6c9',isRed?'#8b0000':'#1b5e20');tdAH.textContent=arH;
     const tdA=document.createElement('td');tdA.style.cssText=tdS(rowBg,rowColor);tdA.textContent=r.arrets;
@@ -254,7 +254,7 @@ function buildActTable() {
 }
 function buildSpecialRow(nom,label,bg,color,idx,list){
   const tr=document.createElement('tr');
-  const tdN=document.createElement('td');tdN.style.cssText=tdS(bg,color)+'min-width:75px;';const nI=document.createElement('input');nI.value=nom;nI.style.cssText='border:none;background:transparent;font-weight:700;font-size:11px;color:'+color+';width:72px;outline:none;text-align:center;';nI.onchange=()=>{list[idx].nom=nI.value;saveActivite();};tdN.appendChild(nI);
+  const tdN=document.createElement('td');tdN.style.cssText=tdS(bg,color)+'min-width:150px;';const nI=document.createElement('input');nI.value=nom;nI.style.cssText='border:none;background:transparent;font-weight:700;font-size:11px;color:'+color+';width:140px;outline:none;text-align:center;';nI.onchange=()=>{list[idx].nom=nI.value;saveActivite();};tdN.appendChild(nI);
   const tdL=document.createElement('td');tdL.colSpan=4;tdL.style.cssText=tdS(bg,color)+'text-align:center;font-weight:700;font-size:13px;';tdL.textContent=label;
   const tdD=document.createElement('td');tdD.style.cssText=tdS(bg,color)+'text-align:center;';const d=document.createElement('button');d.textContent='×';d.style.cssText='background:none;border:none;color:'+color+';cursor:pointer;font-size:16px;font-weight:700;';d.onclick=()=>{list.splice(idx,1);saveActivite();renderActivite();};tdD.appendChild(d);
   [tdN,tdL,tdD].forEach(td=>tr.appendChild(td));return tr;
@@ -292,10 +292,11 @@ function buildProductivite() {
   let html=`<h3 style="color:var(--text-primary);margin-bottom:12px;">Productivité — ${monthName}</h3>`;
   const entries=Object.entries(stats);
   if(!entries.length){html+='<p style="color:var(--text-muted);">Aucune donnée pour ce mois.</p>';wrap.innerHTML=html;return wrap;}
-  html+='<table class="rep-table"><thead><tr><th>Chauffeur</th><th>Moy. Arrêts/H</th><th>Total Arrêts</th></tr></thead><tbody>';
+  html+='<table class="rep-table"><thead><tr><th style="text-align:center;">Chauffeur</th><th style="text-align:center;">Moy. Arrêts/H</th><th style="text-align:center;">Moy. Arrêts/Jour</th></tr></thead><tbody>';
   entries.sort((a,b)=>{const ma=a[1].jours>0?a[1].totalArH/a[1].jours:0;const mb=b[1].jours>0?b[1].totalArH/b[1].jours:0;return mb-ma;}).forEach(([nom,s])=>{
     const moyArH=s.jours>0?Math.round(s.totalArH/s.jours):0;
-    html+=`<tr><td>${nom}</td><td>${moyArH}</td><td>${s.totalArrets}</td></tr>`;
+    const moyArrets=s.jours>0?Math.round(s.totalArrets/s.jours):0;
+    html+=`<tr><td style="text-align:center;">${nom}</td><td style="text-align:center;">${moyArH}</td><td style="text-align:center;">${moyArrets}</td></tr>`;
   });
   html+='</tbody></table>';wrap.innerHTML=html;return wrap;
 }
