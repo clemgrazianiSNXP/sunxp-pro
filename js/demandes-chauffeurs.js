@@ -223,14 +223,14 @@ function renderAcompteChauffeur() {
   if (demandes.length) {
     const hist = document.createElement('div');
     hist.style.cssText = 'margin-top:14px;';
-    hist.innerHTML = '<div style="font-size:13px;font-weight:700;margin-bottom:8px;">Mes demandes</div>';
+    hist.innerHTML = '<h4 style="font-size:13px;color:var(--text-muted);margin-bottom:6px;">Mes demandes</h4>';
     demandes.sort((a,b) => new Date(b.dateDemande) - new Date(a.dateDemande)).forEach(d => {
       const icon = d.statut === 'en_attente' ? '⏳' : d.statut === 'acceptee' ? '✅' : '❌';
       const color = d.statut === 'en_attente' ? '#fbbf24' : d.statut === 'acceptee' ? '#4ade80' : '#f87171';
-      const div = document.createElement('div');
-      div.style.cssText = `padding:8px 10px;border-left:3px solid ${color};border-radius:4px;background:var(--bg-tab-active);margin-bottom:6px;font-size:12px;`;
-      div.innerHTML = `${icon} <b>${d.montant}€</b> — ${new Date(d.dateDemande).toLocaleDateString('fr-FR')} <span style="color:var(--text-muted);font-size:10px;">${d.statut}</span>`;
-      hist.appendChild(div);
+      const card = document.createElement('div');
+      card.style.cssText = `padding:8px 10px;background:var(--bg-sidebar);border:1px solid var(--border);border-left:3px solid ${color};border-radius:6px;margin-bottom:6px;font-size:12px;`;
+      card.innerHTML = `${icon} <b>${d.montant}€</b> — ${new Date(d.dateDemande).toLocaleDateString('fr-FR')} — <span style="color:${color};">${d.statut.replace('_',' ')}</span>`;
+      hist.appendChild(card);
     });
     wrap.appendChild(hist);
   }
@@ -292,14 +292,14 @@ function renderCongesChauffeur() {
   if (demandes.length) {
     const hist = document.createElement('div');
     hist.style.cssText = 'margin-top:14px;';
-    hist.innerHTML = '<div style="font-size:13px;font-weight:700;margin-bottom:8px;">Mes demandes</div>';
+    hist.innerHTML = '<h4 style="font-size:13px;color:var(--text-muted);margin-bottom:6px;">Mes demandes</h4>';
     demandes.sort((a,b) => new Date(b.dateDemande) - new Date(a.dateDemande)).forEach(d => {
       const icon = d.statut === 'en_attente' ? '⏳' : d.statut === 'acceptee' ? '✅' : '❌';
       const color = d.statut === 'en_attente' ? '#fbbf24' : d.statut === 'acceptee' ? '#4ade80' : '#f87171';
-      const div = document.createElement('div');
-      div.style.cssText = `padding:8px 10px;border-left:3px solid ${color};border-radius:4px;background:var(--bg-tab-active);margin-bottom:6px;font-size:12px;`;
-      div.innerHTML = `${icon} ${new Date(d.dateDebut).toLocaleDateString('fr-FR')} → ${new Date(d.dateFin).toLocaleDateString('fr-FR')} <span style="color:var(--text-muted);font-size:10px;">${d.statut}</span>`;
-      hist.appendChild(div);
+      const card = document.createElement('div');
+      card.style.cssText = `padding:8px 10px;background:var(--bg-sidebar);border:1px solid var(--border);border-left:3px solid ${color};border-radius:6px;margin-bottom:6px;font-size:12px;`;
+      card.innerHTML = `${icon} <b>${new Date(d.dateDebut).toLocaleDateString('fr-FR')} → ${new Date(d.dateFin).toLocaleDateString('fr-FR')}</b> — <span style="color:${color};">${d.statut.replace('_',' ')}</span>`;
+      hist.appendChild(card);
     });
     wrap.appendChild(hist);
   }
