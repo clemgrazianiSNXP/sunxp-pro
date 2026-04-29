@@ -257,6 +257,11 @@ function renderCongesChauffeur() {
       const err = document.getElementById('conge-error');
       if (!debut || !fin) { err.textContent = 'Dates obligatoires.'; err.style.display = ''; return; }
       if (new Date(fin) < new Date(debut)) { err.textContent = 'La date de fin doit être après le début.'; err.style.display = ''; return; }
+      // Vérifier 30 jours avant
+      const now = new Date();
+      const debutDate = new Date(debut);
+      const diffDays = Math.ceil((debutDate - now) / (1000 * 60 * 60 * 24));
+      if (diffDays < 30) { err.textContent = '❌ La demande doit être faite au moins 30 jours avant la date de début.'; err.style.display = ''; return; }
       const demandes = loadConges(sid);
       demandes.push({ id: 'cp_' + Date.now(), chauffeurNom: nom, chauffeurId: portalChauffeur.id_amazon, dateDebut: debut, dateFin: fin, motif, dateDemande: new Date().toISOString(), statut: 'en_attente' });
       saveConges(sid, demandes);
