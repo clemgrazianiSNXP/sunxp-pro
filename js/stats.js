@@ -219,11 +219,12 @@ function buildDSDPMO() {
       const text = await readFileAsText(file);
       const rows = parseCSVDSDPMO(text);
       if (!rows.length) { alert('Aucune donnée trouvée dans ce CSV.'); return; }
-      const semaine = prompt('Numéro de semaine pour ces données DS/DPMO ?', rows[0].semaine || '') || ('import-'+Date.now());
-      statsWeekDSDPMO = semaine;
-      // Met à jour le champ semaine dans chaque ligne
+      showPromptModal('Numéro de semaine pour ces données DS/DPMO', 'ex: 15', rows[0].semaine || '', (semaine) => {
+        statsWeekDSDPMO = semaine;
+        // Met à jour le champ semaine dans chaque ligne
       rows.forEach(r => { r.semaine = semaine; });
       saveStatsData('dsdpmo', statsWeekDSDPMO, rows); renderStats();
+      });
     }; inp.click();
   };
   wrap.appendChild(buildStatsToolbar(importBtn, 'dsdpmo', statsWeekDSDPMO, weeks, w => { statsWeekDSDPMO = w; }));
@@ -258,10 +259,11 @@ function buildPOD() {
       const text = await readPDFAsText(file);
       console.log('Toutes les clés localStorage:', Object.keys(localStorage));
       console.log('Station active:', sessionStorage.getItem('stationActive') || localStorage.getItem('stationActive'));
-      const semaine = prompt('Numéro de semaine pour ces données POD ?','') || ('import-'+Date.now());
-      const rows = parsePDFTextPOD(text, semaine);
-      if (!rows.length) { alert('Aucune donnée POD trouvée.'); return; }
-      statsWeekPOD = semaine; saveStatsData('pod', semaine, rows); renderStats();
+      showPromptModal('Numéro de semaine pour ces données POD', 'ex: 15', '', (semaine) => {
+        const rows = parsePDFTextPOD(text, semaine);
+        if (!rows.length) { alert('Aucune donnée POD trouvée.'); return; }
+        statsWeekPOD = semaine; saveStatsData('pod', semaine, rows); renderStats();
+      });
     }; inp.click();
   };
   wrap.appendChild(buildStatsToolbar(importBtn, 'pod', statsWeekPOD, weeks, w => { statsWeekPOD = w; }));
@@ -300,12 +302,13 @@ function buildDWC() {
     const inp = document.createElement('input'); inp.type='file'; inp.accept='.html,.htm';
     inp.onchange = async () => {
       const file = inp.files[0]; if (!file) return;
-      const semaine = prompt('Numéro de semaine pour ces données DWC ?', '') || ('import-'+Date.now());
-      const rows = await parseDWCHTML(file, semaine);
-      if (!rows.length) { alert('Aucune donnée extraite du fichier HTML.'); return; }
-      statsWeekDWC = semaine;
-      saveStatsData('dwc', semaine, rows);
-      renderStats();
+      showPromptModal('Numéro de semaine pour ces données DWC', 'ex: 15', '', async (semaine) => {
+        const rows = await parseDWCHTML(file, semaine);
+        if (!rows.length) { alert('Aucune donnée extraite du fichier HTML.'); return; }
+        statsWeekDWC = semaine;
+        saveStatsData('dwc', semaine, rows);
+        renderStats();
+      });
     }; inp.click();
   };
 

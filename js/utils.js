@@ -199,3 +199,26 @@ window.showSuccessToast = function (message) {
   document.body.appendChild(toast);
   setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.4s'; setTimeout(() => toast.remove(), 400); }, 2000);
 };
+
+/* ── Modal prompt stylée (globale) ────────────────────────── */
+window.showPromptModal = function (title, placeholder, defaultValue, onSubmit) {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99999;display:flex;align-items:center;justify-content:center;';
+  const modal = document.createElement('div');
+  modal.style.cssText = 'background:var(--bg-card,var(--bg-sidebar));border-radius:12px;padding:24px;max-width:380px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.4);';
+  modal.innerHTML = `
+    <div style="font-size:15px;font-weight:700;margin-bottom:12px;color:var(--text-primary);">${title}</div>
+    <input type="text" id="gprompt-input" class="rep-input" style="width:100%;padding:10px;font-size:14px;" placeholder="${placeholder}" value="${defaultValue || ''}">
+    <div style="display:flex;gap:10px;margin-top:14px;justify-content:flex-end;">
+      <button class="h-btn" id="gprompt-cancel" style="padding:8px 16px;">Annuler</button>
+      <button class="h-btn" id="gprompt-ok" style="padding:8px 16px;background:var(--accent);color:#fff;border-color:var(--accent);">Valider</button>
+    </div>`;
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+  const inp = document.getElementById('gprompt-input');
+  inp.focus(); inp.select();
+  overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
+  modal.querySelector('#gprompt-cancel').onclick = () => overlay.remove();
+  modal.querySelector('#gprompt-ok').onclick = () => { const val = inp.value.trim(); overlay.remove(); if (val) onSubmit(val); };
+  inp.onkeydown = e => { if (e.key === 'Enter') { const val = inp.value.trim(); overlay.remove(); if (val) onSubmit(val); } };
+};
