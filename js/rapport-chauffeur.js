@@ -529,16 +529,16 @@ console.log('rapport-chauffeur.js chargé');
       <h3 style="margin:0;">${escH(nom)}</h3><button class="h-btn" id="rap-det-close">✕</button></div>`;
 
     // Retards semaine
-    html += section('⏰ Retards — ' + rapWeek, rW.length);
     if (rW.length) {
+      html += section('⏰ Retards — ' + rapWeek, rW.length);
       html += '<table class="rep-table" style="width:100%;font-size:13px;margin-bottom:6px;"><thead><tr><th style="padding:4px 6px;">Date</th><th style="padding:4px 6px;text-align:center;">Durée</th><th style="padding:4px 6px;">Commentaire</th><th style="width:30px;"></th></tr></thead><tbody>';
       rW.forEach(r => { html += `<tr style="border-bottom:1px solid var(--border);"><td style="padding:4px 6px;">${fmtShort(r.date)}</td><td style="padding:4px 6px;text-align:center;font-weight:700;color:#f87171;">${r.duree} min</td><td style="padding:4px 6px;color:var(--text-muted);font-size:12px;">${escH(r.comment || '')}</td><td style="padding:4px 6px;"><button class="h-btn rap-del-ret" data-date="${escH(r.date)}" data-duree="${r.duree}" style="font-size:10px;padding:1px 5px;color:#f87171;border-color:#f87171;">🗑</button></td></tr>`; });
       html += '</tbody></table>';
     }
 
     // Retards année
-    html += section('⏰ Retards — Année', rY.length);
     if (rY.length) {
+      html += section('⏰ Retards — Année', rY.length);
       html += groupByWeek(rY, items => {
         let t = '<table class="rep-table" style="width:100%;font-size:12px;"><tbody>';
         items.forEach(r => { t += `<tr style="border-bottom:1px solid var(--border);"><td style="padding:3px 6px;">${fmtShort(r.date)}</td><td style="padding:3px 6px;text-align:center;font-weight:700;color:#f59e0b;">${r.duree} min</td><td style="padding:3px 6px;color:var(--text-muted);font-size:11px;">${escH(r.comment || '')}</td></tr>`; });
@@ -547,16 +547,16 @@ console.log('rapport-chauffeur.js chargé');
     }
 
     // Absences injustifiées semaine
-    html += section('🚫 Absences injustifiées — ' + rapWeek, aW.length);
     if (aW.length) {
+      html += section('🚫 Absences injustifiées — ' + rapWeek, aW.length);
       html += '<table class="rep-table" style="width:100%;font-size:13px;margin-bottom:6px;"><thead><tr><th style="padding:4px 6px;">Date</th><th style="padding:4px 6px;">Commentaire</th><th style="width:30px;"></th></tr></thead><tbody>';
       aW.forEach(a => { html += `<tr style="border-bottom:1px solid var(--border);"><td style="padding:4px 6px;">${fmtShort(a.date)}</td><td style="padding:4px 6px;color:var(--text-muted);font-size:12px;">${escH(a.comment || '')}</td><td style="padding:4px 6px;"><button class="h-btn rap-del-abs" data-date="${escH(a.date)}" style="font-size:10px;padding:1px 5px;color:#f87171;border-color:#f87171;">🗑</button></td></tr>`; });
       html += '</tbody></table>';
     }
 
     // Absences injustifiées année
-    html += section('🚫 Absences injustifiées — Année', aY.length);
     if (aY.length) {
+      html += section('🚫 Absences injustifiées — Année', aY.length);
       html += groupByWeek(aY, items => {
         let t = '<table class="rep-table" style="width:100%;font-size:12px;"><tbody>';
         items.forEach(a => { t += `<tr style="border-bottom:1px solid var(--border);"><td style="padding:3px 6px;">${fmtShort(a.date)}</td><td style="padding:3px 6px;color:var(--text-muted);font-size:11px;">${escH(a.comment || '')}</td></tr>`; });
@@ -565,16 +565,16 @@ console.log('rapport-chauffeur.js chargé');
     }
 
     // Mentor semaine
-    html += section('🛞 Mentor — ' + rapWeek, mW.length);
     if (mW.length) {
+      html += section('🛞 Mentor — ' + rapWeek, mW.length);
       html += '<table class="rep-table" style="width:100%;font-size:13px;margin-bottom:6px;"><thead><tr><th style="padding:4px 6px;">Date</th><th style="padding:4px 6px;text-align:center;">Score</th><th style="padding:4px 6px;text-align:center;">Trajet</th><th style="padding:4px 6px;">Faute</th></tr></thead><tbody>';
       mW.forEach(m => { html += `<tr style="border-bottom:1px solid var(--border);"><td style="padding:4px 6px;">${fmtShort(m.date)}</td><td style="padding:4px 6px;text-align:center;font-weight:700;color:#f87171;">${m.mentor}</td><td style="padding:4px 6px;text-align:center;">${m.trajet}★</td><td style="padding:4px 6px;font-size:12px;color:#f97316;">${escH(m.faute || '—')}</td></tr>`; });
       html += '</tbody></table>';
     }
 
     // Mentor année
-    html += section('🛞 Mentor — Année', mY.length);
     if (mY.length) {
+      html += section('🛞 Mentor — Année', mY.length);
       html += groupByWeek(mY, items => {
         let t = '<table class="rep-table" style="width:100%;font-size:12px;"><tbody>';
         items.forEach(m => { t += `<tr style="border-bottom:1px solid var(--border);"><td style="padding:3px 6px;">${fmtShort(m.date)}</td><td style="padding:3px 6px;text-align:center;font-weight:700;color:#f59e0b;">${m.mentor}</td><td style="padding:3px 6px;text-align:center;">${m.trajet}★</td><td style="padding:3px 6px;font-size:11px;color:#f97316;">${escH(m.faute || '—')}</td></tr>`; });
@@ -583,16 +583,16 @@ console.log('rapport-chauffeur.js chargé');
     }
 
     // Concessions semaine
-    html += section('📦 Concessions — ' + rapWeek, cW.length);
     if (cW.length) {
+      html += section('📦 Concessions — ' + rapWeek, cW.length);
       html += '<table class="rep-table" style="width:100%;font-size:13px;margin-bottom:6px;"><thead><tr><th style="padding:4px 6px;">Colis</th><th style="padding:4px 6px;text-align:center;">Livraison</th><th style="padding:4px 6px;text-align:center;">Concession</th><th style="padding:4px 6px;text-align:center;">Statut</th><th style="width:30px;"></th></tr></thead><tbody>';
       cW.forEach(c => { html += `<tr style="border-bottom:1px solid var(--border);"><td style="padding:4px 6px;font-family:monospace;font-size:11px;">${escH(c.tracking)}</td><td style="padding:4px 6px;text-align:center;">${fmtDate(c.dateLivraison)}</td><td style="padding:4px 6px;text-align:center;">${fmtDate(c.dateConcession)}</td><td style="padding:4px 6px;text-align:center;font-size:11px;color:var(--text-muted);">${escH(c.statutLivraison || '—')}</td><td style="padding:4px 6px;"><button class="h-btn rap-del-conc" data-tr="${escH(c.tracking)}" style="font-size:10px;padding:1px 5px;color:#f87171;border-color:#f87171;">🗑</button></td></tr>`; });
       html += '</tbody></table>';
     }
 
     // Concessions année
-    html += section('📦 Concessions — Année', cY.length);
     if (cY.length) {
+      html += section('📦 Concessions — Année', cY.length);
       html += groupByWeek(cY, items => {
         let t = '<table class="rep-table" style="width:100%;font-size:12px;"><tbody>';
         items.forEach(c => { t += `<tr style="border-bottom:1px solid var(--border);"><td style="padding:3px 6px;font-family:monospace;font-size:11px;">${escH(c.tracking)}</td><td style="padding:3px 6px;text-align:center;">${fmtDate(c.dateLivraison)}</td><td style="padding:3px 6px;text-align:center;">${fmtDate(c.dateConcession)}</td><td style="padding:3px 6px;text-align:center;font-size:10px;color:var(--text-muted);">${escH(c.statutLivraison || '—')}</td></tr>`; });
