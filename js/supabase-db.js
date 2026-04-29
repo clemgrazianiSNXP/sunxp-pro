@@ -437,6 +437,20 @@ window.preloadStationData = async function (stationId) {
       localStorage.setItem(stationId + '-degats', JSON.stringify(degats));
     }
 
+    // EOS
+    const { data: eosData } = await sb().from('eos').select('date_jour, data').eq('station_id', stationId);
+    if (eosData) {
+      const supabaseKeys = new Set(eosData.map(e => stationId + '-eos-' + e.date_jour));
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith(stationId + '-eos-') && !supabaseKeys.has(k)) localStorage.removeItem(k);
+      }
+      eosData.forEach(e => {
+        localStorage.setItem(stationId + '-eos-' + e.date_jour, JSON.stringify(e.data));
+      });
+      console.log(`  EOS: ${eosData.length} jours`);
+    }
+
     // Chauffeurs
     const { data: chData } = await sb().from('chauffeurs').select('*').eq('station_id', stationId);
     if (chData && chData.length) {

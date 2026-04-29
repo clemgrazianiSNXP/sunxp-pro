@@ -160,3 +160,15 @@ CREATE POLICY "allow_all" ON degats FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "allow_all" ON camions FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "allow_all" ON documents FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "allow_all" ON repos_demandes FOR ALL USING (true) WITH CHECK (true);
+
+-- 13. Table EOS (extraction)
+CREATE TABLE IF NOT EXISTS eos (
+  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  station_id TEXT NOT NULL REFERENCES stations(id) ON DELETE CASCADE,
+  date_jour DATE NOT NULL,
+  data JSONB NOT NULL DEFAULT '[]',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(station_id, date_jour)
+);
+ALTER TABLE eos ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "allow_all" ON eos FOR ALL USING (true) WITH CHECK (true);
