@@ -26,19 +26,21 @@ function toggleMenuPanel() {
     if (tabsContainer) {
       tabsContainer.innerHTML = '';
       if (isDriverMode()) {
-        // Chauffeur : paramètres + ses propres courbes + demande repos
+        // Chauffeur : paramètres + ses propres courbes + demandes
         tabsContainer.innerHTML = `
           <button class="menu-panel-tab active" data-tab="parametres" onclick="setMenuTab('parametres')" title="Paramètres">⚙️</button>
           <button class="menu-panel-tab" data-tab="mes-stats" onclick="setMenuTab('mes-stats')" title="Mes Statistiques">📊</button>
           <button class="menu-panel-tab" data-tab="repos" onclick="setMenuTab('repos')" title="Demande de repos">📅</button>
+          <button class="menu-panel-tab" data-tab="acompte" onclick="setMenuTab('acompte')" title="Demande d'acompte">💶</button>
+          <button class="menu-panel-tab" data-tab="conges" onclick="setMenuTab('conges')" title="Congés payés">🏖</button>
         `;
       } else {
-        // Responsable : tout + repos + stations
+        // Responsable : tout + demandes + stations
         tabsContainer.innerHTML = `
           <button class="menu-panel-tab active" data-tab="parametres" onclick="setMenuTab('parametres')" title="Paramètres">⚙️</button>
           <button class="menu-panel-tab" data-tab="documents" onclick="setMenuTab('documents')" title="Documents">📄</button>
           <button class="menu-panel-tab" data-tab="analyse" onclick="setMenuTab('analyse')" title="Analyse & Performance">📊</button>
-          <button class="menu-panel-tab" data-tab="repos-mgr" onclick="setMenuTab('repos-mgr')" title="Repos demandés">📅</button>
+          <button class="menu-panel-tab" data-tab="demandes-mgr" onclick="setMenuTab('demandes-mgr')" title="Demandes chauffeurs">📋</button>
           <button class="menu-panel-tab" data-tab="stations-mgr" onclick="setMenuTab('stations-mgr')" title="Gérer les stations">🏢</button>
         `;
       }
@@ -71,10 +73,16 @@ function setMenuTab(tab) {
     content.appendChild(renderAnalysePerformance());
   } else if (tab === 'repos-mgr' && typeof renderReposResponsable === 'function') {
     content.appendChild(renderReposResponsable());
+  } else if (tab === 'demandes-mgr' && typeof renderDemandesManager === 'function') {
+    content.appendChild(renderDemandesManager());
   } else if (tab === 'mes-stats' && isDriverMode()) {
     content.appendChild(renderDriverOwnStats());
   } else if (tab === 'repos' && isDriverMode() && typeof renderReposChauffeur === 'function') {
     content.appendChild(renderReposChauffeur());
+  } else if (tab === 'acompte' && isDriverMode() && typeof renderAcompteChauffeur === 'function') {
+    content.appendChild(renderAcompteChauffeur());
+  } else if (tab === 'conges' && isDriverMode() && typeof renderCongesChauffeur === 'function') {
+    content.appendChild(renderCongesChauffeur());
   } else if (tab === 'stations-mgr' && typeof renderStationsManager === 'function') {
     content.appendChild(renderStationsManager());
   }

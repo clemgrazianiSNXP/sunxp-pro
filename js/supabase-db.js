@@ -474,6 +474,22 @@ window.preloadStationData = async function (stationId) {
       localStorage.setItem(stationId + '-camions', '[]');
     }
 
+    // Acomptes
+    const { data: acomptesData } = await sb().from('acomptes').select('data').eq('station_id', stationId).maybeSingle();
+    if (acomptesData && acomptesData.data) {
+      localStorage.setItem(stationId + '-acomptes', JSON.stringify(acomptesData.data));
+    } else {
+      localStorage.setItem(stationId + '-acomptes', '[]');
+    }
+
+    // Congés payés
+    const { data: congesData } = await sb().from('conges_payes').select('data').eq('station_id', stationId).maybeSingle();
+    if (congesData && congesData.data) {
+      localStorage.setItem(stationId + '-conges-payes', JSON.stringify(congesData.data));
+    } else {
+      localStorage.setItem(stationId + '-conges-payes', '[]');
+    }
+
     console.log('✅ Préchargement terminé');
   } catch (e) {
     console.warn('Préchargement partiel:', e.message);

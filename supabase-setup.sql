@@ -172,3 +172,25 @@ CREATE TABLE IF NOT EXISTS eos (
 );
 ALTER TABLE eos ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "allow_all" ON eos FOR ALL USING (true) WITH CHECK (true);
+
+-- 14. Table Acomptes (demandes chauffeurs)
+CREATE TABLE IF NOT EXISTS acomptes (
+  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  station_id TEXT NOT NULL REFERENCES stations(id) ON DELETE CASCADE,
+  data JSONB NOT NULL DEFAULT '[]',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(station_id)
+);
+ALTER TABLE acomptes ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "allow_all" ON acomptes FOR ALL USING (true) WITH CHECK (true);
+
+-- 15. Table Congés Payés (demandes chauffeurs)
+CREATE TABLE IF NOT EXISTS conges_payes (
+  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  station_id TEXT NOT NULL REFERENCES stations(id) ON DELETE CASCADE,
+  data JSONB NOT NULL DEFAULT '[]',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(station_id)
+);
+ALTER TABLE conges_payes ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "allow_all" ON conges_payes FOR ALL USING (true) WITH CHECK (true);
