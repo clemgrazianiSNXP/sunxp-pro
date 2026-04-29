@@ -264,7 +264,14 @@ function initRepos() { renderReposModule(); }
 function updateReposBell() {
   const stationId = window.getActiveStationId ? window.getActiveStationId() : null;
   if (!stationId) return;
-  const count = countPendingDemandes(stationId);
+  let count = countPendingDemandes(stationId);
+  // Ajouter les acomptes et congés en attente
+  if (typeof loadAcomptes === 'function') {
+    count += loadAcomptes(stationId).filter(d => d.statut === 'en_attente').length;
+  }
+  if (typeof loadConges === 'function') {
+    count += loadConges(stationId).filter(d => d.statut === 'en_attente').length;
+  }
 
   // Sidebar bell
   const tab = document.querySelector('.nav-tab[data-module="repos"]');
