@@ -24,11 +24,11 @@ function saveDegats(list) {
 async function uploadDegatsPhoto(stationId, degatId, file) {
   if (!sb()) return null;
   const ext = file.name.split('.').pop() || 'jpg';
-  const path = `degats/${stationId}/${degatId}_${Date.now()}.${ext}`;
+  const path = `${stationId}/${degatId}_${Date.now()}.${ext}`;
   try {
-    const { data, error } = await sb().storage.from('photos').upload(path, file, { cacheControl: '3600', upsert: false });
+    const { data, error } = await sb().storage.from('degats').upload(path, file, { cacheControl: '3600', upsert: false });
     if (error) { console.warn('Upload photo error:', error.message); return null; }
-    const { data: urlData } = sb().storage.from('photos').getPublicUrl(path);
+    const { data: urlData } = sb().storage.from('degats').getPublicUrl(path);
     return urlData?.publicUrl || null;
   } catch (e) { console.warn('Upload photo exception:', e.message); return null; }
 }
@@ -37,10 +37,10 @@ async function deleteDegatsPhoto(url) {
   if (!sb() || !url) return;
   try {
     // Extraire le path depuis l'URL publique
-    const match = url.match(/\/storage\/v1\/object\/public\/photos\/(.+)$/);
+    const match = url.match(/\/storage\/v1\/object\/public\/degats\/(.+)$/);
     if (!match) return;
     const path = decodeURIComponent(match[1]);
-    await sb().storage.from('photos').remove([path]);
+    await sb().storage.from('degats').remove([path]);
   } catch (e) { console.warn('Delete photo error:', e.message); }
 }
 

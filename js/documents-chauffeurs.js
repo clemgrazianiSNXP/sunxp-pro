@@ -53,11 +53,11 @@ async function uploadDocChauffeur(chauffeurNom, file) {
   const sid = getDocsChauffeursSid();
   const safeName = chauffeurNom.replace(/[^a-zA-Z0-9_-]/g, '_');
   const ext = file.name.split('.').pop() || 'pdf';
-  const path = `documents/${sid}/${safeName}/${Date.now()}_${file.name}`;
+  const path = `${sid}/${safeName}/${Date.now()}_${file.name}`;
   try {
-    const { data, error } = await sb().storage.from('photos').upload(path, file, { cacheControl: '3600', upsert: false });
+    const { data, error } = await sb().storage.from('documents').upload(path, file, { cacheControl: '3600', upsert: false });
     if (error) { console.warn('Upload doc error:', error.message); return null; }
-    const { data: urlData } = sb().storage.from('photos').getPublicUrl(path);
+    const { data: urlData } = sb().storage.from('documents').getPublicUrl(path);
     return urlData?.publicUrl || null;
   } catch (e) { console.warn('Upload doc exception:', e.message); return null; }
 }
@@ -65,10 +65,10 @@ async function uploadDocChauffeur(chauffeurNom, file) {
 async function deleteDocChauffeur(url) {
   if (typeof sb !== 'function' || !sb() || !url) return;
   try {
-    const match = url.match(/\/storage\/v1\/object\/public\/photos\/(.+)$/);
+    const match = url.match(/\/storage\/v1\/object\/public\/documents\/(.+)$/);
     if (!match) return;
     const path = decodeURIComponent(match[1]);
-    await sb().storage.from('photos').remove([path]);
+    await sb().storage.from('documents').remove([path]);
   } catch (e) { console.warn('Delete doc error:', e.message); }
 }
 
