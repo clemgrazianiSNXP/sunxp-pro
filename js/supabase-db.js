@@ -357,6 +357,14 @@ window.preloadStationData = async function (stationId) {
     // Stats
     const { data: statsData } = await sb().from('stats').select('type, semaine, data').eq('station_id', stationId);
     if (statsData) {
+      // Nettoyer les anciennes stats locales qui n'existent plus dans Supabase
+      const supabaseKeys = new Set(statsData.map(s => stationId + '-stats-' + s.type + '-' + s.semaine));
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith(stationId + '-stats-') && !supabaseKeys.has(k)) {
+          localStorage.removeItem(k);
+        }
+      }
       statsData.forEach(s => {
         const key = stationId + '-stats-' + s.type + '-' + s.semaine;
         localStorage.setItem(key, JSON.stringify(s.data));
