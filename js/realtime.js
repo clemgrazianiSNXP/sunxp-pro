@@ -47,33 +47,36 @@ function initRealtime() {
   realtimeChannel.on('postgres_changes', {
     event: '*',
     schema: 'public',
-    table: 'repos_demandes',
-    filter: 'station_id=eq.' + stationId
+    table: 'repos_demandes'
   }, payload => {
-    console.log('🔔 Realtime repos_demandes:', payload.eventType);
-    handleDemandeNotification(payload, 'repos');
+    console.log('🔔 Realtime repos_demandes:', payload.eventType, payload.new);
+    if (payload.new && payload.new.station_id === stationId) {
+      handleDemandeNotification(payload, 'repos');
+    }
   });
 
   // ── Écouter les demandes d'acompte ──
   realtimeChannel.on('postgres_changes', {
     event: '*',
     schema: 'public',
-    table: 'acomptes',
-    filter: 'station_id=eq.' + stationId
+    table: 'acomptes'
   }, payload => {
-    console.log('🔔 Realtime acomptes:', payload.eventType);
-    handleDemandeNotification(payload, 'acompte');
+    console.log('🔔 Realtime acomptes:', payload.eventType, payload.new);
+    if (payload.new && payload.new.station_id === stationId) {
+      handleDemandeNotification(payload, 'acompte');
+    }
   });
 
   // ── Écouter les demandes de congés ──
   realtimeChannel.on('postgres_changes', {
     event: '*',
     schema: 'public',
-    table: 'conges_payes',
-    filter: 'station_id=eq.' + stationId
+    table: 'conges_payes'
   }, payload => {
-    console.log('🔔 Realtime conges_payes:', payload.eventType);
-    handleDemandeNotification(payload, 'congés');
+    console.log('🔔 Realtime conges_payes:', payload.eventType, payload.new);
+    if (payload.new && payload.new.station_id === stationId) {
+      handleDemandeNotification(payload, 'congés');
+    }
   });
 
   realtimeChannel.subscribe(status => {
@@ -105,11 +108,9 @@ function handleDemandeNotification(payload, type) {
     localStorage.setItem(lsKey, JSON.stringify(row.data));
   }
 
-  // Côté responsable : afficher une notification toast
-  if (!isDriverMode()) {
-    const labels = { repos: '📅 Demande de repos', acompte: '💶 Demande d\'acompte', congés: '🏖 Demande de congés' };
-    showRealtimeToast(labels[type] || '🔔 Nouvelle demande', 'Une nouvelle demande vient d\'arriver.');
-  }
+  // Afficher une notification toast (toujours, quel que soit le mode)
+  const labels = { repos: '📅 Demande de repos', acompte: '💶 Demande d\'acompte', congés: '🏖 Demande de congés' };
+  showRealtimeToast(labels[type] || '🔔 Nouvelle demande', 'Une demande vient d\'être mise à jour.');
 }
 
 /**
