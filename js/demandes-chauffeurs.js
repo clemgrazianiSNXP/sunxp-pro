@@ -194,11 +194,11 @@ function renderAcompteChauffeur() {
   form.style.cssText = 'display:flex;flex-direction:column;gap:8px;background:var(--bg-sidebar);padding:12px;border-radius:8px;border:1px solid var(--border);';
   form.innerHTML = `
     <label style="font-size:12px;color:var(--text-muted);">Montant (€)</label>
-    <input type="number" id="acompte-montant" class="h-inp" style="width:100%;text-align:left;padding:8px;" placeholder="ex: 200" min="1">
+    <input type="number" id="acompte-montant" class="rep-input" style="width:100%;padding:10px;" placeholder="ex: 200" min="1">
     <label style="font-size:12px;color:var(--text-muted);">Motif (optionnel)</label>
-    <input type="text" id="acompte-motif" class="h-inp" style="width:100%;text-align:left;padding:8px;" placeholder="Raison de la demande">
+    <input type="text" id="acompte-motif" class="rep-input" style="width:100%;padding:10px;" placeholder="Raison de la demande">
     <p id="acompte-error" style="color:#f87171;font-size:11px;display:none;"></p>
-    <button class="rep-btn rep-btn-primary" id="acompte-submit">Envoyer la demande</button>`;
+    <button class="rep-btn rep-btn-primary" id="acompte-submit" style="margin-top:4px;">Envoyer la demande</button>`;
   wrap.appendChild(form);
 
   setTimeout(() => {
@@ -250,13 +250,13 @@ function renderCongesChauffeur() {
   form.style.cssText = 'display:flex;flex-direction:column;gap:8px;background:var(--bg-sidebar);padding:12px;border-radius:8px;border:1px solid var(--border);';
   form.innerHTML = `
     <label style="font-size:12px;color:var(--text-muted);">Date de début</label>
-    <input type="date" id="conge-debut" class="h-inp" style="width:100%;text-align:left;padding:8px;">
+    <input type="date" id="conge-debut" class="rep-input" style="width:100%;padding:10px;">
     <label style="font-size:12px;color:var(--text-muted);">Date de fin</label>
-    <input type="date" id="conge-fin" class="h-inp" style="width:100%;text-align:left;padding:8px;">
+    <input type="date" id="conge-fin" class="rep-input" style="width:100%;padding:10px;">
     <label style="font-size:12px;color:var(--text-muted);">Motif (optionnel)</label>
-    <input type="text" id="conge-motif" class="h-inp" style="width:100%;text-align:left;padding:8px;" placeholder="Raison">
+    <input type="text" id="conge-motif" class="rep-input" style="width:100%;padding:10px;" placeholder="Raison">
     <p id="conge-error" style="color:#f87171;font-size:11px;display:none;"></p>
-    <button class="rep-btn rep-btn-primary" id="conge-submit">Envoyer la demande</button>`;
+    <button class="rep-btn rep-btn-primary" id="conge-submit" style="margin-top:4px;">Envoyer la demande</button>`;
   wrap.appendChild(form);
 
   setTimeout(() => {
