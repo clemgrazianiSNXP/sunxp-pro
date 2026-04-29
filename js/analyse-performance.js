@@ -317,97 +317,177 @@ function collectMonthlyOvertime(stationId, chauffeurNom) {
   return { labels, values };
 }
 
-/** Onglet Récurrences — chauffeurs récurrents dans les impacts POD/DWC */
+/** Onglet Récurrences — chauffeurs avec impacts consécutifs (POD/DWC/DNR) */
 function renderRecurrencesTab(container, stationId) {
   const wrap = document.createElement('div');
   wrap.style.cssText = 'display:flex;flex-direction:column;gap:16px;';
 
-  // Collecter toutes les semaines
-  let allWeeks = [];
-  try {
-    const weekSet = new Set();
-    ['pod', 'dwc'].forEach(type => {
-      if (typeof getWeeksList === 'function') getWeeksList(type).forEach(w => weekSet.add(w));
-    });
-    allWeeks = [...weekSet].sort();
-  } catch (_) {}
+  // Collecter toutes les semaines triées chronologiquement
+  const weekSet = new Set();
+  ['pod', 'dwc', 'dsdpmo'].forEach(type => {
+    if (typeof getWeeksList === 'function') getWeeksList(type).forEach(w => weekSet.add(w));
+  });
+  const allWeeks = [...weekSet].sort();
 
   if (!allWeeks.length) {
     wrap.innerHTML = '<p style="color:var(--text-muted);font-size:13px;">Aucune donnée de statistiques disponible.</p>';
-    container.appendChild(wrap);
-    return;
+    container.appendChild(wrap); return;
   }
 
-  // Compter les occurrences par chauffeur
-  const podCounts = {}; // { nom: count }
-  const dwcCounts = {};
+  // Pour chaque chauffeur, construire un tableau semaine par semaine : impacté ou non
+  // Puis calculer le streak consécutif actuel et le max streak historique
+  function buildStreaks(weeklyImpacts) {
+    // weeklyImpacts = { nom: { week: score } }
+    const results = []; // { nom, currentStreak, maxStreak, impactWeeks: [{week, score}], totalImpacts }
+    Object.entries(weeklyImpacts).forEach(([nom, weekMap]) => {
+      let currentStreak = 0, maxStreak = 0, streakWeeks = [];
+      const impactWeeks = [];
+      allWeeks.forEach(week => {
+        if (weekMap[week] !== undefined) {
+          currentStreak++;
+          streakWeeks.push({ week, score: weekMap[week] });
+          impactWeeks.push({ week, score: weekMap[week] });
+          if (currentStreak > maxStreak) maxStreak = currentStreak;
+        } else {
+          currentStreak = 0;
+          streakWeeks = [];
+        }
+      });
+      if (currentStreak >= 2) {
+        results.push({ nom, currentStreak, maxStreak, streakWeeks, impactWeeks, totalImpacts: impactWeeks.length });
+      }
+    });
+    return results.sort((a, b) => b.currentStreak - a.currentStreak);
+  }
 
+  // POD < 98%
+  const podImpacts = {};
   allWeeks.forEach(week => {
-    if (typeof loadStatsData === 'function') {
-      // POD < 98%
-      const podData = loadStatsData('pod', week);
-      podData.forEach(r => {
-        if (parseFloat(r.podPct) < 98) {
-          const nom = typeof resolveDriver === 'function' ? (resolveDriver(r.idAmazon)?.nom || r.idAmazon) : r.idAmazon;
-          podCounts[nom] = (podCounts[nom] || 0) + 1;
-        }
-      });
-      // DWC < 85%
-      const dwcData = loadStatsData('dwc', week);
-      dwcData.forEach(r => {
-        if (parseFloat(r.dwcPct) < 85) {
-          const nom = typeof resolveDriver === 'function' ? (resolveDriver(r.idAmazon)?.nom || r.idAmazon) : r.idAmazon;
-          dwcCounts[nom] = (dwcCounts[nom] || 0) + 1;
-        }
-      });
-    }
+    const data = typeof loadStatsData === 'function' ? loadStatsData('pod', week) : [];
+    data.forEach(r => {
+      if (parseFloat(r.podPct) < 98) {
+        const nom = typeof resolveDriver === 'function' ? (resolveDriver(r.idAmazon)?.nom || r.idAmazon) : r.idAmazon;
+        if (!podImpacts[nom]) podImpacts[nom] = {};
+        podImpacts[nom][week] = r.podPct + '%';
+      }
+    });
   });
 
-  const totalWeeks = allWeeks.length;
-
-  // POD récurrences
-  const podSection = document.createElement('div');
-  podSection.innerHTML = `<h4 style="font-size:13px;color:#60a5fa;margin:0 0 8px;">📦 POD < 98% — Récurrences sur ${totalWeeks} semaines</h4>`;
-  const podSorted = Object.entries(podCounts).sort((a, b) => b[1] - a[1]);
-  if (podSorted.length) {
-    podSorted.forEach(([nom, count]) => {
-      const pct = Math.round(count / totalWeeks * 100);
-      const row = document.createElement('div');
-      row.className = 'analyse-recurrence-row';
-      row.innerHTML = `
-        <span class="analyse-recurrence-nom">${nom}</span>
-        <span class="analyse-recurrence-count">${count}x</span>
-        <div class="analyse-recurrence-bar-bg"><div class="analyse-recurrence-bar" style="width:${pct}%;background:#60a5fa;"></div></div>
-        <span class="analyse-recurrence-pct">${pct}%</span>
-      `;
-      podSection.appendChild(row);
+  // DWC < 85%
+  const dwcImpacts = {};
+  allWeeks.forEach(week => {
+    const data = typeof loadStatsData === 'function' ? loadStatsData('dwc', week) : [];
+    data.forEach(r => {
+      if (parseFloat(r.dwcPct) < 85) {
+        const nom = typeof resolveDriver === 'function' ? (resolveDriver(r.idAmazon)?.nom || r.idAmazon) : r.idAmazon;
+        if (!dwcImpacts[nom]) dwcImpacts[nom] = {};
+        dwcImpacts[nom][week] = r.dwcPct + '%';
+      }
     });
-  } else {
-    podSection.innerHTML += '<p style="color:var(--text-muted);font-size:12px;">Aucun chauffeur récurrent.</p>';
-  }
-  wrap.appendChild(podSection);
+  });
 
-  // DWC récurrences
-  const dwcSection = document.createElement('div');
-  dwcSection.innerHTML = `<h4 style="font-size:13px;color:#f97316;margin:0 0 8px;">📵 DWC < 85% — Récurrences sur ${totalWeeks} semaines</h4>`;
-  const dwcSorted = Object.entries(dwcCounts).sort((a, b) => b[1] - a[1]);
-  if (dwcSorted.length) {
-    dwcSorted.forEach(([nom, count]) => {
-      const pct = Math.round(count / totalWeeks * 100);
-      const row = document.createElement('div');
-      row.className = 'analyse-recurrence-row';
-      row.innerHTML = `
-        <span class="analyse-recurrence-nom">${nom}</span>
-        <span class="analyse-recurrence-count">${count}x</span>
-        <div class="analyse-recurrence-bar-bg"><div class="analyse-recurrence-bar" style="width:${pct}%;background:#f97316;"></div></div>
-        <span class="analyse-recurrence-pct">${pct}%</span>
-      `;
-      dwcSection.appendChild(row);
+  // DNR >= 3 (concessions/impacts depuis DS DPMO)
+  const dnrImpacts = {};
+  allWeeks.forEach(week => {
+    const data = typeof loadStatsData === 'function' ? loadStatsData('dsdpmo', week) : [];
+    data.forEach(r => {
+      const dnr = parseInt(r.nombreDnr) || 0;
+      if (dnr >= 3) {
+        const nom = typeof resolveDriver === 'function' ? (resolveDriver(r.idAmazon)?.nom || r.idAmazon) : r.idAmazon;
+        if (!dnrImpacts[nom]) dnrImpacts[nom] = {};
+        dnrImpacts[nom][week] = dnr + ' DNR';
+      }
     });
-  } else {
-    dwcSection.innerHTML += '<p style="color:var(--text-muted);font-size:12px;">Aucun chauffeur récurrent.</p>';
+  });
+
+  const podStreaks = buildStreaks(podImpacts);
+  const dwcStreaks = buildStreaks(dwcImpacts);
+  const dnrStreaks = buildStreaks(dnrImpacts);
+
+  // Titre
+  wrap.innerHTML = `<div style="text-align:center;margin-bottom:4px;">
+    <div style="font-size:14px;font-weight:700;color:var(--text-primary);">🔁 Récurrences d'impacts</div>
+    <div style="font-size:11px;color:var(--text-muted);">Chauffeurs avec 2+ semaines consécutives en impact · ${allWeeks.length} semaines analysées</div>
+  </div>`;
+
+  function renderSection(title, color, icon, streaks, type) {
+    const section = document.createElement('div');
+    section.innerHTML = `<div style="font-size:13px;font-weight:700;color:${color};margin-bottom:8px;">${icon} ${title}</div>`;
+    if (!streaks.length) {
+      section.innerHTML += '<p style="color:var(--text-muted);font-size:12px;font-style:italic;">Aucune récurrence en cours ✓</p>';
+    } else {
+      streaks.forEach(s => {
+        const card = document.createElement('div');
+        card.style.cssText = `padding:10px 12px;background:var(--bg-sidebar);border:1px solid var(--border);border-left:3px solid ${color};border-radius:8px;margin-bottom:8px;cursor:pointer;transition:border-color 0.2s,box-shadow 0.2s;`;
+        card.onmouseenter = () => { card.style.borderColor = color; card.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)'; };
+        card.onmouseleave = () => { card.style.borderColor = 'var(--border)'; card.style.borderLeftColor = color; card.style.boxShadow = ''; };
+        card.innerHTML = `
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <span style="font-weight:600;font-size:13px;">${s.nom}</span>
+            <span style="font-size:12px;font-weight:700;color:${color};">🔥 ${s.currentStreak} sem. d'affilée</span>
+          </div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Total impacts : ${s.totalImpacts} · Record : ${s.maxStreak} sem.</div>`;
+        card.onclick = () => showRecurrenceDetail(s, type, color, icon);
+        section.appendChild(card);
+      });
+    }
+    wrap.appendChild(section);
   }
-  wrap.appendChild(dwcSection);
+
+  renderSection('POD < 98%', '#60a5fa', '📸', podStreaks, 'POD');
+  renderSection('DWC < 85%', '#f97316', '📞', dwcStreaks, 'DWC');
+  renderSection('DNR ≥ 3 (Concessions)', '#f87171', '📦', dnrStreaks, 'DNR');
 
   container.appendChild(wrap);
+}
+
+function showRecurrenceDetail(s, type, color, icon) {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;';
+  overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
+  const modal = document.createElement('div');
+  modal.style.cssText = 'background:var(--bg-card,var(--bg-sidebar));border-radius:12px;padding:20px;max-width:500px;width:90%;max-height:80vh;overflow:auto;box-shadow:0 8px 32px rgba(0,0,0,0.4);';
+
+  let html = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+    <h3 style="margin:0;font-size:16px;">${icon} ${s.nom}</h3>
+    <button class="h-btn" onclick="this.closest('div[style*=fixed]').remove()">✕</button>
+  </div>`;
+
+  html += `<div style="display:flex;gap:12px;margin-bottom:14px;">
+    <div style="text-align:center;padding:8px 14px;background:var(--bg-tab-active);border-radius:8px;">
+      <div style="font-size:10px;color:var(--text-muted);">Streak actuel</div>
+      <div style="font-size:20px;font-weight:700;color:${color};">🔥 ${s.currentStreak}</div>
+    </div>
+    <div style="text-align:center;padding:8px 14px;background:var(--bg-tab-active);border-radius:8px;">
+      <div style="font-size:10px;color:var(--text-muted);">Record</div>
+      <div style="font-size:20px;font-weight:700;">${s.maxStreak}</div>
+    </div>
+    <div style="text-align:center;padding:8px 14px;background:var(--bg-tab-active);border-radius:8px;">
+      <div style="font-size:10px;color:var(--text-muted);">Total impacts</div>
+      <div style="font-size:20px;font-weight:700;">${s.totalImpacts}</div>
+    </div>
+  </div>`;
+
+  // Streak actuel
+  html += `<div style="font-size:12px;font-weight:700;color:${color};margin-bottom:6px;">Série en cours (${s.currentStreak} sem.)</div>`;
+  html += '<div style="margin-bottom:12px;">';
+  s.streakWeeks.forEach(w => {
+    html += `<div style="padding:4px 8px;border-left:2px solid ${color};margin-bottom:3px;font-size:12px;background:var(--bg-tab-hover);border-radius:4px;">
+      <b>S${w.week}</b> — ${w.score}</div>`;
+  });
+  html += '</div>';
+
+  // Historique complet
+  html += '<div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:6px;">Historique complet</div>';
+  html += '<div style="max-height:150px;overflow:auto;">';
+  s.impactWeeks.forEach(w => {
+    const isInStreak = s.streakWeeks.some(sw => sw.week === w.week);
+    html += `<div style="padding:3px 8px;font-size:11px;color:${isInStreak ? color : 'var(--text-muted)'};border-bottom:1px solid var(--border);">
+      S${w.week} — ${w.score} ${isInStreak ? '🔥' : ''}</div>`;
+  });
+  html += '</div>';
+
+  modal.innerHTML = html;
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
 }
