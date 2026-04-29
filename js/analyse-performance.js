@@ -228,7 +228,11 @@ function buildSvgCurve(values, labels, color, fixedMax, threshold, thresholdAbov
     txt.setAttribute('x', PAD_L - 4); txt.setAttribute('y', y + 3);
     txt.setAttribute('text-anchor', 'end'); txt.setAttribute('font-size', '8');
     txt.setAttribute('fill', '#9090b0');
-    txt.textContent = Math.round(val * 10) / 10;
+    // Afficher des valeurs rondes : entiers pour DNR, entiers ou .5 pour pourcentages
+    let displayVal;
+    if (fixedMax === null) { displayVal = Math.round(val); } // DNR = entiers
+    else { displayVal = Math.round(val * 2) / 2; } // Pourcentages = arrondi au 0.5
+    txt.textContent = displayVal;
     svg.appendChild(txt);
   }
 
@@ -275,7 +279,7 @@ function buildSvgCurve(values, labels, color, fixedMax, threshold, thresholdAbov
     valTxt.setAttribute('x', p.x); valTxt.setAttribute('y', p.y - 7);
     valTxt.setAttribute('text-anchor', 'middle'); valTxt.setAttribute('font-size', '8');
     valTxt.setAttribute('font-weight', '600'); valTxt.setAttribute('fill', color);
-    valTxt.textContent = Math.round(p.val * 10) / 10;
+    valTxt.textContent = fixedMax === null ? Math.round(p.val) : Math.round(p.val * 10) / 10;
     svg.appendChild(valTxt);
 
     // Tooltip
