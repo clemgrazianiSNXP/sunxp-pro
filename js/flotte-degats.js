@@ -139,7 +139,7 @@ function showChauffeurDegats(nom, incidents) {
     const delBtn = document.createElement('button');
     delBtn.className = 'rep-btn rep-btn-delete'; delBtn.style.cssText = 'font-size:9px;margin-top:6px;';
     delBtn.textContent = '🗑';
-    delBtn.onclick = () => { if (confirm('Supprimer ?')) { saveDegats(loadDegats().filter(x => x.id !== d.id)); overlay.remove(); if (typeof renderFlotte === 'function') renderFlotte(); } };
+    delBtn.onclick = () => { showConfirmModal('Supprimer ce dégât ?', () => { saveDegats(loadDegats().filter(x => x.id !== d.id)); overlay.remove(); if (typeof renderFlotte === 'function') renderFlotte(); }); };
     card.appendChild(delBtn);
     box.appendChild(card);
   });

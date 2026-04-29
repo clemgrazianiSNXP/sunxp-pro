@@ -218,10 +218,11 @@ function renderReposResponsable() {
     clearBtn.style.cssText = 'font-size:11px;margin-top:8px;';
     clearBtn.textContent = '🗑 Supprimer l\'historique';
     clearBtn.onclick = () => {
-      if (!confirm('Supprimer tout l\'historique des demandes traitées ?')) return;
-      const all = loadReposDemandes(stationId).filter(d => d.statut === 'en_attente');
-      saveReposDemandes(stationId, all);
-      if (typeof setMenuTab === 'function') setMenuTab('repos-mgr');
+      showConfirmModal('Supprimer tout l\'historique des demandes traitées ?', () => {
+        const all = loadReposDemandes(stationId).filter(d => d.statut === 'en_attente');
+        saveReposDemandes(stationId, all);
+        if (typeof setMenuTab === 'function') setMenuTab('repos-mgr');
+      });
     };
     hist.appendChild(clearBtn);
 

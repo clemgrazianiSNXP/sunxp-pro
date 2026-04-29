@@ -103,10 +103,11 @@ function renderDocuments() {
       delBtn.style.cssText = 'font-size:10px;padding:3px 6px;';
       delBtn.textContent = '🗑';
       delBtn.onclick = () => {
-        if (!confirm('Supprimer "' + doc.name + '" ?')) return;
-        const docs = loadDocs().filter(d => d.id !== doc.id);
-        saveDocs(docs);
-        renderList(search.value);
+        showConfirmModal('Supprimer "' + doc.name + '" ?', () => {
+          const docs = loadDocs().filter(d => d.id !== doc.id);
+          saveDocs(docs);
+          renderList(search.value);
+        });
       };
 
       actions.appendChild(openBtn);

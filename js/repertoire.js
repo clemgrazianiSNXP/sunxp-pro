@@ -195,10 +195,11 @@ function openForm(chauffeur, stationId) {
 }
 
 function deleteChauffeur(id, stationId) {
-  if (!confirm('Supprimer ce chauffeur ?')) return;
-  const list = loadChauffeurs(stationId).filter(c => c.id !== id);
-  saveChauffeurs(stationId, list);
-  renderRepertoire();
+  showConfirmModal('Supprimer ce chauffeur ?', () => {
+    const list = loadChauffeurs(stationId).filter(c => c.id !== id);
+    saveChauffeurs(stationId, list);
+    renderRepertoire();
+  });
 }
 
 /* ── Utilitaires ──────────────────────────────────────────── */

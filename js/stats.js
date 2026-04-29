@@ -170,11 +170,12 @@ function deleteWeekBtn(type, semaine, clearFn) {
   btn.className = 'rep-btn rep-btn-delete'; btn.style.cssText = 'font-size:12px;padding:5px 12px;';
   btn.textContent = '🗑 Supprimer la semaine';
   btn.onclick = () => {
-    if (!confirm(`Supprimer toutes les données de la semaine "${semaine}" ?`)) return;
-    const key = statsStorageKey(type, semaine);
-    localStorage.removeItem(key);
-    if (typeof dbDelete === 'function') dbDelete('stats', key, { station_id: getStationId(), type, semaine });
-    clearFn(); renderStats();
+    showConfirmModal('Supprimer toutes les données de la semaine "' + semaine + '" ?', () => {
+      const key = statsStorageKey(type, semaine);
+      localStorage.removeItem(key);
+      if (typeof dbDelete === 'function') dbDelete('stats', key, { station_id: getStationId(), type, semaine });
+      clearFn(); renderStats();
+    });
   };
   return btn;
 }

@@ -119,8 +119,9 @@ console.log('rapport-concessions.js chargé');
       delBtn.style.cssText = 'color:#f87171;border-color:#f87171;';
       delBtn.textContent = '🗑 Supprimer semaine';
       delBtn.onclick = () => {
-        if (!confirm('Supprimer toutes les concessions de ' + concWeek + ' ?')) return;
-        deleteWeek(concWeek); concWeek = ''; renderStats();
+        showConfirmModal('Supprimer toutes les concessions de ' + concWeek + ' ?', () => {
+          deleteWeek(concWeek); concWeek = ''; renderStats();
+        });
       };
       toolbar.appendChild(delBtn);
     }

@@ -240,7 +240,7 @@ function renderStationsManager() {
     delBtn.style.cssText = 'font-size:10px;padding:3px 8px;color:#f87171;border-color:#f87171;';
     delBtn.textContent = '🗑 Supprimer';
     delBtn.onclick = () => {
-      if (!confirm('Supprimer la station ' + station.nom + ' ?\nToutes les données associées seront perdues.')) return;
+      showConfirmModal('Supprimer la station ' + station.nom + ' ? Toutes les données associées seront perdues.', () => {
       // Supprimer les données localStorage de cette station
       const prefix = station.id;
       const keysToRemove = [];
@@ -265,6 +265,7 @@ function renderStationsManager() {
       }
       // Rafraîchir le panneau
       if (typeof setMenuTab === 'function') setMenuTab('stations-mgr');
+      });
     };
     row.appendChild(delBtn);
     list.appendChild(row);

@@ -55,7 +55,7 @@ function renderExtractionEOS() {
   btnDelete.className = 'rep-btn rep-btn-delete';
   btnDelete.style.cssText = 'font-size:11px;padding:4px 10px;';
   btnDelete.textContent = '🗑 Supprimer le tableau';
-  btnDelete.onclick = () => { if (confirm('Supprimer les données EOS de ce jour ?')) { const key = eosKey(stationId, eosDate); localStorage.removeItem(key); if (typeof dbDelete === 'function') { const dateStr = eosDate.toISOString().slice(0, 10); dbDelete('eos', key, { station_id: stationId, date_jour: dateStr }); } if (typeof renderChefEquipe === 'function') renderChefEquipe(); } };
+  btnDelete.onclick = () => { showConfirmModal('Supprimer les données EOS de ce jour ?', () => { const key = eosKey(stationId, eosDate); localStorage.removeItem(key); if (typeof dbDelete === 'function') { const dateStr = eosDate.toISOString().slice(0, 10); dbDelete('eos', key, { station_id: stationId, date_jour: dateStr }); } if (typeof renderChefEquipe === 'function') renderChefEquipe(); }); };
   header.appendChild(btnDelete);
   wrap.appendChild(header);
 

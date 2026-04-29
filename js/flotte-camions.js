@@ -66,7 +66,7 @@ function renderCamions() {
       // Supprimer
       const delBtn = document.createElement('button');
       delBtn.className = 'rep-btn rep-btn-delete'; delBtn.textContent = '🗑';
-      delBtn.onclick = () => { if (confirm('Supprimer ' + c.plaque + ' ?')) { saveCamions(loadCamions().filter(x => x.id !== c.id)); renderFlotte(); } };
+      delBtn.onclick = () => { showConfirmModal('Supprimer ' + c.plaque + ' ?', () => { saveCamions(loadCamions().filter(x => x.id !== c.id)); renderFlotte(); }); };
       actions.appendChild(delBtn);
 
       card.appendChild(actions);

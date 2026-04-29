@@ -75,7 +75,7 @@ function buildActDateBar() {
     goldenBtn.onclick=()=>{ parseGolden(goldenInp.value); goldenInp.value=''; };
     bar.appendChild(goldenInp); bar.appendChild(goldenBtn);
     const delBtn = document.createElement('button'); delBtn.className='h-btn'; delBtn.textContent='🗑'; delBtn.style.cssText='color:#f87171;border-color:#f87171;';
-    delBtn.onclick=()=>{ if(!confirm('Supprimer ce jour ?'))return; const key=actKey(); localStorage.removeItem(key); if(typeof dbDelete==='function'){const dateStr=(activiteDate||new Date()).toISOString().slice(0,10);dbDelete('activite',key,{station_id:actSid(),date_jour:dateStr});} activiteRoutes=[];activiteBU=[];activiteAST=[];activiteGolden={}; renderActivite(); };
+    delBtn.onclick=()=>{ showConfirmModal('Supprimer ce jour ?', () => { const key=actKey(); localStorage.removeItem(key); if(typeof dbDelete==='function'){const dateStr=(activiteDate||new Date()).toISOString().slice(0,10);dbDelete('activite',key,{station_id:actSid(),date_jour:dateStr});} activiteRoutes=[];activiteBU=[];activiteAST=[];activiteGolden={}; renderActivite(); }); };
     bar.appendChild(delBtn);
   }
   const prev=document.createElement('button');prev.className='h-btn h-nav';prev.textContent='◀';

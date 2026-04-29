@@ -166,3 +166,24 @@ window.showToolbar = function (show) {
   if (hamburger) hamburger.style.display = show ? '' : 'none';
   if (topRight) topRight.style.display = show ? 'flex' : 'none';
 };
+
+/* ── Modal de confirmation stylée (globale) ───────────────── */
+window.showConfirmModal = function (message, onConfirm) {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99999;display:flex;align-items:center;justify-content:center;';
+  const modal = document.createElement('div');
+  modal.style.cssText = 'background:var(--bg-card,var(--bg-sidebar));border-radius:12px;padding:24px;max-width:360px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.4);text-align:center;';
+  modal.innerHTML = `
+    <div style="font-size:24px;margin-bottom:12px;">⚠️</div>
+    <div style="font-size:14px;font-weight:600;margin-bottom:8px;color:var(--text-primary);">${message}</div>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">Cette action est irréversible.</div>
+    <div style="display:flex;gap:10px;justify-content:center;">
+      <button class="h-btn" style="flex:1;padding:8px;" id="gconfirm-cancel">Annuler</button>
+      <button class="h-btn" style="flex:1;padding:8px;background:#f87171;color:#fff;border-color:#f87171;" id="gconfirm-ok">Supprimer</button>
+    </div>`;
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+  overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
+  modal.querySelector('#gconfirm-cancel').onclick = () => overlay.remove();
+  modal.querySelector('#gconfirm-ok').onclick = () => { overlay.remove(); onConfirm(); };
+};
