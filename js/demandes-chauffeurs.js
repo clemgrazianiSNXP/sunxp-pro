@@ -29,11 +29,21 @@ function renderDemandesManager() {
   // Sous-onglets
   const nav = document.createElement('div');
   nav.style.cssText = 'display:flex;gap:4px;padding:12px 12px 0;';
-  [['repos','📅 Repos'],['acompte','💶 Acompte'],['conges','🏖 Congés Payés']].forEach(([id,label]) => {
+  const sid = window.getActiveStationId ? window.getActiveStationId() : null;
+  const reposCount = sid ? loadReposDemandes(sid).filter(d => d.statut === 'en_attente').length : 0;
+  const acompteCount = sid && typeof loadAcomptes === 'function' ? loadAcomptes(sid).filter(d => d.statut === 'en_attente').length : 0;
+  const congesCount = sid && typeof loadConges === 'function' ? loadConges(sid).filter(d => d.statut === 'en_attente').length : 0;
+  [['repos','📅 Repos', reposCount],['acompte','💶 Acompte', acompteCount],['conges','🏖 Congés', congesCount]].forEach(([id,label,count]) => {
     const btn = document.createElement('button');
     btn.className = 'h-btn';
+    btn.style.cssText = demandesSubTab === id ? 'background:var(--accent);color:#fff;border-color:var(--accent);position:relative;' : 'position:relative;';
     btn.textContent = label;
-    if (demandesSubTab === id) btn.style.cssText = 'background:var(--accent);color:#fff;border-color:var(--accent);';
+    if (count > 0) {
+      const badge = document.createElement('span');
+      badge.style.cssText = 'position:absolute;top:-6px;right:-6px;background:#f87171;color:#fff;font-size:9px;font-weight:700;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;';
+      badge.textContent = count;
+      btn.appendChild(badge);
+    }
     btn.onclick = () => { demandesSubTab = id; setMenuTab('demandes-mgr'); };
     nav.appendChild(btn);
   });

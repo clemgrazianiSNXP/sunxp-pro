@@ -322,57 +322,79 @@ function toggleBellPopup() {
 
   const stationId = window.getActiveStationId ? window.getActiveStationId() : null;
   if (!stationId) return;
-  const demandes = loadReposDemandes(stationId).filter(d => d.statut === 'en_attente');
+  const reposDemandes = loadReposDemandes(stationId).filter(d => d.statut === 'en_attente');
+  const acomptesDemandes = typeof loadAcomptes === 'function' ? loadAcomptes(stationId).filter(d => d.statut === 'en_attente') : [];
+  const congesDemandes = typeof loadConges === 'function' ? loadConges(stationId).filter(d => d.statut === 'en_attente') : [];
+  const totalPending = reposDemandes.length + acomptesDemandes.length + congesDemandes.length;
 
   const popup = document.createElement('div');
   popup.className = 'bell-popup';
   popup.style.cssText = 'position:fixed;top:40px;right:50px;z-index:9999;background:var(--bg-sidebar);border:1px solid var(--border);border-radius:10px;min-width:280px;max-height:400px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,0.5);padding:8px 0;';
 
-  if (!demandes.length) {
+  if (!totalPending) {
     popup.innerHTML = '<div style="padding:16px;text-align:center;font-size:12px;color:var(--text-muted);">Aucune demande en attente.</div>';
   } else {
-    popup.innerHTML = '<div style="padding:6px 12px;font-size:11px;font-weight:700;color:var(--text-muted);border-bottom:1px solid var(--border);">DEMANDES DE REPOS</div>';
-    demandes.forEach(d => {
-      const row = document.createElement('div');
-      row.style.cssText = 'padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.03);font-size:12px;';
-      row.innerHTML = `
-        <div style="font-weight:600;">${d.chauffeurNom}</div>
-        <div style="font-size:11px;color:var(--text-muted);">${new Date(d.date1).toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'})} & ${new Date(d.date2).toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'})}</div>
-        <div style="display:flex;gap:6px;margin-top:4px;">
-          <button class="h-btn bell-accept" data-id="${d.id}" style="font-size:10px;padding:2px 8px;background:rgba(74,222,128,0.2);color:#4ade80;border-color:#4ade80;">✅</button>
-          <button class="h-btn bell-refuse" data-id="${d.id}" style="font-size:10px;padding:2px 8px;background:rgba(248,113,113,0.2);color:#f87171;border-color:#f87171;">❌</button>
-        </div>
-      `;
-      popup.appendChild(row);
-    });
+    let html = '';
+    if (reposDemandes.length) {
+      html += '<div style="padding:6px 12px;font-size:11px;font-weight:700;color:var(--text-muted);border-bottom:1px solid var(--border);">📅 REPOS (' + reposDemandes.length + ')</div>';
+      reposDemandes.forEach(d => {
+        html += `<div style="padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.03);font-size:12px;">
+          <div style="font-weight:600;">${d.chauffeurNom}</div>
+          <div style="font-size:11px;color:var(--text-muted);">${new Date(d.date1).toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'})} & ${new Date(d.date2).toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'})}</div>
+          <div style="display:flex;gap:6px;margin-top:4px;">
+            <button class="h-btn bell-accept-repos" data-id="${d.id}" style="font-size:10px;padding:2px 8px;background:rgba(74,222,128,0.2);color:#4ade80;border-color:#4ade80;">✅</button>
+            <button class="h-btn bell-refuse-repos" data-id="${d.id}" style="font-size:10px;padding:2px 8px;background:rgba(248,113,113,0.2);color:#f87171;border-color:#f87171;">❌</button>
+          </div></div>`;
+      });
+    }
+    if (acomptesDemandes.length) {
+      html += '<div style="padding:6px 12px;font-size:11px;font-weight:700;color:var(--text-muted);border-bottom:1px solid var(--border);">💶 ACOMPTES (' + acomptesDemandes.length + ')</div>';
+      acomptesDemandes.forEach(d => {
+        html += `<div style="padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.03);font-size:12px;">
+          <div style="font-weight:600;">${d.chauffeurNom} — ${d.montant}€</div>
+          ${d.motif ? `<div style="font-size:11px;color:var(--text-muted);">${d.motif}</div>` : ''}
+          <div style="display:flex;gap:6px;margin-top:4px;">
+            <button class="h-btn bell-accept-acompte" data-id="${d.id}" style="font-size:10px;padding:2px 8px;background:rgba(74,222,128,0.2);color:#4ade80;border-color:#4ade80;">✅</button>
+            <button class="h-btn bell-refuse-acompte" data-id="${d.id}" style="font-size:10px;padding:2px 8px;background:rgba(248,113,113,0.2);color:#f87171;border-color:#f87171;">❌</button>
+          </div></div>`;
+      });
+    }
+    if (congesDemandes.length) {
+      html += '<div style="padding:6px 12px;font-size:11px;font-weight:700;color:var(--text-muted);border-bottom:1px solid var(--border);">🏖 CONGÉS (' + congesDemandes.length + ')</div>';
+      congesDemandes.forEach(d => {
+        html += `<div style="padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.03);font-size:12px;">
+          <div style="font-weight:600;">${d.chauffeurNom}</div>
+          <div style="font-size:11px;color:var(--text-muted);">${new Date(d.dateDebut).toLocaleDateString('fr-FR')} → ${new Date(d.dateFin).toLocaleDateString('fr-FR')}</div>
+          <div style="display:flex;gap:6px;margin-top:4px;">
+            <button class="h-btn bell-accept-conge" data-id="${d.id}" style="font-size:10px;padding:2px 8px;background:rgba(74,222,128,0.2);color:#4ade80;border-color:#4ade80;">✅</button>
+            <button class="h-btn bell-refuse-conge" data-id="${d.id}" style="font-size:10px;padding:2px 8px;background:rgba(248,113,113,0.2);color:#f87171;border-color:#f87171;">❌</button>
+          </div></div>`;
+      });
+    }
+    popup.innerHTML = html;
   }
 
   document.body.appendChild(popup);
 
   // Bind
   setTimeout(() => {
-    popup.querySelectorAll('.bell-accept').forEach(btn => {
-      btn.onclick = (e) => {
-        e.stopPropagation();
-        const all = loadReposDemandes(stationId);
-        const d = all.find(x => x.id === btn.dataset.id);
-        if (d) { d.statut = 'acceptee'; d.reponse = 'Demande acceptée.'; saveReposDemandes(stationId, all); }
-        popup.remove();
-        toggleBellPopup();
-        updateReposBell();
-      };
+    popup.querySelectorAll('.bell-accept-repos').forEach(btn => {
+      btn.onclick = (e) => { e.stopPropagation(); const all = loadReposDemandes(stationId); const d = all.find(x => x.id === btn.dataset.id); if (d) { d.statut = 'acceptee'; saveReposDemandes(stationId, all); } popup.remove(); toggleBellPopup(); updateReposBell(); };
     });
-    popup.querySelectorAll('.bell-refuse').forEach(btn => {
-      btn.onclick = (e) => {
-        e.stopPropagation();
-        const motif = prompt('Motif du refus (optionnel) :') || '';
-        const all = loadReposDemandes(stationId);
-        const d = all.find(x => x.id === btn.dataset.id);
-        if (d) { d.statut = 'refusee'; d.reponse = motif ? 'Refusée : ' + motif : 'Demande refusée.'; saveReposDemandes(stationId, all); }
-        popup.remove();
-        toggleBellPopup();
-        updateReposBell();
-      };
+    popup.querySelectorAll('.bell-refuse-repos').forEach(btn => {
+      btn.onclick = (e) => { e.stopPropagation(); const all = loadReposDemandes(stationId); const d = all.find(x => x.id === btn.dataset.id); if (d) { d.statut = 'refusee'; saveReposDemandes(stationId, all); } popup.remove(); toggleBellPopup(); updateReposBell(); };
+    });
+    popup.querySelectorAll('.bell-accept-acompte').forEach(btn => {
+      btn.onclick = (e) => { e.stopPropagation(); const all = loadAcomptes(stationId); const d = all.find(x => x.id === btn.dataset.id); if (d) { d.statut = 'acceptee'; saveAcomptes(stationId, all); } popup.remove(); toggleBellPopup(); updateReposBell(); };
+    });
+    popup.querySelectorAll('.bell-refuse-acompte').forEach(btn => {
+      btn.onclick = (e) => { e.stopPropagation(); const all = loadAcomptes(stationId); const d = all.find(x => x.id === btn.dataset.id); if (d) { d.statut = 'refusee'; saveAcomptes(stationId, all); } popup.remove(); toggleBellPopup(); updateReposBell(); };
+    });
+    popup.querySelectorAll('.bell-accept-conge').forEach(btn => {
+      btn.onclick = (e) => { e.stopPropagation(); const all = loadConges(stationId); const d = all.find(x => x.id === btn.dataset.id); if (d) { d.statut = 'acceptee'; saveConges(stationId, all); } popup.remove(); toggleBellPopup(); updateReposBell(); };
+    });
+    popup.querySelectorAll('.bell-refuse-conge').forEach(btn => {
+      btn.onclick = (e) => { e.stopPropagation(); const all = loadConges(stationId); const d = all.find(x => x.id === btn.dataset.id); if (d) { d.statut = 'refusee'; saveConges(stationId, all); } popup.remove(); toggleBellPopup(); updateReposBell(); };
     });
     document.addEventListener('click', function cl(e) {
       if (!popup.contains(e.target) && e.target.id !== 'topbar-bell') { popup.remove(); document.removeEventListener('click', cl); }
