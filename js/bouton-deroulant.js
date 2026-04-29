@@ -30,6 +30,7 @@ function toggleMenuPanel() {
         tabsContainer.innerHTML = `
           <button class="menu-panel-tab active" data-tab="parametres" onclick="setMenuTab('parametres')" title="Paramètres">⚙️</button>
           <button class="menu-panel-tab" data-tab="mes-stats" onclick="setMenuTab('mes-stats')" title="Mes Statistiques">📊</button>
+          <button class="menu-panel-tab" data-tab="contacts-ch" onclick="setMenuTab('contacts-ch')" title="Contacts">📇</button>
           <button class="menu-panel-tab" data-tab="repos" onclick="setMenuTab('repos')" title="Demande de repos">📅</button>
           <button class="menu-panel-tab" data-tab="acompte" onclick="setMenuTab('acompte')" title="Demande d'acompte">💶</button>
           <button class="menu-panel-tab" data-tab="conges" onclick="setMenuTab('conges')" title="Congés payés">🏖</button>
@@ -41,6 +42,8 @@ function toggleMenuPanel() {
           <button class="menu-panel-tab" data-tab="documents" onclick="setMenuTab('documents')" title="Documents bureau">📄</button>
           <button class="menu-panel-tab" data-tab="docs-chauffeurs" onclick="setMenuTab('docs-chauffeurs')" title="Documents chauffeurs">👤</button>
           <button class="menu-panel-tab" data-tab="analyse" onclick="setMenuTab('analyse')" title="Analyse & Performance">📊</button>
+          <button class="menu-panel-tab" data-tab="badges-mgr" onclick="setMenuTab('badges-mgr')" title="Badges chauffeurs">🏆</button>
+          <button class="menu-panel-tab" data-tab="contacts" onclick="setMenuTab('contacts')" title="Contacts">📇</button>
           <button class="menu-panel-tab" data-tab="demandes-mgr" onclick="setMenuTab('demandes-mgr')" title="Demandes chauffeurs">📋</button>
           <button class="menu-panel-tab" data-tab="stations-mgr" onclick="setMenuTab('stations-mgr')" title="Gérer les stations">🏢</button>
         `;
@@ -88,6 +91,12 @@ function setMenuTab(tab) {
     content.appendChild(renderCongesChauffeur());
   } else if (tab === 'stations-mgr' && typeof renderStationsManager === 'function') {
     content.appendChild(renderStationsManager());
+  } else if (tab === 'badges-mgr' && typeof renderBadgesManager === 'function') {
+    content.appendChild(renderBadgesManager());
+  } else if (tab === 'contacts' && typeof renderContactsManager === 'function') {
+    content.appendChild(renderContactsManager());
+  } else if (tab === 'contacts-ch' && typeof renderContactsChauffeur === 'function') {
+    content.appendChild(renderContactsChauffeur());
   }
 }
 
