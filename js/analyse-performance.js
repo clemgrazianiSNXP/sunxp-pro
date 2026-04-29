@@ -363,24 +363,25 @@ function renderRecurrencesTab(container, stationId) {
   // Pour chaque chauffeur, construire un tableau semaine par semaine : impacté ou non
   // Puis calculer le streak consécutif actuel et le max streak historique
   function buildStreaks(weeklyImpacts) {
-    // weeklyImpacts = { nom: { week: score } }
-    const results = []; // { nom, currentStreak, maxStreak, impactWeeks: [{week, score}], totalImpacts }
+    const results = [];
     Object.entries(weeklyImpacts).forEach(([nom, weekMap]) => {
-      let currentStreak = 0, maxStreak = 0, streakWeeks = [];
+      let currentStreak = 0, maxStreak = 0, streakWeeks = [], worstStreakWeeks = [];
       const impactWeeks = [];
+      let tempStreakWeeks = [];
       allWeeks.forEach(week => {
         if (weekMap[week] !== undefined) {
           currentStreak++;
-          streakWeeks.push({ week, score: weekMap[week] });
+          tempStreakWeeks.push({ week, score: weekMap[week] });
           impactWeeks.push({ week, score: weekMap[week] });
-          if (currentStreak > maxStreak) maxStreak = currentStreak;
+          if (currentStreak > maxStreak) { maxStreak = currentStreak; worstStreakWeeks = [...tempStreakWeeks]; }
         } else {
           currentStreak = 0;
-          streakWeeks = [];
+          tempStreakWeeks = [];
         }
       });
+      streakWeeks = [...tempStreakWeeks]; // current streak
       if (currentStreak >= 2) {
-        results.push({ nom, currentStreak, maxStreak, streakWeeks, impactWeeks, totalImpacts: impactWeeks.length });
+        results.push({ nom, currentStreak, maxStreak, streakWeeks, worstStreakWeeks, impactWeeks, totalImpacts: impactWeeks.length });
       }
     });
     return results.sort((a, b) => b.currentStreak - a.currentStreak);
@@ -503,14 +504,19 @@ function showRecurrenceDetail(s, type, color, icon) {
       <div style="font-size:10px;color:var(--text-muted);">Série actuelle</div>
       <div style="font-size:20px;font-weight:700;color:${color};">⚠️ ${s.currentStreak}</div>
     </div>
-    <div style="text-align:center;padding:8px 14px;background:var(--bg-tab-active);border-radius:8px;">
+    <div id="worst-streak-btn" style="text-align:center;padding:8px 14px;background:var(--bg-tab-active);border-radius:8px;cursor:pointer;border:1px solid var(--border);transition:border-color 0.2s;">
       <div style="font-size:10px;color:var(--text-muted);">Pire série</div>
       <div style="font-size:20px;font-weight:700;">${s.maxStreak}</div>
+      <div style="font-size:9px;color:var(--accent);">cliquer pour détail</div>
     </div>
     <div style="text-align:center;padding:8px 14px;background:var(--bg-tab-active);border-radius:8px;">
       <div style="font-size:10px;color:var(--text-muted);">Total impacts</div>
       <div style="font-size:20px;font-weight:700;">${s.totalImpacts}</div>
     </div>
+  </div>
+  <div id="worst-streak-detail" style="display:none;margin-bottom:12px;padding:8px;background:var(--bg-tab-hover);border-radius:6px;border:1px solid var(--border);">
+    <div style="font-size:11px;font-weight:700;color:#f87171;margin-bottom:4px;">Pire série (${s.maxStreak} sem.)</div>
+    ${s.worstStreakWeeks.map(w => `<div style="padding:2px 6px;font-size:11px;border-left:2px solid #f87171;margin-bottom:2px;">S${w.week} — ${w.score}</div>`).join('')}
   </div>`;
 
   // Streak actuel
@@ -533,6 +539,12 @@ function showRecurrenceDetail(s, type, color, icon) {
   html += '</div>';
 
   modal.innerHTML = html;
+  // Bind worst streak toggle
+  const worstBtn = modal.querySelector('#worst-streak-btn');
+  const worstDetail = modal.querySelector('#worst-streak-detail');
+  if (worstBtn && worstDetail) {
+    worstBtn.onclick = (e) => { e.stopPropagation(); worstDetail.style.display = worstDetail.style.display === 'none' ? 'block' : 'none'; };
+  }
   overlay.appendChild(modal);
   document.body.appendChild(overlay);
 }
