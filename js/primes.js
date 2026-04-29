@@ -234,6 +234,24 @@ function buildImpactCell(colKey, row, chauffeurKey, data, sid) {
   const td = document.createElement('td');
   td.style.cssText = 'padding:2px 3px;position:relative;white-space:nowrap;';
 
+  // Absences: auto-calculated from rapport chauffeur
+  if (colKey === 'absences') {
+    const chauffeurs = getChauffeursList(sid);
+    const c = chauffeurs.find(ch => (ch.id || ch.id_amazon) === chauffeurKey);
+    const nom = c ? ((c.prenom || '') + ' ' + (c.nom || '')).trim() : '';
+    const absCount = (typeof window.countAbsencesForMonth === 'function' && nom)
+      ? window.countAbsencesForMonth(sid, nom, primesYear, primesMonth)
+      : 0;
+    row[colKey] = absCount;
+    data[chauffeurKey] = row;
+    const span = document.createElement('span');
+    span.style.cssText = 'display:inline-block;width:36px;text-align:center;font-size:12px;font-weight:700;color:' + (absCount > 0 ? '#f87171' : 'var(--text-muted)') + ';';
+    span.textContent = absCount;
+    span.title = 'Calculé automatiquement depuis le rapport chauffeur';
+    td.appendChild(span);
+    return td;
+  }
+
   const val = row[colKey] || '';
   const isWide = (colKey === 'casseCamion' || colKey === 'autre');
   const inp = document.createElement('input');

@@ -152,6 +152,7 @@ console.log('rapport-chauffeur.js chargé');
 
   /* ── State ──────────────────────────────────────────────── */
   let rapWeek = '';
+  let rapTab = 'semaine'; // 'semaine' or 'annee'
 
   /* ── Main build ─────────────────────────────────────────── */
   window.buildRapportChauffeur = function () {
@@ -160,17 +161,32 @@ console.log('rapport-chauffeur.js chargé');
     if (!rapWeek) rapWeek = [...allW].sort().reverse()[0] || curWeek();
     allW.add(rapWeek);
 
-    // Toolbar
-    const tb = document.createElement('div');
-    tb.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;';
-    const sel = document.createElement('select'); sel.className = 'rep-input'; sel.style.cssText = 'width:180px;padding:6px;';
-    [...allW].sort().reverse().forEach(w => { const o = document.createElement('option'); o.value = w; o.textContent = w; if (w === rapWeek) o.selected = true; sel.appendChild(o); });
-    sel.onchange = () => { rapWeek = sel.value; renderStats(); };
-    tb.appendChild(sel);
-    const nwBtn = document.createElement('button'); nwBtn.className = 'h-btn'; nwBtn.textContent = '+ Nouvelle semaine';
-    nwBtn.onclick = () => { const l = prompt('Semaine (ex: 2026-S16)', curWeek()); if (!l || !l.trim()) return; rapWeek = l.trim(); renderStats(); };
-    tb.appendChild(nwBtn);
-    wrap.appendChild(tb);
+    // Tabs
+    const tabs = document.createElement('div');
+    tabs.style.cssText = 'display:flex;gap:0;margin-bottom:12px;border-bottom:2px solid var(--border);';
+    ['semaine', 'annee'].forEach(id => {
+      const btn = document.createElement('button');
+      btn.textContent = id === 'semaine' ? '📅 Semaine' : '📊 Année';
+      btn.style.cssText = 'padding:8px 18px;border:none;background:transparent;font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;color:var(--text-muted);';
+      if (rapTab === id) btn.style.cssText += 'color:var(--accent);border-bottom-color:var(--accent);';
+      btn.onclick = () => { rapTab = id; renderStats(); };
+      tabs.appendChild(btn);
+    });
+    wrap.appendChild(tabs);
+
+    // Toolbar (semaine selector — only for semaine tab)
+    if (rapTab === 'semaine') {
+      const tb = document.createElement('div');
+      tb.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;';
+      const sel = document.createElement('select'); sel.className = 'rep-input'; sel.style.cssText = 'width:180px;padding:6px;';
+      [...allW].sort().reverse().forEach(w => { const o = document.createElement('option'); o.value = w; o.textContent = w; if (w === rapWeek) o.selected = true; sel.appendChild(o); });
+      sel.onchange = () => { rapWeek = sel.value; renderStats(); };
+      tb.appendChild(sel);
+      const nwBtn = document.createElement('button'); nwBtn.className = 'h-btn'; nwBtn.textContent = '+ Nouvelle semaine';
+      nwBtn.onclick = () => { const l = prompt('Semaine (ex: 2026-S16)', curWeek()); if (!l || !l.trim()) return; rapWeek = l.trim(); renderStats(); };
+      tb.appendChild(nwBtn);
+      wrap.appendChild(tb);
+    }
 
     // Data
     const chauffeurs = getChauffeurs();
@@ -183,13 +199,17 @@ console.log('rapport-chauffeur.js chargé');
     const allAbsData = allAbsences();
     const allMentorData = getAllMentorBad();
 
-    // Build table
-    wrap.appendChild(buildTable(chauffeurs, concData, retData, absData, mentorData, allConcData, allRetData, allAbsData, allMentorData));
+    // Build table based on active tab
+    if (rapTab === 'semaine') {
+      wrap.appendChild(buildTableSemaine(chauffeurs, concData, retData, absData, mentorData));
+    } else {
+      wrap.appendChild(buildTableAnnee(chauffeurs, allConcData, allRetData, allAbsData, allMentorData));
+    }
     return wrap;
   };
 
-  /* ── Table ────────────────────────────────────────────────── */
-  function buildTable(chauffeurs, concData, retData, absData, mentorData, allConcData, allRetData, allAbsData, allMentorData) {
+  /* ── Table Semaine ──────────────────────────────────────── */
+  function buildTableSemaine(chauffeurs, concData, retData, absData, mentorData) {
     const container = document.createElement('div');
     const byCh = (arr, nom) => arr.filter(x => x.chauffeur === nom);
 
@@ -197,47 +217,35 @@ console.log('rapport-chauffeur.js chargé');
     table.style.cssText = 'width:100%;border-collapse:collapse;';
     table.innerHTML = `<thead><tr>
       <th style="text-align:left;padding:8px;">Chauffeur</th>
-      <th style="text-align:center;padding:8px;width:70px;" title="Retards semaine">⏰ Sem.</th>
-      <th style="text-align:center;padding:8px;width:70px;" title="Retards année">⏰ An.</th>
-      <th style="text-align:center;padding:8px;width:70px;" title="Absences injustifiées semaine">🚫 Sem.</th>
-      <th style="text-align:center;padding:8px;width:70px;" title="Absences injustifiées année">🚫 An.</th>
-      <th style="text-align:center;padding:8px;width:70px;" title="Mentor semaine">🛞 Sem.</th>
-      <th style="text-align:center;padding:8px;width:70px;" title="Mentor année">🛞 An.</th>
-      <th style="text-align:center;padding:8px;width:70px;" title="Concessions semaine">📦 Sem.</th>
-      <th style="text-align:center;padding:8px;width:70px;" title="Concessions année">📦 An.</th>
+      <th style="text-align:center;padding:8px;width:70px;" title="Retards">⏰</th>
+      <th style="text-align:center;padding:8px;width:70px;" title="Absences injustifiées">🚫</th>
+      <th style="text-align:center;padding:8px;width:70px;" title="Mentor">🛞</th>
+      <th style="text-align:center;padding:8px;width:70px;" title="Concessions">📦</th>
       <th style="text-align:center;padding:8px;width:160px;">Actions</th>
     </tr></thead>`;
     const tbody = document.createElement('tbody');
 
     const names = chauffeurs.map(c => cNom(c));
-    // Sort: those with any issues first
     const score = n => byCh(retData, n).length + byCh(absData, n).length + byCh(mentorData, n).length + byCh(concData, n).length;
     const sorted = [...names].sort((a, b) => score(b) - score(a) || a.localeCompare(b));
 
-    let totRetW = 0, totRetY = 0, totAbsW = 0, totAbsY = 0, totMenW = 0, totMenY = 0, totConW = 0, totConY = 0;
+    let totRet = 0, totAbs = 0, totMen = 0, totCon = 0;
 
     sorted.forEach(nom => {
-      const rW = byCh(retData, nom), rY = byCh(allRetData, nom);
-      const aW = byCh(absData, nom), aY = byCh(allAbsData, nom);
-      const mW = byCh(mentorData, nom), mY = byCh(allMentorData, nom);
-      const cW = byCh(concData, nom), cY = byCh(allConcData, nom);
-      totRetW += rW.length; totRetY += rY.length;
-      totAbsW += aW.length; totAbsY += aY.length;
-      totMenW += mW.length; totMenY += mY.length;
-      totConW += cW.length; totConY += cY.length;
+      const rW = byCh(retData, nom);
+      const aW = byCh(absData, nom);
+      const mW = byCh(mentorData, nom);
+      const cW = byCh(concData, nom);
+      totRet += rW.length; totAbs += aW.length; totMen += mW.length; totCon += cW.length;
 
       const tr = document.createElement('tr'); tr.style.cssText = 'border-bottom:1px solid var(--border);';
       const cs = (n, col) => n > 0 ? `color:${col};font-weight:700;` : 'color:var(--text-muted);';
       tr.innerHTML = `
         <td style="padding:8px;">${escH(nom)}</td>
         <td style="text-align:center;padding:8px;${cs(rW.length,'#f87171')}">${rW.length}</td>
-        <td style="text-align:center;padding:8px;${cs(rY.length,'#f59e0b')}">${rY.length}</td>
         <td style="text-align:center;padding:8px;${cs(aW.length,'#f87171')}">${aW.length}</td>
-        <td style="text-align:center;padding:8px;${cs(aY.length,'#f59e0b')}">${aY.length}</td>
         <td style="text-align:center;padding:8px;${cs(mW.length,'#f87171')}">${mW.length}</td>
-        <td style="text-align:center;padding:8px;${cs(mY.length,'#f59e0b')}">${mY.length}</td>
         <td style="text-align:center;padding:8px;${cs(cW.length,'#f87171')}">${cW.length}</td>
-        <td style="text-align:center;padding:8px;${cs(cY.length,'#f59e0b')}">${cY.length}</td>
         <td style="text-align:center;padding:8px;"></td>`;
       const actCell = tr.lastElementChild;
       const bw = document.createElement('div'); bw.style.cssText = 'display:flex;gap:3px;justify-content:center;flex-wrap:wrap;';
@@ -261,11 +269,10 @@ console.log('rapport-chauffeur.js chargé');
       bw.appendChild(concBtn);
 
       // Detail button
-      const hasData = rW.length + aW.length + mW.length + cW.length + rY.length + aY.length + mY.length + cY.length > 0;
-      if (hasData) {
+      if (rW.length + aW.length + mW.length + cW.length > 0) {
         const detBtn = document.createElement('button'); detBtn.className = 'h-btn'; detBtn.textContent = '👁';
         detBtn.style.cssText = 'font-size:11px;padding:2px 6px;'; detBtn.title = 'Voir le détail';
-        detBtn.onclick = () => showFullDetail(nom, rW, rY, aW, aY, mW, mY, cW, cY);
+        detBtn.onclick = () => showFullDetail(nom, rW, [], aW, [], mW, [], cW, []);
         bw.appendChild(detBtn);
       }
       actCell.appendChild(bw);
@@ -276,14 +283,73 @@ console.log('rapport-chauffeur.js chargé');
     const tfoot = document.createElement('tfoot');
     tfoot.innerHTML = `<tr style="border-top:2px solid var(--accent);">
       <td style="padding:8px;font-weight:700;">Total</td>
-      <td style="text-align:center;padding:8px;font-weight:700;color:#f87171;">${totRetW}</td>
-      <td style="text-align:center;padding:8px;font-weight:700;color:#f59e0b;">${totRetY}</td>
-      <td style="text-align:center;padding:8px;font-weight:700;color:#f87171;">${totAbsW}</td>
-      <td style="text-align:center;padding:8px;font-weight:700;color:#f59e0b;">${totAbsY}</td>
-      <td style="text-align:center;padding:8px;font-weight:700;color:#f87171;">${totMenW}</td>
-      <td style="text-align:center;padding:8px;font-weight:700;color:#f59e0b;">${totMenY}</td>
-      <td style="text-align:center;padding:8px;font-weight:700;color:#f87171;">${totConW}</td>
-      <td style="text-align:center;padding:8px;font-weight:700;color:#f59e0b;">${totConY}</td>
+      <td style="text-align:center;padding:8px;font-weight:700;color:#f87171;">${totRet}</td>
+      <td style="text-align:center;padding:8px;font-weight:700;color:#f87171;">${totAbs}</td>
+      <td style="text-align:center;padding:8px;font-weight:700;color:#f87171;">${totMen}</td>
+      <td style="text-align:center;padding:8px;font-weight:700;color:#f87171;">${totCon}</td>
+      <td></td></tr>`;
+    table.appendChild(tfoot);
+    container.appendChild(table);
+    return container;
+  }
+
+  /* ── Table Année ──────────────────────────────────────────── */
+  function buildTableAnnee(chauffeurs, allConcData, allRetData, allAbsData, allMentorData) {
+    const container = document.createElement('div');
+    const byCh = (arr, nom) => arr.filter(x => x.chauffeur === nom);
+
+    const table = document.createElement('table'); table.className = 'rep-table';
+    table.style.cssText = 'width:100%;border-collapse:collapse;';
+    table.innerHTML = `<thead><tr>
+      <th style="text-align:left;padding:8px;">Chauffeur</th>
+      <th style="text-align:center;padding:8px;width:70px;" title="Retards année">⏰</th>
+      <th style="text-align:center;padding:8px;width:70px;" title="Absences injustifiées année">🚫</th>
+      <th style="text-align:center;padding:8px;width:70px;" title="Mentor année">🛞</th>
+      <th style="text-align:center;padding:8px;width:70px;" title="Concessions année">📦</th>
+      <th style="text-align:center;padding:8px;width:80px;">Détail</th>
+    </tr></thead>`;
+    const tbody = document.createElement('tbody');
+
+    const names = chauffeurs.map(c => cNom(c));
+    const score = n => byCh(allRetData, n).length + byCh(allAbsData, n).length + byCh(allMentorData, n).length + byCh(allConcData, n).length;
+    const sorted = [...names].sort((a, b) => score(b) - score(a) || a.localeCompare(b));
+
+    let totRet = 0, totAbs = 0, totMen = 0, totCon = 0;
+
+    sorted.forEach(nom => {
+      const rY = byCh(allRetData, nom);
+      const aY = byCh(allAbsData, nom);
+      const mY = byCh(allMentorData, nom);
+      const cY = byCh(allConcData, nom);
+      totRet += rY.length; totAbs += aY.length; totMen += mY.length; totCon += cY.length;
+
+      const tr = document.createElement('tr'); tr.style.cssText = 'border-bottom:1px solid var(--border);';
+      const cs = (n, col) => n > 0 ? `color:${col};font-weight:700;` : 'color:var(--text-muted);';
+      tr.innerHTML = `
+        <td style="padding:8px;">${escH(nom)}</td>
+        <td style="text-align:center;padding:8px;${cs(rY.length,'#f59e0b')}">${rY.length}</td>
+        <td style="text-align:center;padding:8px;${cs(aY.length,'#f59e0b')}">${aY.length}</td>
+        <td style="text-align:center;padding:8px;${cs(mY.length,'#f59e0b')}">${mY.length}</td>
+        <td style="text-align:center;padding:8px;${cs(cY.length,'#f59e0b')}">${cY.length}</td>
+        <td style="text-align:center;padding:8px;"></td>`;
+      const actCell = tr.lastElementChild;
+      if (rY.length + aY.length + mY.length + cY.length > 0) {
+        const detBtn = document.createElement('button'); detBtn.className = 'h-btn'; detBtn.textContent = '👁';
+        detBtn.style.cssText = 'font-size:11px;padding:2px 6px;'; detBtn.title = 'Voir le détail année';
+        detBtn.onclick = () => showFullDetail(nom, [], rY, [], aY, [], mY, [], cY);
+        actCell.appendChild(detBtn);
+      }
+      tbody.appendChild(tr);
+    });
+
+    table.appendChild(tbody);
+    const tfoot = document.createElement('tfoot');
+    tfoot.innerHTML = `<tr style="border-top:2px solid var(--accent);">
+      <td style="padding:8px;font-weight:700;">Total</td>
+      <td style="text-align:center;padding:8px;font-weight:700;color:#f59e0b;">${totRet}</td>
+      <td style="text-align:center;padding:8px;font-weight:700;color:#f59e0b;">${totAbs}</td>
+      <td style="text-align:center;padding:8px;font-weight:700;color:#f59e0b;">${totMen}</td>
+      <td style="text-align:center;padding:8px;font-weight:700;color:#f59e0b;">${totCon}</td>
       <td></td></tr>`;
     table.appendChild(tfoot);
     container.appendChild(table);
@@ -338,13 +404,6 @@ console.log('rapport-chauffeur.js chargé');
       <div style="display:flex;flex-direction:column;gap:8px;">
         <label style="font-size:12px;color:var(--text-muted);">Date de l'absence</label>
         <input type="date" id="rap-abs-date" class="rep-input" value="${new Date().toISOString().slice(0,10)}">
-        <label style="font-size:12px;color:var(--text-muted);">Type d'absence</label>
-        <select id="rap-abs-type" class="rep-input">
-          <option value="No Show">No Show</option>
-          <option value="Abandon de poste">Abandon de poste</option>
-          <option value="Absence sans prévenir">Absence sans prévenir</option>
-          <option value="Autre">Autre</option>
-        </select>
         <label style="font-size:12px;color:var(--text-muted);">Commentaire</label>
         <input type="text" id="rap-abs-comment" class="rep-input" placeholder="Optionnel">
       </div>
@@ -356,11 +415,10 @@ console.log('rapport-chauffeur.js chargé');
     document.getElementById('rap-abs-cancel').onclick = rmModal;
     document.getElementById('rap-abs-ok').onclick = () => {
       const date = document.getElementById('rap-abs-date').value;
-      const type = document.getElementById('rap-abs-type').value;
       const comment = document.getElementById('rap-abs-comment').value.trim();
       if (!date) { alert('Veuillez indiquer la date.'); return; }
       const existing = loadAbsences(rapWeek);
-      existing.push({ chauffeur: nom, date, type, comment });
+      existing.push({ chauffeur: nom, date, comment });
       saveAbsences(rapWeek, existing);
       rmModal(); renderStats();
     };
@@ -491,8 +549,8 @@ console.log('rapport-chauffeur.js chargé');
     // Absences injustifiées semaine
     html += section('🚫 Absences injustifiées — ' + rapWeek, aW.length);
     if (aW.length) {
-      html += '<table class="rep-table" style="width:100%;font-size:13px;margin-bottom:6px;"><thead><tr><th style="padding:4px 6px;">Date</th><th style="padding:4px 6px;">Type</th><th style="padding:4px 6px;">Commentaire</th><th style="width:30px;"></th></tr></thead><tbody>';
-      aW.forEach(a => { html += `<tr style="border-bottom:1px solid var(--border);"><td style="padding:4px 6px;">${fmtShort(a.date)}</td><td style="padding:4px 6px;font-weight:700;color:#f87171;">${escH(a.type || '—')}</td><td style="padding:4px 6px;color:var(--text-muted);font-size:12px;">${escH(a.comment || '')}</td><td style="padding:4px 6px;"><button class="h-btn rap-del-abs" data-date="${escH(a.date)}" data-type="${escH(a.type || '')}" style="font-size:10px;padding:1px 5px;color:#f87171;border-color:#f87171;">🗑</button></td></tr>`; });
+      html += '<table class="rep-table" style="width:100%;font-size:13px;margin-bottom:6px;"><thead><tr><th style="padding:4px 6px;">Date</th><th style="padding:4px 6px;">Commentaire</th><th style="width:30px;"></th></tr></thead><tbody>';
+      aW.forEach(a => { html += `<tr style="border-bottom:1px solid var(--border);"><td style="padding:4px 6px;">${fmtShort(a.date)}</td><td style="padding:4px 6px;color:var(--text-muted);font-size:12px;">${escH(a.comment || '')}</td><td style="padding:4px 6px;"><button class="h-btn rap-del-abs" data-date="${escH(a.date)}" style="font-size:10px;padding:1px 5px;color:#f87171;border-color:#f87171;">🗑</button></td></tr>`; });
       html += '</tbody></table>';
     }
 
@@ -501,7 +559,7 @@ console.log('rapport-chauffeur.js chargé');
     if (aY.length) {
       html += groupByWeek(aY, items => {
         let t = '<table class="rep-table" style="width:100%;font-size:12px;"><tbody>';
-        items.forEach(a => { t += `<tr style="border-bottom:1px solid var(--border);"><td style="padding:3px 6px;">${fmtShort(a.date)}</td><td style="padding:3px 6px;font-weight:700;color:#f59e0b;">${escH(a.type || '—')}</td><td style="padding:3px 6px;color:var(--text-muted);font-size:11px;">${escH(a.comment || '')}</td></tr>`; });
+        items.forEach(a => { t += `<tr style="border-bottom:1px solid var(--border);"><td style="padding:3px 6px;">${fmtShort(a.date)}</td><td style="padding:3px 6px;color:var(--text-muted);font-size:11px;">${escH(a.comment || '')}</td></tr>`; });
         return t + '</tbody></table>';
       });
     }
@@ -562,9 +620,9 @@ console.log('rapport-chauffeur.js chargé');
     // Bind delete absence buttons
     modal.querySelectorAll('.rap-del-abs').forEach(btn => {
       btn.onclick = () => {
-        const d = btn.dataset.date, tp = btn.dataset.type;
+        const d = btn.dataset.date;
         const ex = loadAbsences(rapWeek);
-        const idx = ex.findIndex(a => a.chauffeur === nom && a.date === d && a.type === tp);
+        const idx = ex.findIndex(a => a.chauffeur === nom && a.date === d);
         if (idx >= 0) { ex.splice(idx, 1); saveAbsences(rapWeek, ex); }
         rmModal(); renderStats();
       };
@@ -636,5 +694,32 @@ console.log('rapport-chauffeur.js chargé');
   function rmModal() {
     ['rap-modal-overlay','conc-modal-overlay','conc-paste-overlay'].forEach(id => { const el = document.getElementById(id); if (el) el.remove(); });
   }
+
+  /* ── API globale pour les primes ────────────────────────── */
+  /**
+   * Compte les absences injustifiées d'un chauffeur pour un mois donné.
+   * @param {string} stationId
+   * @param {string} chauffeurNom - "Prenom Nom"
+   * @param {number} year
+   * @param {number} month - 0-indexed (0=janvier)
+   * @returns {number}
+   */
+  window.countAbsencesForMonth = function (stationId, chauffeurNom, year, month) {
+    const prefix = stationId + '-absences-';
+    let count = 0;
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (!k || !k.startsWith(prefix)) continue;
+      try {
+        const arr = JSON.parse(localStorage.getItem(k)) || [];
+        arr.forEach(a => {
+          if (a.chauffeur !== chauffeurNom) return;
+          const d = new Date(a.date);
+          if (d.getFullYear() === year && d.getMonth() === month) count++;
+        });
+      } catch (_) {}
+    }
+    return count;
+  };
 
 })();
