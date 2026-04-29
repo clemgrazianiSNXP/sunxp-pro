@@ -193,7 +193,7 @@ function renderReposResponsable() {
       const icon = d.statut === 'acceptee' ? '✅' : '❌';
       const div = document.createElement('div');
       div.style.cssText = `display:flex;align-items:center;gap:8px;padding:8px 10px;border-left:3px solid ${color};background:var(--bg-sidebar);border:1px solid var(--border);border-radius:6px;margin-bottom:6px;font-size:12px;color:var(--text-muted);`;
-      div.innerHTML = `<span style="flex:1;">${icon} <b>${d.chauffeurNom}</b> — ${new Date(d.date1).toLocaleDateString('fr-FR')} & ${new Date(d.date2).toLocaleDateString('fr-FR')}</span>`;
+      div.innerHTML = `<span style="flex:1;">${icon} <b>${d.chauffeurNom}</b> — ${new Date(d.date1).toLocaleDateString('fr-FR')} & ${new Date(d.date2).toLocaleDateString('fr-FR')} <span style="font-size:10px;color:var(--text-muted);">· demandé le ${d.dateDemande ? new Date(d.dateDemande).toLocaleDateString('fr-FR') : '?'}</span></span>`;
       // Bouton modifier (changer le statut)
       const modBtn = document.createElement('button');
       modBtn.className = 'h-btn';
