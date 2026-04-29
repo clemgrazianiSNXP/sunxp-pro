@@ -17,6 +17,12 @@ function isDriverMode() {
 function toggleMenuPanel() {
   const panel = document.getElementById('menu-panel');
   if (!panel) return;
+
+  // Si le portail chauffeur est en cours de chargement (toolbar visible mais portalChauffeur pas encore set),
+  // ne pas ouvrir le menu pour éviter d'afficher les onglets responsable
+  const portalVisible = document.getElementById('chauffeur-portal') && !document.getElementById('chauffeur-portal').hidden;
+  if (portalVisible && !isDriverMode()) return;
+
   menuPanelOpen = !menuPanelOpen;
   panel.hidden = !menuPanelOpen;
 
