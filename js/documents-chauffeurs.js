@@ -164,10 +164,10 @@ function showDocsChauffeurDetail(nom) {
     const addBar = document.createElement('div');
     addBar.style.cssText = 'display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;';
 
-    const selType = document.createElement('select');
-    selType.className = 'rep-input'; selType.style.cssText = 'padding:6px;font-size:12px;';
-    DOC_TYPES.forEach(t => { const o = document.createElement('option'); o.value = t; o.textContent = t; selType.appendChild(o); });
-    addBar.appendChild(selType);
+    const nameInp = document.createElement('input');
+    nameInp.type = 'text'; nameInp.placeholder = 'Nom du document...';
+    nameInp.className = 'rep-input'; nameInp.style.cssText = 'padding:6px;font-size:12px;width:180px;';
+    addBar.appendChild(nameInp);
 
     const fileInp = document.createElement('input');
     fileInp.type = 'file'; fileInp.accept = '.pdf,.jpg,.jpeg,.png,.doc,.docx';
@@ -178,14 +178,16 @@ function showDocsChauffeurDetail(nom) {
     addBtn.className = 'rep-btn rep-btn-primary'; addBtn.style.cssText = 'font-size:12px;padding:6px 12px;';
     addBtn.textContent = '📤 Ajouter';
     addBtn.onclick = async () => {
+      if (!nameInp.value.trim()) { alert('Entrez un nom pour le document.'); return; }
       if (!fileInp.files.length) { alert('Sélectionnez un fichier.'); return; }
       const file = fileInp.files[0];
       addBtn.disabled = true; addBtn.textContent = '⏳ Upload...';
       const url = await uploadDocChauffeur(nom, file);
       if (!url) { alert('Erreur lors de l\'upload. Vérifiez que le bucket "photos" existe dans Supabase Storage.'); addBtn.disabled = false; addBtn.textContent = '📤 Ajouter'; return; }
-      const docs = loadDocsChauffeur(nom);
-      docs.push({ id: 'dc_' + Date.now(), type: selType.value, fileName: file.name, url, date: new Date().toISOString() });
+      const docs = await loadDocsChauffeurAsync(nom);
+      docs.push({ id: 'dc_' + Date.now(), type: nameInp.value.trim(), fileName: file.name, url, date: new Date().toISOString() });
       saveDocsChauffeur(nom, docs);
+      showDocToast('✅ Document ajouté avec succès');
       render();
     };
     addBar.appendChild(addBtn);
@@ -222,13 +224,13 @@ function showDocsChauffeurDetail(nom) {
         delBtn.className = 'h-btn'; delBtn.style.cssText = 'font-size:10px;padding:3px 6px;color:#f87171;border-color:#f87171;';
         delBtn.textContent = '🗑';
         delBtn.title = 'Supprimer';
-        delBtn.onclick = async () => {
-          if (!confirm('Supprimer ce document ?')) return;
-          delBtn.textContent = '⏳';
-          await deleteDocChauffeur(doc.url);
-          const current = loadDocsChauffeur(nom);
-          saveDocsChauffeur(nom, current.filter(d => d.id !== doc.id));
-          render();
+        delBtn.onclick = () => {
+          showConfirmModal('Supprimer ce document ?', async () => {
+            await deleteDocChauffeur(doc.url);
+            const current = await loadDocsChauffeurAsync(nom);
+            saveDocsChauffeur(nom, current.filter(d => d.id !== doc.id));
+            render();
+          });
         };
         row.appendChild(delBtn);
 
@@ -240,4 +242,14 @@ function showDocsChauffeurDetail(nom) {
   render();
   overlay.appendChild(box);
   document.body.appendChild(overlay);
+}
+
+
+/* ── Toast de confirmation ────────────────────────────────── */
+function showDocToast(message) {
+  const toast = document.createElement('div');
+  toast.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:999999;background:var(--bg-sidebar);border:1px solid var(--accent);border-radius:10px;padding:14px 24px;box-shadow:0 8px 32px rgba(0,0,0,0.4);font-size:14px;font-weight:600;color:var(--accent);animation:fadeInDown 0.3s ease;';
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; setTimeout(() => toast.remove(), 300); }, 2000);
 }
