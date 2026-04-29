@@ -192,7 +192,7 @@ function renderReposResponsable() {
       const color = d.statut === 'acceptee' ? '#4ade80' : '#f87171';
       const icon = d.statut === 'acceptee' ? '✅' : '❌';
       const div = document.createElement('div');
-      div.style.cssText = `display:flex;align-items:center;gap:8px;padding:6px 10px;border-left:3px solid ${color};margin-bottom:4px;font-size:11px;color:var(--text-muted);`;
+      div.style.cssText = `display:flex;align-items:center;gap:8px;padding:8px 10px;border-left:3px solid ${color};background:var(--bg-sidebar);border:1px solid var(--border);border-radius:6px;margin-bottom:6px;font-size:12px;color:var(--text-muted);`;
       div.innerHTML = `<span style="flex:1;">${icon} <b>${d.chauffeurNom}</b> — ${new Date(d.date1).toLocaleDateString('fr-FR')} & ${new Date(d.date2).toLocaleDateString('fr-FR')}</span>`;
       // Bouton modifier (changer le statut)
       const modBtn = document.createElement('button');
@@ -206,26 +206,26 @@ function renderReposResponsable() {
           if (found.statut === 'refusee') { found.statut = 'acceptee'; found.reponse = 'Demande finalement acceptée.'; }
           else { found.statut = 'refusee'; found.reponse = 'Demande annulée.'; }
           saveReposDemandes(stationId, all);
-          if (typeof setMenuTab === 'function') setMenuTab('repos-mgr');
+          if (typeof setMenuTab === 'function') setMenuTab('demandes-mgr');
         }
       };
       div.appendChild(modBtn);
+      // Bouton supprimer individuel
+      const delBtn = document.createElement('button');
+      delBtn.className = 'h-btn';
+      delBtn.style.cssText = 'font-size:10px;padding:2px 8px;color:#f87171;border-color:#f87171;';
+      delBtn.textContent = '🗑';
+      delBtn.onclick = () => {
+        showConfirmModal('Supprimer cette demande de repos ?', () => {
+          const all = loadReposDemandes(stationId).filter(x => x.id !== d.id);
+          saveReposDemandes(stationId, all);
+          if (typeof setMenuTab === 'function') setMenuTab('demandes-mgr');
+          updateReposBell();
+        });
+      };
+      div.appendChild(delBtn);
       hist.appendChild(div);
     });
-
-    // Bouton supprimer l'historique
-    const clearBtn = document.createElement('button');
-    clearBtn.className = 'rep-btn rep-btn-delete';
-    clearBtn.style.cssText = 'font-size:11px;margin-top:8px;';
-    clearBtn.textContent = '🗑 Supprimer l\'historique';
-    clearBtn.onclick = () => {
-      showConfirmModal('Supprimer tout l\'historique des demandes traitées ?', () => {
-        const all = loadReposDemandes(stationId).filter(d => d.statut === 'en_attente');
-        saveReposDemandes(stationId, all);
-        if (typeof setMenuTab === 'function') setMenuTab('repos-mgr');
-      });
-    };
-    hist.appendChild(clearBtn);
 
     wrap.appendChild(hist);
   }

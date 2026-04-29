@@ -76,6 +76,10 @@ function renderAcomptesManager() {
     return wrap;
   }
 
+  if (!pending.length) {
+    wrap.innerHTML += '<p style="color:var(--text-muted);font-size:12px;">Aucune demande en attente.</p>';
+  }
+
   // Pending
   pending.forEach(d => {
     const card = document.createElement('div');
@@ -102,8 +106,21 @@ function renderAcomptesManager() {
       const icon = d.statut === 'acceptee' ? '✅' : '❌';
       const div = document.createElement('div');
       div.style.cssText = `display:flex;align-items:center;gap:8px;padding:8px 10px;border-left:3px solid ${color};background:var(--bg-sidebar);border:1px solid var(--border);border-radius:6px;margin-bottom:6px;font-size:12px;color:var(--text-muted);`;
-      div.innerHTML = `<span style="flex:1;">${icon} <b>${d.chauffeurNom}</b> — ${d.montant}€</span>
-        <button class="h-btn acompte-del" data-id="${d.id}" style="font-size:10px;padding:2px 8px;color:#f87171;border-color:#f87171;">🗑</button>`;
+      div.innerHTML = `<span style="flex:1;">${icon} <b>${d.chauffeurNom}</b> — ${d.montant}€</span>`;
+      // Bouton modifier
+      const modBtn = document.createElement('button');
+      modBtn.className = 'h-btn';
+      modBtn.style.cssText = 'font-size:9px;padding:2px 6px;';
+      modBtn.textContent = d.statut === 'refusee' ? '✅ Valider' : '❌ Refuser';
+      modBtn.onclick = () => { const all = loadAcomptes(sid); const f = all.find(x => x.id === d.id); if (f) { f.statut = f.statut === 'refusee' ? 'acceptee' : 'refusee'; saveAcomptes(sid, all); setMenuTab('demandes-mgr'); } };
+      div.appendChild(modBtn);
+      // Bouton supprimer
+      const delBtnH = document.createElement('button');
+      delBtnH.className = 'h-btn';
+      delBtnH.style.cssText = 'font-size:10px;padding:2px 8px;color:#f87171;border-color:#f87171;';
+      delBtnH.textContent = '🗑';
+      delBtnH.onclick = () => { showConfirmModal('Supprimer cette demande d\'acompte ?', () => { const newList = demandes.filter(x => x.id !== d.id); saveAcomptes(sid, newList); setMenuTab('demandes-mgr'); updateReposBell(); }); };
+      div.appendChild(delBtnH);
       histDiv.appendChild(div);
     });
     wrap.appendChild(histDiv);
@@ -143,6 +160,10 @@ function renderCongesManager() {
     return wrap;
   }
 
+  if (!pending.length) {
+    wrap.innerHTML += '<p style="color:var(--text-muted);font-size:12px;">Aucune demande en attente.</p>';
+  }
+
   pending.forEach(d => {
     const card = document.createElement('div');
     card.style.cssText = 'background:var(--bg-tab-active);border:1px solid var(--border);border-left:3px solid #fbbf24;border-radius:6px;padding:10px;font-size:12px;';
@@ -167,8 +188,21 @@ function renderCongesManager() {
       const icon = d.statut === 'acceptee' ? '✅' : '❌';
       const div = document.createElement('div');
       div.style.cssText = `display:flex;align-items:center;gap:8px;padding:8px 10px;border-left:3px solid ${color};background:var(--bg-sidebar);border:1px solid var(--border);border-radius:6px;margin-bottom:6px;font-size:12px;color:var(--text-muted);`;
-      div.innerHTML = `<span style="flex:1;">${icon} <b>${d.chauffeurNom}</b> — ${new Date(d.dateDebut).toLocaleDateString('fr-FR')} → ${new Date(d.dateFin).toLocaleDateString('fr-FR')}</span>
-        <button class="h-btn conge-del" data-id="${d.id}" style="font-size:10px;padding:2px 8px;color:#f87171;border-color:#f87171;">🗑</button>`;
+      div.innerHTML = `<span style="flex:1;">${icon} <b>${d.chauffeurNom}</b> — ${new Date(d.dateDebut).toLocaleDateString('fr-FR')} → ${new Date(d.dateFin).toLocaleDateString('fr-FR')}</span>`;
+      // Bouton modifier
+      const modBtn = document.createElement('button');
+      modBtn.className = 'h-btn';
+      modBtn.style.cssText = 'font-size:9px;padding:2px 6px;';
+      modBtn.textContent = d.statut === 'refusee' ? '✅ Valider' : '❌ Refuser';
+      modBtn.onclick = () => { const all = loadConges(sid); const f = all.find(x => x.id === d.id); if (f) { f.statut = f.statut === 'refusee' ? 'acceptee' : 'refusee'; saveConges(sid, all); setMenuTab('demandes-mgr'); } };
+      div.appendChild(modBtn);
+      // Bouton supprimer
+      const delBtnH = document.createElement('button');
+      delBtnH.className = 'h-btn';
+      delBtnH.style.cssText = 'font-size:10px;padding:2px 8px;color:#f87171;border-color:#f87171;';
+      delBtnH.textContent = '🗑';
+      delBtnH.onclick = () => { showConfirmModal('Supprimer cette demande de congés ?', () => { const newList = demandes.filter(x => x.id !== d.id); saveConges(sid, newList); setMenuTab('demandes-mgr'); updateReposBell(); }); };
+      div.appendChild(delBtnH);
       histDiv.appendChild(div);
     });
     wrap.appendChild(histDiv);
