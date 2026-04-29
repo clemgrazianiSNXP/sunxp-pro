@@ -412,9 +412,19 @@ function renderRecurrencesTab(container, stationId) {
 
   function renderSection(title, color, icon, streaks, type) {
     const section = document.createElement('div');
-    section.innerHTML = `<div style="font-size:13px;font-weight:700;color:${color};margin-bottom:8px;">${icon} ${title}</div>`;
+    const header = document.createElement('div');
+    header.style.cssText = `display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg-sidebar);border:1px solid var(--border);border-left:3px solid ${color};border-radius:8px;cursor:pointer;transition:background 0.2s;`;
+    header.onmouseenter = () => { header.style.background = 'var(--bg-tab-hover)'; };
+    header.onmouseleave = () => { header.style.background = 'var(--bg-sidebar)'; };
+    const count = streaks.length;
+    header.innerHTML = `<span style="font-size:13px;font-weight:700;color:${color};">${icon} ${title}</span>
+      <span style="font-size:12px;color:${count > 0 ? color : 'var(--text-muted)'};">${count > 0 ? count + ' chauffeur' + (count > 1 ? 's' : '') : '✓ RAS'} ▼</span>`;
+
+    const body = document.createElement('div');
+    body.style.cssText = 'display:none;margin-top:8px;';
+
     if (!streaks.length) {
-      section.innerHTML += '<p style="color:var(--text-muted);font-size:12px;font-style:italic;">Aucune récurrence en cours ✓</p>';
+      body.innerHTML = '<p style="color:var(--text-muted);font-size:12px;font-style:italic;padding:8px 0;">Aucune récurrence en cours ✓</p>';
     } else {
       streaks.forEach(s => {
         const card = document.createElement('div');
@@ -428,9 +438,18 @@ function renderRecurrencesTab(container, stationId) {
           </div>
           <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Total impacts : ${s.totalImpacts} · Pire série : ${s.maxStreak} sem.</div>`;
         card.onclick = () => showRecurrenceDetail(s, type, color, icon);
-        section.appendChild(card);
+        body.appendChild(card);
       });
     }
+
+    header.onclick = () => {
+      const isOpen = body.style.display !== 'none';
+      body.style.display = isOpen ? 'none' : 'block';
+      header.querySelector('span:last-child').innerHTML = `${count > 0 ? count + ' chauffeur' + (count > 1 ? 's' : '') : '✓ RAS'} ${isOpen ? '▼' : '▲'}`;
+    };
+
+    section.appendChild(header);
+    section.appendChild(body);
     wrap.appendChild(section);
   }
 
