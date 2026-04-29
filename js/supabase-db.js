@@ -347,6 +347,11 @@ window.preloadStationData = async function (stationId) {
     // Heures
     const { data: heuresData } = await sb().from('heures').select('date_jour, data').eq('station_id', stationId);
     if (heuresData) {
+      const supabaseKeys = new Set(heuresData.map(h => stationId + '-heures-' + h.date_jour));
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith(stationId + '-heures-') && !supabaseKeys.has(k)) localStorage.removeItem(k);
+      }
       heuresData.forEach(h => {
         const key = stationId + '-heures-' + h.date_jour;
         localStorage.setItem(key, JSON.stringify(h.data));
@@ -385,6 +390,11 @@ window.preloadStationData = async function (stationId) {
     // Activité
     const { data: actData } = await sb().from('activite').select('date_jour, data').eq('station_id', stationId);
     if (actData) {
+      const supabaseKeys = new Set(actData.map(a => stationId + '-activite-' + a.date_jour));
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith(stationId + '-activite-') && !supabaseKeys.has(k)) localStorage.removeItem(k);
+      }
       actData.forEach(a => {
         const key = stationId + '-activite-' + a.date_jour;
         localStorage.setItem(key, JSON.stringify(a.data));
@@ -395,6 +405,11 @@ window.preloadStationData = async function (stationId) {
     // Concessions
     const { data: concData } = await sb().from('concessions').select('semaine, data').eq('station_id', stationId);
     if (concData) {
+      const supabaseKeys = new Set(concData.map(c => stationId + '-concessions-' + c.semaine));
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith(stationId + '-concessions-') && !supabaseKeys.has(k)) localStorage.removeItem(k);
+      }
       concData.forEach(c => {
         const key = stationId + '-concessions-' + c.semaine;
         localStorage.setItem(key, JSON.stringify(c.data));
@@ -404,6 +419,11 @@ window.preloadStationData = async function (stationId) {
     // Retards
     const { data: retData } = await sb().from('retards').select('semaine, data').eq('station_id', stationId);
     if (retData) {
+      const supabaseKeys = new Set(retData.map(r => stationId + '-retards-' + r.semaine));
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith(stationId + '-retards-') && !supabaseKeys.has(k)) localStorage.removeItem(k);
+      }
       retData.forEach(r => {
         const key = stationId + '-retards-' + r.semaine;
         localStorage.setItem(key, JSON.stringify(r.data));
