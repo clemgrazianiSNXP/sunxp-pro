@@ -173,8 +173,6 @@ function portalHeures() {
       <div style="display:flex;gap:8px;flex-wrap:wrap;font-size:11px;color:var(--text-muted);margin-top:2px;">
         <span>🔄 Backups : ${wt.backupsMin > 0 ? minToTime(wt.backupsMin) : '—'}</span>
         <span>📞 Astreinte : ${wt.astreinteMin > 0 ? minToTime(wt.astreinteMin) : '—'}</span>
-        <span>💻 Chime : ${wt.chimeMin > 0 ? minToTime(wt.chimeMin) : '—'}</span>
-        <span>🦺 Safety : ${wt.safetyMin > 0 ? minToTime(wt.safetyMin) : '—'}</span>
       </div>`;
     wrap.appendChild(card);
   });
@@ -191,8 +189,6 @@ function portalHeures() {
     <div style="display:flex;gap:10px;flex-wrap:wrap;font-size:11px;color:var(--text-muted);margin-top:4px;">
       <span>🔄 Backups : ${mt.backupsMin > 0 ? minToTime(mt.backupsMin) : '—'}</span>
       <span>📞 Astreinte : ${mt.astreinteMin > 0 ? minToTime(mt.astreinteMin) : '—'}</span>
-      <span>💻 Chime : ${mt.chimeMin > 0 ? minToTime(mt.chimeMin) : '—'}</span>
-      <span>🦺 Safety : ${mt.safetyMin > 0 ? minToTime(mt.safetyMin) : '—'}</span>
     </div>`;
   wrap.appendChild(totalCard);
   return wrap;
