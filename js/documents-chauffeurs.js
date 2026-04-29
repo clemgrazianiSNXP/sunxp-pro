@@ -22,8 +22,29 @@ function getDocsChKey(chauffeurNom) {
 function loadDocsChauffeur(chauffeurNom) {
   try { return JSON.parse(localStorage.getItem(getDocsChKey(chauffeurNom))) || []; } catch (_) { return []; }
 }
+async function loadDocsChauffeurAsync(chauffeurNom) {
+  // Essayer de charger depuis Supabase d'abord
+  if (typeof sb === 'function' && sb()) {
+    try {
+      const { data, error } = await sb().from('docs_chauffeurs').select('data')
+        .eq('station_id', getDocsChauffeursSid())
+        .eq('chauffeur', chauffeurNom)
+        .maybeSingle();
+      if (!error && data && data.data) {
+        localStorage.setItem(getDocsChKey(chauffeurNom), JSON.stringify(data.data));
+        return data.data;
+      }
+    } catch (_) {}
+  }
+  return loadDocsChauffeur(chauffeurNom);
+}
 function saveDocsChauffeur(chauffeurNom, docs) {
-  try { localStorage.setItem(getDocsChKey(chauffeurNom), JSON.stringify(docs)); } catch (_) {}
+  const key = getDocsChKey(chauffeurNom);
+  try { localStorage.setItem(key, JSON.stringify(docs)); } catch (_) {}
+  // Sync vers Supabase
+  if (typeof dbSave === 'function') {
+    dbSave('docs_chauffeurs', key, { station_id: getDocsChauffeursSid(), chauffeur: chauffeurNom }, docs);
+  }
 }
 
 /* ── Upload vers Supabase Storage ─────────────────────────── */
@@ -125,9 +146,9 @@ function showDocsChauffeurDetail(nom) {
   const box = document.createElement('div');
   box.style.cssText = 'background:var(--bg-sidebar);border:1px solid var(--border);border-radius:12px;padding:20px;width:90%;max-width:550px;max-height:80vh;overflow-y:auto;';
 
-  function render() {
+  async function render() {
     box.innerHTML = '';
-    const docs = loadDocsChauffeur(nom);
+    const docs = await loadDocsChauffeurAsync(nom);
 
     // Header
     const header = document.createElement('div');

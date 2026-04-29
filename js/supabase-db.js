@@ -332,6 +332,16 @@ window.dbSyncAll = async function () {
       if (camionsList.length) await dbSave('camions', sid + '-camions', { station_id: sid }, camionsList);
     }
 
+    // Documents chauffeurs
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith(sid + '-docs-chauffeur-')) {
+        const chauffeur = k.replace(sid + '-docs-chauffeur-', '');
+        const data = JSON.parse(localStorage.getItem(k));
+        await dbSave('docs_chauffeurs', k, { station_id: sid, chauffeur }, data);
+      }
+    }
+
     console.log(`  ✅ ${sid} synced`);
   }
 
@@ -498,6 +508,15 @@ window.preloadStationData = async function (stationId) {
       localStorage.setItem(stationId + '-conges-payes', JSON.stringify(congesData.data));
     } else {
       localStorage.setItem(stationId + '-conges-payes', '[]');
+    }
+
+    // Documents chauffeurs
+    const { data: docsChData } = await sb().from('docs_chauffeurs').select('chauffeur, data').eq('station_id', stationId);
+    if (docsChData && docsChData.length) {
+      docsChData.forEach(d => {
+        localStorage.setItem(stationId + '-docs-chauffeur-' + d.chauffeur, JSON.stringify(d.data));
+      });
+      console.log(`  Docs chauffeurs: ${docsChData.length} chauffeurs`);
     }
 
     console.log('✅ Préchargement terminé');
