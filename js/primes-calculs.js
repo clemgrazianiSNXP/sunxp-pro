@@ -102,7 +102,8 @@ function countJoursTravailles(stationId, chauffeur, year, month) {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   for (let d = 1; d <= daysInMonth; d++) {
     const date = new Date(year, month, d);
-    const key = stationId + '-heures-' + date.toISOString().slice(0, 10);
+    const dateStr = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+    const key = stationId + '-heures-' + dateStr;
     try {
       const raw = localStorage.getItem(key);
       if (!raw) continue;
