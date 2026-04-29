@@ -211,7 +211,7 @@ function renderAcompteChauffeur() {
       demandes.push({ id: 'ac_' + Date.now(), chauffeurNom: nom, chauffeurId: portalChauffeur.id_amazon, montant, motif, dateDemande: new Date().toISOString(), statut: 'en_attente' });
       saveAcomptes(sid, demandes);
       err.style.display = 'none';
-      alert('Demande envoyée !');
+      showSuccessToast('Demande d\'acompte envoyée !');
       document.getElementById('acompte-montant').value = '';
       document.getElementById('acompte-motif').value = '';
     };
@@ -276,7 +276,7 @@ function renderCongesChauffeur() {
       demandes.push({ id: 'cp_' + Date.now(), chauffeurNom: nom, chauffeurId: portalChauffeur.id_amazon, dateDebut: debut, dateFin: fin, motif, dateDemande: new Date().toISOString(), statut: 'en_attente' });
       saveConges(sid, demandes);
       err.style.display = 'none';
-      alert('Demande envoyée !');
+      showSuccessToast('Demande de congés envoyée !');
       document.getElementById('conge-debut').value = '';
       document.getElementById('conge-fin').value = '';
       document.getElementById('conge-motif').value = '';
@@ -320,4 +320,16 @@ function showConfirmModal(message, onConfirm) {
   overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
   modal.querySelector('#confirm-cancel').onclick = () => overlay.remove();
   modal.querySelector('#confirm-ok').onclick = () => { overlay.remove(); onConfirm(); };
+}
+
+/* ── Toast de succès stylé ────────────────────────────────── */
+function showSuccessToast(message) {
+  const toast = document.createElement('div');
+  toast.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:99999;background:var(--bg-card,var(--bg-sidebar));border:2px solid #4ade80;border-radius:14px;padding:28px 36px;box-shadow:0 12px 40px rgba(0,0,0,0.5);text-align:center;animation:toastPop 0.3s ease;';
+  toast.innerHTML = `
+    <div style="font-size:36px;margin-bottom:10px;">✅</div>
+    <div style="font-size:15px;font-weight:700;color:var(--text-primary);">${message}</div>
+    <div style="font-size:12px;color:var(--text-muted);margin-top:6px;">Votre responsable sera notifié.</div>`;
+  document.body.appendChild(toast);
+  setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.4s'; setTimeout(() => toast.remove(), 400); }, 2000);
 }
