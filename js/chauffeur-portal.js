@@ -47,6 +47,7 @@ function renderPortal() {
     ['prod','📋','Ma Prod'],
     ['degats','🔧','Mes Dégâts'],
     ['rapport','📋','Mon Rapport'],
+    ['annonces','📢','Annonces'],
     ['badges','🏆','Mes Badges']
   ];
   tabDefs.forEach(([id, icon, label]) => {
@@ -67,6 +68,7 @@ function renderPortal() {
   else if (portalTab === 'prime') body.appendChild(portalPrime());
   else if (portalTab === 'degats' && typeof portalDegats === 'function') body.appendChild(portalDegats());
   else if (portalTab === 'rapport' && typeof portalRapport === 'function') body.appendChild(portalRapport());
+  else if (portalTab === 'annonces' && typeof portalAnnonces === 'function') body.appendChild(portalAnnonces());
   else if (portalTab === 'badges' && typeof renderBadgesTab === 'function') body.appendChild(renderBadgesTab());
   else body.appendChild(portalProd());
   c.appendChild(body);

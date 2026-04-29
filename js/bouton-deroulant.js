@@ -38,6 +38,7 @@ function toggleMenuPanel() {
         // Responsable : tout + demandes + stations
         tabsContainer.innerHTML = `
           <button class="menu-panel-tab active" data-tab="parametres" onclick="setMenuTab('parametres')" title="Paramètres">⚙️</button>
+          <button class="menu-panel-tab" data-tab="annonces" onclick="setMenuTab('annonces')" title="Annonces">📢</button>
           <button class="menu-panel-tab" data-tab="documents" onclick="setMenuTab('documents')" title="Documents bureau">📄</button>
           <button class="menu-panel-tab" data-tab="docs-chauffeurs" onclick="setMenuTab('docs-chauffeurs')" title="Documents chauffeurs">👤</button>
           <button class="menu-panel-tab" data-tab="analyse" onclick="setMenuTab('analyse')" title="Analyse & Performance">📊</button>
@@ -68,6 +69,8 @@ function setMenuTab(tab) {
   content.innerHTML = '';
   if (tab === 'parametres' && typeof renderParametres === 'function') {
     content.appendChild(renderParametres());
+  } else if (tab === 'annonces' && typeof renderAnnoncesManager === 'function') {
+    content.appendChild(renderAnnoncesManager());
   } else if (tab === 'documents' && typeof renderDocuments === 'function') {
     content.appendChild(renderDocuments());
   } else if (tab === 'docs-chauffeurs' && typeof renderDocsChauffeurs === 'function') {
