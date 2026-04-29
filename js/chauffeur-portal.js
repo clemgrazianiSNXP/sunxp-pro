@@ -14,6 +14,8 @@ function initChauffeurPortal(chauffeur, stationId) {
   portalTab = 'heures';
   portalMonth = new Date();
   portalStatsWeekIndex = 0;
+  // Initialiser le Realtime pour recevoir les notifications
+  if (typeof initRealtime === 'function') setTimeout(initRealtime, 500);
   renderPortal();
 }
 
