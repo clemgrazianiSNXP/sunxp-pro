@@ -94,15 +94,20 @@ function renderAcomptesManager() {
   });
 
   // History
-  history.forEach(d => {
-    const color = d.statut === 'acceptee' ? '#4ade80' : '#f87171';
-    const icon = d.statut === 'acceptee' ? '✅' : '❌';
-    const div = document.createElement('div');
-    div.style.cssText = `display:flex;align-items:center;gap:8px;padding:6px 10px;border-left:3px solid ${color};margin-bottom:4px;font-size:11px;color:var(--text-muted);`;
-    div.innerHTML = `<span style="flex:1;">${icon} <b>${d.chauffeurNom}</b> — ${d.montant}€</span>
-      <button class="h-btn acompte-del" data-id="${d.id}" style="font-size:9px;padding:1px 5px;color:#f87171;border-color:#f87171;">🗑</button>`;
-    wrap.appendChild(div);
-  });
+  if (history.length) {
+    const histDiv = document.createElement('div');
+    histDiv.innerHTML = '<h4 style="font-size:12px;color:var(--text-muted);margin:12px 0 6px;">Historique</h4>';
+    history.forEach(d => {
+      const color = d.statut === 'acceptee' ? '#4ade80' : '#f87171';
+      const icon = d.statut === 'acceptee' ? '✅' : '❌';
+      const div = document.createElement('div');
+      div.style.cssText = `display:flex;align-items:center;gap:8px;padding:8px 10px;border-left:3px solid ${color};background:var(--bg-sidebar);border:1px solid var(--border);border-radius:6px;margin-bottom:6px;font-size:12px;color:var(--text-muted);`;
+      div.innerHTML = `<span style="flex:1;">${icon} <b>${d.chauffeurNom}</b> — ${d.montant}€</span>
+        <button class="h-btn acompte-del" data-id="${d.id}" style="font-size:10px;padding:2px 8px;color:#f87171;border-color:#f87171;">🗑</button>`;
+      histDiv.appendChild(div);
+    });
+    wrap.appendChild(histDiv);
+  }
 
   // Bind buttons
   setTimeout(() => {
@@ -154,15 +159,20 @@ function renderCongesManager() {
     wrap.appendChild(card);
   });
 
-  history.forEach(d => {
-    const color = d.statut === 'acceptee' ? '#4ade80' : '#f87171';
-    const icon = d.statut === 'acceptee' ? '✅' : '❌';
-    const div = document.createElement('div');
-    div.style.cssText = `display:flex;align-items:center;gap:8px;padding:6px 10px;border-left:3px solid ${color};margin-bottom:4px;font-size:11px;color:var(--text-muted);`;
-    div.innerHTML = `<span style="flex:1;">${icon} <b>${d.chauffeurNom}</b> — ${new Date(d.dateDebut).toLocaleDateString('fr-FR')} → ${new Date(d.dateFin).toLocaleDateString('fr-FR')}</span>
-      <button class="h-btn conge-del" data-id="${d.id}" style="font-size:9px;padding:1px 5px;color:#f87171;border-color:#f87171;">🗑</button>`;
-    wrap.appendChild(div);
-  });
+  if (history.length) {
+    const histDiv = document.createElement('div');
+    histDiv.innerHTML = '<h4 style="font-size:12px;color:var(--text-muted);margin:12px 0 6px;">Historique</h4>';
+    history.forEach(d => {
+      const color = d.statut === 'acceptee' ? '#4ade80' : '#f87171';
+      const icon = d.statut === 'acceptee' ? '✅' : '❌';
+      const div = document.createElement('div');
+      div.style.cssText = `display:flex;align-items:center;gap:8px;padding:8px 10px;border-left:3px solid ${color};background:var(--bg-sidebar);border:1px solid var(--border);border-radius:6px;margin-bottom:6px;font-size:12px;color:var(--text-muted);`;
+      div.innerHTML = `<span style="flex:1;">${icon} <b>${d.chauffeurNom}</b> — ${new Date(d.dateDebut).toLocaleDateString('fr-FR')} → ${new Date(d.dateFin).toLocaleDateString('fr-FR')}</span>
+        <button class="h-btn conge-del" data-id="${d.id}" style="font-size:10px;padding:2px 8px;color:#f87171;border-color:#f87171;">🗑</button>`;
+      histDiv.appendChild(div);
+    });
+    wrap.appendChild(histDiv);
+  }
 
   setTimeout(() => {
     wrap.querySelectorAll('.conge-accept').forEach(btn => {

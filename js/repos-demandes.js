@@ -124,6 +124,7 @@ function renderReposChauffeur() {
         reponse: ''
       });
       saveReposDemandes(sid, demandes);
+      if (typeof showSuccessToast === 'function') showSuccessToast('Demande de repos envoyée !');
       if (typeof setMenuTab === 'function') setMenuTab('repos');
     };
   }, 0);

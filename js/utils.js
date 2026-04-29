@@ -187,3 +187,15 @@ window.showConfirmModal = function (message, onConfirm) {
   modal.querySelector('#gconfirm-cancel').onclick = () => overlay.remove();
   modal.querySelector('#gconfirm-ok').onclick = () => { overlay.remove(); onConfirm(); };
 };
+
+/* ── Toast de succès stylé (global) ───────────────────────── */
+window.showSuccessToast = function (message) {
+  const toast = document.createElement('div');
+  toast.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:99999;background:var(--bg-card,var(--bg-sidebar));border:2px solid #4ade80;border-radius:14px;padding:28px 36px;box-shadow:0 12px 40px rgba(0,0,0,0.5);text-align:center;animation:toastPop 0.3s ease;';
+  toast.innerHTML = `
+    <div style="font-size:36px;margin-bottom:10px;">✅</div>
+    <div style="font-size:15px;font-weight:700;color:var(--text-primary);">${message}</div>
+    <div style="font-size:12px;color:var(--text-muted);margin-top:6px;">Votre responsable sera notifié.</div>`;
+  document.body.appendChild(toast);
+  setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.4s'; setTimeout(() => toast.remove(), 400); }, 2000);
+};
