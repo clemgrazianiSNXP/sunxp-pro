@@ -3,7 +3,12 @@ console.log('flotte-camions.js chargé');
 
 function getCamionsKey() { return (window.getActiveStationId ? window.getActiveStationId() : 'default') + '-camions'; }
 function loadCamions() { try { return JSON.parse(localStorage.getItem(getCamionsKey())) || []; } catch(_) { return []; } }
-function saveCamions(list) { try { localStorage.setItem(getCamionsKey(), JSON.stringify(list)); } catch(_) {} }
+function saveCamions(list) {
+  const key = getCamionsKey();
+  try { localStorage.setItem(key, JSON.stringify(list)); } catch(_) {}
+  const stationId = window.getActiveStationId ? window.getActiveStationId() : null;
+  if (stationId && typeof dbSave === 'function') dbSave('camions', key, { station_id: stationId }, list);
+}
 
 function renderCamions() {
   const wrap = document.createElement('div');

@@ -315,6 +315,13 @@ window.dbSyncAll = async function () {
     // Dégâts
     await dbLoadDegats(sid);
 
+    // Camions
+    const camionsRaw = localStorage.getItem(sid + '-camions');
+    if (camionsRaw) {
+      const camionsList = JSON.parse(camionsRaw);
+      if (camionsList.length) await dbSave('camions', sid + '-camions', { station_id: sid }, camionsList);
+    }
+
     console.log(`  ✅ ${sid} synced`);
   }
 
@@ -414,6 +421,15 @@ window.preloadStationData = async function (stationId) {
     if (reposData && reposData.data) {
       localStorage.setItem(stationId + '-repos-demandes', JSON.stringify(reposData.data));
       console.log('  Repos: chargés');
+    }
+
+    // Camions
+    const { data: camionsData } = await sb().from('camions').select('data').eq('station_id', stationId).maybeSingle();
+    if (camionsData && camionsData.data) {
+      localStorage.setItem(stationId + '-camions', JSON.stringify(camionsData.data));
+      console.log('  Camions: chargés');
+    } else {
+      localStorage.setItem(stationId + '-camions', '[]');
     }
 
     console.log('✅ Préchargement terminé');

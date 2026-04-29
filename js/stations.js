@@ -365,7 +365,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Attacher les listeners de rôle TOUJOURS
   document.getElementById('role-responsable').querySelector('.btn-acceder').addEventListener('click', () => {
-    showResponsableLogin(roleScreen, stationScreen);
+    localStorage.setItem('sunxp_role', 'responsable');
+    clearActiveFromStorage();
+    activeStation = null;
+    roleScreen.hidden = true;
+    stationScreen.hidden = false;
+    stationScreen.style.display = '';
+    loadStations();
   });
   document.getElementById('role-chauffeur').querySelector('.btn-acceder').addEventListener('click', () => {
     roleScreen.hidden = true;
