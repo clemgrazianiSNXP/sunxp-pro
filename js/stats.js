@@ -171,7 +171,10 @@ function deleteWeekBtn(type, semaine, clearFn) {
   btn.textContent = '🗑 Supprimer la semaine';
   btn.onclick = () => {
     if (!confirm(`Supprimer toutes les données de la semaine "${semaine}" ?`)) return;
-    localStorage.removeItem(statsStorageKey(type, semaine)); clearFn(); renderStats();
+    const key = statsStorageKey(type, semaine);
+    localStorage.removeItem(key);
+    if (typeof dbDelete === 'function') dbDelete('stats', key, { station_id: getStationId(), type, semaine });
+    clearFn(); renderStats();
   };
   return btn;
 }
