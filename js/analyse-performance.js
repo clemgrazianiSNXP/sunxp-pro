@@ -29,7 +29,7 @@ function renderAnalysePerformance() {
   tabBar.style.cssText = 'display:flex;gap:6px;margin-bottom:8px;';
   const tabChauffeurs = document.createElement('button');
   tabChauffeurs.className = 'h-btn rh-tab-active';
-  tabChauffeurs.textContent = '👤 Chauffeurs';
+  tabChauffeurs.textContent = '📈 Graphiques';
   const tabRecurrences = document.createElement('button');
   tabRecurrences.className = 'h-btn';
   tabRecurrences.textContent = '🔁 Récurrences impacts';
@@ -132,7 +132,7 @@ function collectChauffeurStats(stationId, chauffeur) {
       if (typeof loadStatsData !== 'function') return entry;
       const dsdpmo = loadStatsData('dsdpmo', week);
       const row = dsdpmo.find(r => r.idAmazon && r.idAmazon.replace(/\s/g, '').toUpperCase() === chauffeurId);
-      if (row) { entry.dcr = parseFloat(row.dcrPct) || 0; entry.dpmo = parseFloat(row.dnrDpmo) || 0; }
+      if (row) { entry.dcr = parseFloat(row.dcrPct) || 0; entry.dpmo = parseInt(row.nombreDnr) || 0; }
       const pod = loadStatsData('pod', week);
       const podRow = pod.find(r => r.idAmazon && r.idAmazon.replace(/\s/g, '').toUpperCase() === chauffeurId);
       if (podRow) entry.pod = parseFloat(podRow.podPct) || 0;
@@ -159,10 +159,10 @@ function renderChauffeurCurves(container, stationId, nom, chauffeur) {
 
   // Une courbe par stat
   const curves = [
-    { key: 'dcr', label: 'DCR %', color: '#4ade80', max: 100 },
-    { key: 'pod', label: 'POD %', color: '#60a5fa', max: 100 },
-    { key: 'dwc', label: 'DWC %', color: '#f97316', max: 100 },
-    { key: 'dpmo', label: 'DPMO', color: '#f87171', max: null }
+    { key: 'dcr', label: 'DCR %', color: '#4ade80', max: 100, threshold: 98 },
+    { key: 'pod', label: 'POD %', color: '#60a5fa', max: 100, threshold: 99 },
+    { key: 'dwc', label: 'DWC %', color: '#f97316', max: 100, threshold: 85 },
+    { key: 'dpmo', label: 'DNR', color: '#f87171', max: null, threshold: 2, thresholdAbove: true }
   ];
 
   curves.forEach(curve => {
@@ -171,7 +171,7 @@ function renderChauffeurCurves(container, stationId, nom, chauffeur) {
     const card = document.createElement('div');
     card.className = 'analyse-curve-card';
     card.innerHTML = `<span class="analyse-curve-label">${curve.label}</span>`;
-    card.appendChild(buildSvgCurve(values, data.map(d => d.week), curve.color, curve.max));
+    card.appendChild(buildSvgCurve(values, data.map(d => d.week), curve.color, curve.max, curve.threshold, curve.thresholdAbove));
     wrap.appendChild(card);
   });
 
@@ -189,13 +189,24 @@ function renderChauffeurCurves(container, stationId, nom, chauffeur) {
 }
 
 /** Construit une courbe SVG à partir d'un tableau de valeurs */
-function buildSvgCurve(values, labels, color, fixedMax) {
+function buildSvgCurve(values, labels, color, fixedMax, threshold, thresholdAbove) {
   const W = 320, H = 160, PAD_L = 32, PAD_R = 12, PAD_T = 20, PAD_B = 22;
   const plotW = W - PAD_L - PAD_R, plotH = H - PAD_T - PAD_B;
-
-  const validVals = values.filter(v => v !== null);
-  const maxVal = fixedMax || Math.max(...validVals, 1);
-  const minVal = fixedMax ? 0 : Math.min(...validVals, 0);
+  const filtered = values.filter(v => v !== null && v !== undefined);
+  if (!filtered.length) { const p = document.createElement('p'); p.textContent = '—'; return p; }
+  // Adapt Y scale: for percentages, use min-5 to max+2 (not 0 to 100)
+  let rawMin = Math.min(...filtered);
+  let rawMax = fixedMax != null ? fixedMax : Math.max(...filtered);
+  if (threshold != null) { rawMin = Math.min(rawMin, threshold - 2); rawMax = Math.max(rawMax, threshold + 2); }
+  // For percentage curves, don't start at 0 — start near the data
+  let minVal, maxVal;
+  if (fixedMax === 100) {
+    minVal = Math.max(0, Math.min(rawMin, threshold != null ? threshold - 3 : rawMin) - 2);
+    maxVal = 100;
+  } else {
+    minVal = 0;
+    maxVal = rawMax + 1;
+  }
   const range = maxVal - minVal || 1;
 
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -284,6 +295,17 @@ function buildSvgCurve(values, labels, color, fixedMax) {
       txt.textContent = p.label.replace(/^\d{4}-/, '');
       svg.appendChild(txt);
     });
+  }
+
+  // Threshold line (red dashed)
+  if (threshold != null) {
+    const thY = PAD_T + plotH - ((threshold - minVal) / range) * plotH;
+    const thLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    thLine.setAttribute('x1', PAD_L); thLine.setAttribute('x2', W - PAD_R);
+    thLine.setAttribute('y1', thY); thLine.setAttribute('y2', thY);
+    thLine.setAttribute('stroke', '#f87171'); thLine.setAttribute('stroke-width', '1');
+    thLine.setAttribute('stroke-dasharray', '4,3'); thLine.setAttribute('opacity', '0.5');
+    svg.appendChild(thLine);
   }
 
   return svg;
