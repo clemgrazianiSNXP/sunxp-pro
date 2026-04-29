@@ -234,7 +234,7 @@ function buildImpactCell(colKey, row, chauffeurKey, data, sid) {
   const td = document.createElement('td');
   td.style.cssText = 'padding:2px 3px;position:relative;white-space:nowrap;';
 
-  // Absences: show auto-count from rapport chauffeur + editable input for deduction
+  // Absences: auto-rempli depuis le rapport chauffeur, pas de saisie manuelle
   if (colKey === 'absences') {
     const chauffeurs = getChauffeursList(sid);
     const c = chauffeurs.find(ch => (ch.id || ch.id_amazon) === chauffeurKey);
@@ -242,44 +242,13 @@ function buildImpactCell(colKey, row, chauffeurKey, data, sid) {
     const absCount = (typeof window.countAbsencesForMonth === 'function' && nom)
       ? window.countAbsencesForMonth(sid, nom, primesYear, primesMonth)
       : 0;
-    // Badge showing auto-count
-    const badge = document.createElement('span');
-    badge.style.cssText = 'font-size:9px;color:' + (absCount > 0 ? '#f87171' : 'var(--text-muted)') + ';margin-right:2px;vertical-align:middle;';
-    badge.textContent = absCount > 0 ? '(' + absCount + ')' : '';
-    badge.title = absCount + ' absence(s) enregistrée(s) dans le rapport chauffeur';
-    td.appendChild(badge);
-    // Editable input for the actual deduction value
-    const val = row[colKey] || '';
-    const inp = document.createElement('input');
-    inp.className = 'h-inp h-inp-sm'; inp.value = val; inp.style.width = '36px';
-    inp.onchange = () => { row[colKey]=inp.value; data[chauffeurKey]=row; savePrimesData(sid,primesYear,primesMonth,data); renderPrimes(); };
-    td.appendChild(inp);
-
-    const commentKey = 'comment_' + colKey;
-    const comment = row[commentKey] || '';
-    const emojiBtn = document.createElement('span');
-    emojiBtn.textContent = comment ? '💬' : '📝';
-    emojiBtn.style.cssText = 'cursor:pointer;font-size:10px;opacity:'+(comment?'1':'0.3')+';margin-left:1px;vertical-align:middle;';
-    emojiBtn.title = comment || 'Ajouter un commentaire';
-    emojiBtn.addEventListener('click', e => {
-      e.stopPropagation();
-      document.querySelectorAll('.prime-comment-popup').forEach(p=>p.remove());
-      const popup = document.createElement('div'); popup.className='prime-comment-popup';
-      popup.style.cssText='position:fixed;z-index:9999;background:var(--bg-sidebar);border:1px solid var(--accent);border-radius:8px;padding:8px;box-shadow:0 4px 16px rgba(0,0,0,0.5);display:flex;flex-direction:column;gap:4px;width:180px;';
-      const rect=emojiBtn.getBoundingClientRect(); popup.style.top=(rect.bottom+4)+'px'; popup.style.left=rect.left+'px';
-      const ta=document.createElement('textarea'); ta.value=comment; ta.placeholder='Commentaire...';
-      ta.style.cssText='width:100%;height:50px;resize:vertical;background:var(--bg-primary);border:1px solid var(--border);border-radius:4px;color:var(--text-primary);font-size:11px;padding:4px;font-family:var(--font-family);outline:none;';
-      const br=document.createElement('div'); br.style.cssText='display:flex;gap:4px;';
-      const ok=document.createElement('button'); ok.textContent='✓'; ok.style.cssText='flex:1;background:var(--accent);color:#fff;border:none;border-radius:4px;padding:3px;font-size:11px;cursor:pointer;';
-      ok.onclick=()=>{ row[commentKey]=ta.value; data[chauffeurKey]=row; savePrimesData(sid,primesYear,primesMonth,data); popup.remove(); renderPrimes(); };
-      const no=document.createElement('button'); no.textContent='✕'; no.style.cssText='background:transparent;border:1px solid var(--border);color:var(--text-muted);border-radius:4px;padding:3px 6px;font-size:11px;cursor:pointer;';
-      no.onclick=()=>popup.remove();
-      br.appendChild(ok); br.appendChild(no); popup.appendChild(ta); popup.appendChild(br);
-      document.body.appendChild(popup); ta.focus();
-      setTimeout(()=>{ document.addEventListener('click',function cl(ev){ if(!popup.contains(ev.target)&&ev.target!==emojiBtn){popup.remove();document.removeEventListener('click',cl);} }); },0);
-    });
-    td.appendChild(emojiBtn);
-    if (comment) { const tri=document.createElement('span'); tri.style.cssText='position:absolute;top:0;right:0;width:0;height:0;border-style:solid;border-width:0 7px 7px 0;border-color:transparent var(--accent) transparent transparent;pointer-events:none;'; td.appendChild(tri); }
+    row[colKey] = absCount;
+    data[chauffeurKey] = row;
+    const span = document.createElement('span');
+    span.style.cssText = 'display:inline-block;width:36px;text-align:center;font-size:12px;font-weight:700;color:' + (absCount > 0 ? '#f87171' : 'var(--text-muted)') + ';';
+    span.textContent = absCount;
+    span.title = 'Calculé depuis le rapport chauffeur';
+    td.appendChild(span);
     return td;
   }
 
