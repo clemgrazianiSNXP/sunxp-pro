@@ -424,9 +424,9 @@ function renderRecurrencesTab(container, stationId) {
         card.innerHTML = `
           <div style="display:flex;align-items:center;justify-content:space-between;">
             <span style="font-weight:600;font-size:13px;">${s.nom}</span>
-            <span style="font-size:12px;font-weight:700;color:${color};">🔥 ${s.currentStreak} sem. d'affilée</span>
+            <span style="font-size:12px;font-weight:700;color:${color};">⚠️ ${s.currentStreak} sem. d'affilée</span>
           </div>
-          <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Total impacts : ${s.totalImpacts} · Record : ${s.maxStreak} sem.</div>`;
+          <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Total impacts : ${s.totalImpacts} · Pire série : ${s.maxStreak} sem.</div>`;
         card.onclick = () => showRecurrenceDetail(s, type, color, icon);
         section.appendChild(card);
       });
@@ -455,11 +455,11 @@ function showRecurrenceDetail(s, type, color, icon) {
 
   html += `<div style="display:flex;gap:12px;margin-bottom:14px;">
     <div style="text-align:center;padding:8px 14px;background:var(--bg-tab-active);border-radius:8px;">
-      <div style="font-size:10px;color:var(--text-muted);">Streak actuel</div>
-      <div style="font-size:20px;font-weight:700;color:${color};">🔥 ${s.currentStreak}</div>
+      <div style="font-size:10px;color:var(--text-muted);">Série actuelle</div>
+      <div style="font-size:20px;font-weight:700;color:${color};">⚠️ ${s.currentStreak}</div>
     </div>
     <div style="text-align:center;padding:8px 14px;background:var(--bg-tab-active);border-radius:8px;">
-      <div style="font-size:10px;color:var(--text-muted);">Record</div>
+      <div style="font-size:10px;color:var(--text-muted);">Pire série</div>
       <div style="font-size:20px;font-weight:700;">${s.maxStreak}</div>
     </div>
     <div style="text-align:center;padding:8px 14px;background:var(--bg-tab-active);border-radius:8px;">
@@ -483,7 +483,7 @@ function showRecurrenceDetail(s, type, color, icon) {
   s.impactWeeks.forEach(w => {
     const isInStreak = s.streakWeeks.some(sw => sw.week === w.week);
     html += `<div style="padding:3px 8px;font-size:11px;color:${isInStreak ? color : 'var(--text-muted)'};border-bottom:1px solid var(--border);">
-      S${w.week} — ${w.score} ${isInStreak ? '🔥' : ''}</div>`;
+      S${w.week} — ${w.score} ${isInStreak ? '⚠️' : ''}</div>`;
   });
   html += '</div>';
 
