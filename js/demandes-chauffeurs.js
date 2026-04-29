@@ -113,7 +113,7 @@ function renderAcomptesManager() {
       btn.onclick = () => { const d = demandes.find(x => x.id === btn.dataset.id); if (d) { d.statut = 'refusee'; saveAcomptes(sid, demandes); setMenuTab('demandes-mgr'); } };
     });
     wrap.querySelectorAll('.acompte-del').forEach(btn => {
-      btn.onclick = () => { const newList = demandes.filter(x => x.id !== btn.dataset.id); saveAcomptes(sid, newList); setMenuTab('demandes-mgr'); };
+      btn.onclick = () => { showConfirmModal('Supprimer cette demande d\'acompte ?', () => { const newList = demandes.filter(x => x.id !== btn.dataset.id); saveAcomptes(sid, newList); setMenuTab('demandes-mgr'); updateReposBell(); }); };
     });
   }, 0);
 
@@ -172,7 +172,7 @@ function renderCongesManager() {
       btn.onclick = () => { const d = demandes.find(x => x.id === btn.dataset.id); if (d) { d.statut = 'refusee'; saveConges(sid, demandes); setMenuTab('demandes-mgr'); } };
     });
     wrap.querySelectorAll('.conge-del').forEach(btn => {
-      btn.onclick = () => { const newList = demandes.filter(x => x.id !== btn.dataset.id); saveConges(sid, newList); setMenuTab('demandes-mgr'); };
+      btn.onclick = () => { showConfirmModal('Supprimer cette demande de congés ?', () => { const newList = demandes.filter(x => x.id !== btn.dataset.id); saveConges(sid, newList); setMenuTab('demandes-mgr'); updateReposBell(); }); };
     });
   }, 0);
 
@@ -299,4 +299,25 @@ function renderCongesChauffeur() {
   }
 
   return wrap;
+}
+
+/* ── Modal de confirmation stylée ─────────────────────────── */
+function showConfirmModal(message, onConfirm) {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99999;display:flex;align-items:center;justify-content:center;';
+  const modal = document.createElement('div');
+  modal.style.cssText = 'background:var(--bg-card,var(--bg-sidebar));border-radius:12px;padding:24px;max-width:360px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.4);text-align:center;';
+  modal.innerHTML = `
+    <div style="font-size:24px;margin-bottom:12px;">⚠️</div>
+    <div style="font-size:14px;font-weight:600;margin-bottom:8px;color:var(--text-primary);">${message}</div>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">Cette action est irréversible.</div>
+    <div style="display:flex;gap:10px;justify-content:center;">
+      <button class="h-btn" id="confirm-cancel" style="flex:1;padding:8px;">Annuler</button>
+      <button class="h-btn" id="confirm-ok" style="flex:1;padding:8px;background:#f87171;color:#fff;border-color:#f87171;">Supprimer</button>
+    </div>`;
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+  overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
+  modal.querySelector('#confirm-cancel').onclick = () => overlay.remove();
+  modal.querySelector('#confirm-ok').onclick = () => { overlay.remove(); onConfirm(); };
 }
