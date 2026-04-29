@@ -88,8 +88,7 @@ function initRealtime() {
 
 /**
  * Gère une notification de demande (repos, acompte, congés).
- * Côté responsable : affiche un toast.
- * Côté chauffeur : met à jour les données locales.
+ * Affiche un toast et met à jour les données locales.
  */
 function handleDemandeNotification(payload, type) {
   const row = payload.new;
@@ -108,9 +107,17 @@ function handleDemandeNotification(payload, type) {
     localStorage.setItem(lsKey, JSON.stringify(row.data));
   }
 
-  // Afficher une notification toast (toujours, quel que soit le mode)
-  const labels = { repos: '📅 Demande de repos', acompte: '💶 Demande d\'acompte', congés: '🏖 Demande de congés' };
-  showRealtimeToast(labels[type] || '🔔 Nouvelle demande', 'Une demande vient d\'être mise à jour.');
+  // Côté responsable : notification de nouvelle demande
+  if (!isDriverMode()) {
+    const labels = { repos: '📅 Demande de repos', acompte: '💶 Demande d\'acompte', congés: '🏖 Demande de congés' };
+    showRealtimeToast(labels[type] || '🔔 Nouvelle demande', 'Une demande vient d\'être mise à jour.');
+  }
+
+  // Côté chauffeur : notification de réponse du responsable
+  if (isDriverMode()) {
+    const labels = { repos: '📅 Repos', acompte: '💶 Acompte', congés: '🏖 Congés' };
+    showRealtimeToast(labels[type] || '🔔 Mise à jour', 'Votre demande a été traitée par le responsable.');
+  }
 }
 
 /**
