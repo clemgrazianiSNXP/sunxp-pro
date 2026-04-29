@@ -300,6 +300,16 @@ window.dbSyncAll = async function () {
       }
     }
 
+    // Absences injustifiées
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith(sid + '-absences-')) {
+        const semaine = k.replace(sid + '-absences-', '');
+        const data = JSON.parse(localStorage.getItem(k));
+        await dbSave('absences', k, { station_id: sid, semaine }, data);
+      }
+    }
+
     // Primes
     for (let i = 0; i < localStorage.length; i++) {
       const k = localStorage.key(i);

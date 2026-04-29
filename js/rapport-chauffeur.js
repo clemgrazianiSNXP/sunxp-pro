@@ -4,6 +4,7 @@ console.log('rapport-chauffeur.js chargé');
 (function () {
   const LS_CONC = () => sid() + '-concessions-';
   const LS_RETARD = () => sid() + '-retards-';
+  const LS_ABSENCE = () => sid() + '-absences-';
 
   function sid() { return window.getActiveStationId ? window.getActiveStationId() : 'default'; }
   function getChauffeurs() {
@@ -63,6 +64,24 @@ console.log('rapport-chauffeur.js chargé');
   function allRetards() {
     const p = LS_RETARD(), all = [];
     for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (!k.startsWith(p)) continue; const w = k.replace(p, ''); try { (JSON.parse(localStorage.getItem(k)) || []).forEach(r => all.push({ ...r, _week: w })); } catch (_) {} }
+    return all;
+  }
+
+  /* ── Absences injustifiées persistence ─────────────────── */
+  function saveAbsences(sem, data) {
+    const key = LS_ABSENCE() + sem;
+    try { localStorage.setItem(key, JSON.stringify(data)); } catch (_) {}
+    if (typeof dbSave === 'function') dbSave('absences', key, { station_id: sid(), semaine: sem }, data);
+  }
+  function loadAbsences(sem) { try { const r = localStorage.getItem(LS_ABSENCE() + sem); return r ? JSON.parse(r) : []; } catch (_) { return []; } }
+  function absenceWeeks() {
+    const p = LS_ABSENCE(), w = [];
+    for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k.startsWith(p)) w.push(k.replace(p, '')); }
+    return w.sort().reverse();
+  }
+  function allAbsences() {
+    const p = LS_ABSENCE(), all = [];
+    for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (!k.startsWith(p)) continue; const w = k.replace(p, ''); try { (JSON.parse(localStorage.getItem(k)) || []).forEach(a => all.push({ ...a, _week: w })); } catch (_) {} }
     return all;
   }
 
@@ -137,7 +156,7 @@ console.log('rapport-chauffeur.js chargé');
   /* ── Main build ─────────────────────────────────────────── */
   window.buildRapportChauffeur = function () {
     const wrap = document.createElement('div');
-    const allW = new Set([...concWeeks(), ...retardWeeks()]);
+    const allW = new Set([...concWeeks(), ...retardWeeks(), ...absenceWeeks()]);
     if (!rapWeek) rapWeek = [...allW].sort().reverse()[0] || curWeek();
     allW.add(rapWeek);
 
@@ -157,18 +176,20 @@ console.log('rapport-chauffeur.js chargé');
     const chauffeurs = getChauffeurs();
     const concData = loadConc(rapWeek);
     const retData = loadRetards(rapWeek);
+    const absData = loadAbsences(rapWeek);
     const mentorData = getMentorBadForWeek(rapWeek);
     const allConcData = allConc();
     const allRetData = allRetards();
+    const allAbsData = allAbsences();
     const allMentorData = getAllMentorBad();
 
     // Build table
-    wrap.appendChild(buildTable(chauffeurs, concData, retData, mentorData, allConcData, allRetData, allMentorData));
+    wrap.appendChild(buildTable(chauffeurs, concData, retData, absData, mentorData, allConcData, allRetData, allAbsData, allMentorData));
     return wrap;
   };
 
   /* ── Table ────────────────────────────────────────────────── */
-  function buildTable(chauffeurs, concData, retData, mentorData, allConcData, allRetData, allMentorData) {
+  function buildTable(chauffeurs, concData, retData, absData, mentorData, allConcData, allRetData, allAbsData, allMentorData) {
     const container = document.createElement('div');
     const byCh = (arr, nom) => arr.filter(x => x.chauffeur === nom);
 
@@ -178,6 +199,8 @@ console.log('rapport-chauffeur.js chargé');
       <th style="text-align:left;padding:8px;">Chauffeur</th>
       <th style="text-align:center;padding:8px;width:70px;" title="Retards semaine">⏰ Sem.</th>
       <th style="text-align:center;padding:8px;width:70px;" title="Retards année">⏰ An.</th>
+      <th style="text-align:center;padding:8px;width:70px;" title="Absences injustifiées semaine">🚫 Sem.</th>
+      <th style="text-align:center;padding:8px;width:70px;" title="Absences injustifiées année">🚫 An.</th>
       <th style="text-align:center;padding:8px;width:70px;" title="Mentor semaine">🛞 Sem.</th>
       <th style="text-align:center;padding:8px;width:70px;" title="Mentor année">🛞 An.</th>
       <th style="text-align:center;padding:8px;width:70px;" title="Concessions semaine">📦 Sem.</th>
@@ -188,16 +211,18 @@ console.log('rapport-chauffeur.js chargé');
 
     const names = chauffeurs.map(c => cNom(c));
     // Sort: those with any issues first
-    const score = n => byCh(retData, n).length + byCh(mentorData, n).length + byCh(concData, n).length;
+    const score = n => byCh(retData, n).length + byCh(absData, n).length + byCh(mentorData, n).length + byCh(concData, n).length;
     const sorted = [...names].sort((a, b) => score(b) - score(a) || a.localeCompare(b));
 
-    let totRetW = 0, totRetY = 0, totMenW = 0, totMenY = 0, totConW = 0, totConY = 0;
+    let totRetW = 0, totRetY = 0, totAbsW = 0, totAbsY = 0, totMenW = 0, totMenY = 0, totConW = 0, totConY = 0;
 
     sorted.forEach(nom => {
       const rW = byCh(retData, nom), rY = byCh(allRetData, nom);
+      const aW = byCh(absData, nom), aY = byCh(allAbsData, nom);
       const mW = byCh(mentorData, nom), mY = byCh(allMentorData, nom);
       const cW = byCh(concData, nom), cY = byCh(allConcData, nom);
       totRetW += rW.length; totRetY += rY.length;
+      totAbsW += aW.length; totAbsY += aY.length;
       totMenW += mW.length; totMenY += mY.length;
       totConW += cW.length; totConY += cY.length;
 
@@ -207,6 +232,8 @@ console.log('rapport-chauffeur.js chargé');
         <td style="padding:8px;">${escH(nom)}</td>
         <td style="text-align:center;padding:8px;${cs(rW.length,'#f87171')}">${rW.length}</td>
         <td style="text-align:center;padding:8px;${cs(rY.length,'#f59e0b')}">${rY.length}</td>
+        <td style="text-align:center;padding:8px;${cs(aW.length,'#f87171')}">${aW.length}</td>
+        <td style="text-align:center;padding:8px;${cs(aY.length,'#f59e0b')}">${aY.length}</td>
         <td style="text-align:center;padding:8px;${cs(mW.length,'#f87171')}">${mW.length}</td>
         <td style="text-align:center;padding:8px;${cs(mY.length,'#f59e0b')}">${mY.length}</td>
         <td style="text-align:center;padding:8px;${cs(cW.length,'#f87171')}">${cW.length}</td>
@@ -221,6 +248,12 @@ console.log('rapport-chauffeur.js chargé');
       retBtn.onclick = () => showRetardModal(nom);
       bw.appendChild(retBtn);
 
+      // Absence add
+      const absBtn = document.createElement('button'); absBtn.className = 'h-btn'; absBtn.textContent = '🚫+';
+      absBtn.style.cssText = 'font-size:11px;padding:2px 6px;'; absBtn.title = 'Ajouter une absence injustifiée';
+      absBtn.onclick = () => showAbsenceModal(nom);
+      bw.appendChild(absBtn);
+
       // Concession add
       const concBtn = document.createElement('button'); concBtn.className = 'h-btn'; concBtn.textContent = '📦+';
       concBtn.style.cssText = 'font-size:11px;padding:2px 6px;'; concBtn.title = 'Ajouter des concessions';
@@ -228,11 +261,11 @@ console.log('rapport-chauffeur.js chargé');
       bw.appendChild(concBtn);
 
       // Detail button
-      const hasData = rW.length + mW.length + cW.length + rY.length + mY.length + cY.length > 0;
+      const hasData = rW.length + aW.length + mW.length + cW.length + rY.length + aY.length + mY.length + cY.length > 0;
       if (hasData) {
         const detBtn = document.createElement('button'); detBtn.className = 'h-btn'; detBtn.textContent = '👁';
         detBtn.style.cssText = 'font-size:11px;padding:2px 6px;'; detBtn.title = 'Voir le détail';
-        detBtn.onclick = () => showFullDetail(nom, rW, rY, mW, mY, cW, cY);
+        detBtn.onclick = () => showFullDetail(nom, rW, rY, aW, aY, mW, mY, cW, cY);
         bw.appendChild(detBtn);
       }
       actCell.appendChild(bw);
@@ -245,6 +278,8 @@ console.log('rapport-chauffeur.js chargé');
       <td style="padding:8px;font-weight:700;">Total</td>
       <td style="text-align:center;padding:8px;font-weight:700;color:#f87171;">${totRetW}</td>
       <td style="text-align:center;padding:8px;font-weight:700;color:#f59e0b;">${totRetY}</td>
+      <td style="text-align:center;padding:8px;font-weight:700;color:#f87171;">${totAbsW}</td>
+      <td style="text-align:center;padding:8px;font-weight:700;color:#f59e0b;">${totAbsY}</td>
       <td style="text-align:center;padding:8px;font-weight:700;color:#f87171;">${totMenW}</td>
       <td style="text-align:center;padding:8px;font-weight:700;color:#f59e0b;">${totMenY}</td>
       <td style="text-align:center;padding:8px;font-weight:700;color:#f87171;">${totConW}</td>
@@ -287,6 +322,46 @@ console.log('rapport-chauffeur.js chargé');
       const existing = loadRetards(rapWeek);
       existing.push({ chauffeur: nom, date, duree, comment });
       saveRetards(rapWeek, existing);
+      rmModal(); renderStats();
+    };
+  }
+
+  /* ── Modal Absence injustifiée ────────────────────────────── */
+  function showAbsenceModal(nom) {
+    rmModal();
+    const ov = mkOverlay('rap-modal-overlay');
+    const modal = document.createElement('div');
+    modal.style.cssText = 'background:var(--bg-card,var(--bg-sidebar));border-radius:10px;padding:20px;max-width:450px;width:90%;max-height:80vh;overflow:auto;box-shadow:0 8px 32px rgba(0,0,0,0.4);';
+    modal.innerHTML = `
+      <h3 style="margin:0 0 12px;">🚫 Absence injustifiée — ${escH(nom)}</h3>
+      <p style="font-size:13px;color:var(--text-muted);margin:0 0 10px;">Semaine : <strong>${escH(rapWeek)}</strong></p>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <label style="font-size:12px;color:var(--text-muted);">Date de l'absence</label>
+        <input type="date" id="rap-abs-date" class="rep-input" value="${new Date().toISOString().slice(0,10)}">
+        <label style="font-size:12px;color:var(--text-muted);">Type d'absence</label>
+        <select id="rap-abs-type" class="rep-input">
+          <option value="No Show">No Show</option>
+          <option value="Abandon de poste">Abandon de poste</option>
+          <option value="Absence sans prévenir">Absence sans prévenir</option>
+          <option value="Autre">Autre</option>
+        </select>
+        <label style="font-size:12px;color:var(--text-muted);">Commentaire</label>
+        <input type="text" id="rap-abs-comment" class="rep-input" placeholder="Optionnel">
+      </div>
+      <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end;">
+        <button class="h-btn" id="rap-abs-cancel">Annuler</button>
+        <button class="h-btn" id="rap-abs-ok" style="background:var(--accent);color:#fff;border-color:var(--accent);">Ajouter</button>
+      </div>`;
+    ov.appendChild(modal); document.body.appendChild(ov);
+    document.getElementById('rap-abs-cancel').onclick = rmModal;
+    document.getElementById('rap-abs-ok').onclick = () => {
+      const date = document.getElementById('rap-abs-date').value;
+      const type = document.getElementById('rap-abs-type').value;
+      const comment = document.getElementById('rap-abs-comment').value.trim();
+      if (!date) { alert('Veuillez indiquer la date.'); return; }
+      const existing = loadAbsences(rapWeek);
+      existing.push({ chauffeur: nom, date, type, comment });
+      saveAbsences(rapWeek, existing);
       rmModal(); renderStats();
     };
   }
@@ -386,7 +461,7 @@ console.log('rapport-chauffeur.js chargé');
   }
 
   /* ── Modal détail complet ─────────────────────────────────── */
-  function showFullDetail(nom, rW, rY, mW, mY, cW, cY) {
+  function showFullDetail(nom, rW, rY, aW, aY, mW, mY, cW, cY) {
     rmModal();
     const ov = mkOverlay('rap-modal-overlay');
     const modal = document.createElement('div');
@@ -409,6 +484,24 @@ console.log('rapport-chauffeur.js chargé');
       html += groupByWeek(rY, items => {
         let t = '<table class="rep-table" style="width:100%;font-size:12px;"><tbody>';
         items.forEach(r => { t += `<tr style="border-bottom:1px solid var(--border);"><td style="padding:3px 6px;">${fmtShort(r.date)}</td><td style="padding:3px 6px;text-align:center;font-weight:700;color:#f59e0b;">${r.duree} min</td><td style="padding:3px 6px;color:var(--text-muted);font-size:11px;">${escH(r.comment || '')}</td></tr>`; });
+        return t + '</tbody></table>';
+      });
+    }
+
+    // Absences injustifiées semaine
+    html += section('🚫 Absences injustifiées — ' + rapWeek, aW.length);
+    if (aW.length) {
+      html += '<table class="rep-table" style="width:100%;font-size:13px;margin-bottom:6px;"><thead><tr><th style="padding:4px 6px;">Date</th><th style="padding:4px 6px;">Type</th><th style="padding:4px 6px;">Commentaire</th><th style="width:30px;"></th></tr></thead><tbody>';
+      aW.forEach(a => { html += `<tr style="border-bottom:1px solid var(--border);"><td style="padding:4px 6px;">${fmtShort(a.date)}</td><td style="padding:4px 6px;font-weight:700;color:#f87171;">${escH(a.type || '—')}</td><td style="padding:4px 6px;color:var(--text-muted);font-size:12px;">${escH(a.comment || '')}</td><td style="padding:4px 6px;"><button class="h-btn rap-del-abs" data-date="${escH(a.date)}" data-type="${escH(a.type || '')}" style="font-size:10px;padding:1px 5px;color:#f87171;border-color:#f87171;">🗑</button></td></tr>`; });
+      html += '</tbody></table>';
+    }
+
+    // Absences injustifiées année
+    html += section('🚫 Absences injustifiées — Année', aY.length);
+    if (aY.length) {
+      html += groupByWeek(aY, items => {
+        let t = '<table class="rep-table" style="width:100%;font-size:12px;"><tbody>';
+        items.forEach(a => { t += `<tr style="border-bottom:1px solid var(--border);"><td style="padding:3px 6px;">${fmtShort(a.date)}</td><td style="padding:3px 6px;font-weight:700;color:#f59e0b;">${escH(a.type || '—')}</td><td style="padding:3px 6px;color:var(--text-muted);font-size:11px;">${escH(a.comment || '')}</td></tr>`; });
         return t + '</tbody></table>';
       });
     }
@@ -462,6 +555,17 @@ console.log('rapport-chauffeur.js chargé');
         const ex = loadRetards(rapWeek);
         const idx = ex.findIndex(r => r.chauffeur === nom && r.date === d && r.duree === du);
         if (idx >= 0) { ex.splice(idx, 1); saveRetards(rapWeek, ex); }
+        rmModal(); renderStats();
+      };
+    });
+
+    // Bind delete absence buttons
+    modal.querySelectorAll('.rap-del-abs').forEach(btn => {
+      btn.onclick = () => {
+        const d = btn.dataset.date, tp = btn.dataset.type;
+        const ex = loadAbsences(rapWeek);
+        const idx = ex.findIndex(a => a.chauffeur === nom && a.date === d && a.type === tp);
+        if (idx >= 0) { ex.splice(idx, 1); saveAbsences(rapWeek, ex); }
         rmModal(); renderStats();
       };
     });
