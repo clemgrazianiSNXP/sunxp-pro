@@ -38,7 +38,8 @@ function toggleMenuPanel() {
         // Responsable : tout + demandes + stations
         tabsContainer.innerHTML = `
           <button class="menu-panel-tab active" data-tab="parametres" onclick="setMenuTab('parametres')" title="Paramètres">⚙️</button>
-          <button class="menu-panel-tab" data-tab="documents" onclick="setMenuTab('documents')" title="Documents">📄</button>
+          <button class="menu-panel-tab" data-tab="documents" onclick="setMenuTab('documents')" title="Documents bureau">📄</button>
+          <button class="menu-panel-tab" data-tab="docs-chauffeurs" onclick="setMenuTab('docs-chauffeurs')" title="Documents chauffeurs">👤</button>
           <button class="menu-panel-tab" data-tab="analyse" onclick="setMenuTab('analyse')" title="Analyse & Performance">📊</button>
           <button class="menu-panel-tab" data-tab="demandes-mgr" onclick="setMenuTab('demandes-mgr')" title="Demandes chauffeurs">📋</button>
           <button class="menu-panel-tab" data-tab="stations-mgr" onclick="setMenuTab('stations-mgr')" title="Gérer les stations">🏢</button>
@@ -69,6 +70,8 @@ function setMenuTab(tab) {
     content.appendChild(renderParametres());
   } else if (tab === 'documents' && typeof renderDocuments === 'function') {
     content.appendChild(renderDocuments());
+  } else if (tab === 'docs-chauffeurs' && typeof renderDocsChauffeurs === 'function') {
+    content.appendChild(renderDocsChauffeurs());
   } else if (tab === 'analyse' && typeof renderAnalysePerformance === 'function') {
     content.appendChild(renderAnalysePerformance());
   } else if (tab === 'repos-mgr' && typeof renderReposResponsable === 'function') {

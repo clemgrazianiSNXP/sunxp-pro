@@ -19,7 +19,7 @@ function renderDocuments() {
   const wrap = document.createElement('div');
   wrap.style.cssText = 'padding:16px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;';
 
-  wrap.innerHTML = '<h3 style="font-size:14px;color:var(--accent);margin-bottom:4px;">📄 Documents</h3>';
+  wrap.innerHTML = '<h3 style="font-size:14px;color:var(--accent);margin-bottom:4px;">📄 Documents bureau</h3>';
 
   // Barre de recherche
   const search = document.createElement('input');
