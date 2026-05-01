@@ -147,9 +147,9 @@ function buildToolbar(stationId) {
   bar.className = 'h-toolbar';
   bar.innerHTML = `
     <div class="h-toolbar-left">
-      <button class="h-btn" id="h-view-jour">Jour</button>
-      <button class="h-btn" id="h-view-semaine">Semaine</button>
-      <button class="h-btn" id="h-view-mois">Mois</button>
+      <button class="h-view-btn ${heuresView === 'jour' ? 'h-view-active' : ''}" id="h-view-jour">Jour</button>
+      <button class="h-view-btn ${heuresView === 'semaine' ? 'h-view-active' : ''}" id="h-view-semaine">Semaine</button>
+      <button class="h-view-btn ${heuresView === 'mois' ? 'h-view-active' : ''}" id="h-view-mois">Mois</button>
     </div>
     <div class="h-toolbar-center">
       <button class="h-btn h-nav" id="h-prev">◀</button>
