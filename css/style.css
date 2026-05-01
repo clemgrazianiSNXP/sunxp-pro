@@ -30,7 +30,8 @@
 
 body {
   font-family: var(--font-family);
-  background-color: var(--bg-primary);
+  background: linear-gradient(160deg, var(--bg-primary) 0%, color-mix(in srgb, var(--bg-primary), #1a0a2e 15%) 100%);
+  background-attachment: fixed;
   color: var(--text-primary);
   font-size: 14px;
   line-height: 1.5;
@@ -945,6 +946,153 @@ body.light-mode .h-alerte-popup {
 }
 body.light-mode .stats-impact-panel {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* ============================================================
+   Animations & Micro-interactions globales
+   ============================================================ */
+
+/* ── Fade-in slide-up pour le contenu des modules ── */
+.module-content > *,
+.menu-panel-content > *,
+#module-heures > *,
+#module-stats > *,
+#module-primes > *,
+#module-repertoire > * {
+  animation: fadeSlideUp 0.3s ease both;
+}
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Lignes tableau en cascade (stagger) ── */
+.h-table tbody tr,
+.rep-table tbody tr {
+  animation: rowFadeIn 0.25s ease both;
+}
+.h-table tbody tr:nth-child(1), .rep-table tbody tr:nth-child(1) { animation-delay: 0ms; }
+.h-table tbody tr:nth-child(2), .rep-table tbody tr:nth-child(2) { animation-delay: 20ms; }
+.h-table tbody tr:nth-child(3), .rep-table tbody tr:nth-child(3) { animation-delay: 40ms; }
+.h-table tbody tr:nth-child(4), .rep-table tbody tr:nth-child(4) { animation-delay: 60ms; }
+.h-table tbody tr:nth-child(5), .rep-table tbody tr:nth-child(5) { animation-delay: 80ms; }
+.h-table tbody tr:nth-child(6), .rep-table tbody tr:nth-child(6) { animation-delay: 100ms; }
+.h-table tbody tr:nth-child(7), .rep-table tbody tr:nth-child(7) { animation-delay: 120ms; }
+.h-table tbody tr:nth-child(8), .rep-table tbody tr:nth-child(8) { animation-delay: 140ms; }
+.h-table tbody tr:nth-child(9), .rep-table tbody tr:nth-child(9) { animation-delay: 160ms; }
+.h-table tbody tr:nth-child(10), .rep-table tbody tr:nth-child(10) { animation-delay: 180ms; }
+.h-table tbody tr:nth-child(n+11), .rep-table tbody tr:nth-child(n+11) { animation-delay: 200ms; }
+@keyframes rowFadeIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ── Ripple effect sur les boutons ── */
+.h-btn, .rep-btn, .rep-btn-primary, .h-view-btn, .menu-param-btn {
+  position: relative;
+  overflow: hidden;
+}
+.h-btn::after, .rep-btn::after, .rep-btn-primary::after, .h-view-btn::after, .menu-param-btn::after {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 0; height: 0;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.4s ease, height 0.4s ease, opacity 0.4s ease;
+  opacity: 0;
+  pointer-events: none;
+}
+.h-btn:active::after, .rep-btn:active::after, .rep-btn-primary:active::after, .h-view-btn:active::after, .menu-param-btn:active::after {
+  width: 200px; height: 200px;
+  opacity: 0;
+  transition: 0s;
+}
+
+/* ── Input focus — bordure animée ── */
+.h-inp:focus, .rep-input:focus, .rep-search:focus, .h-dash-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-dim);
+  transition: border-color 0.2s, box-shadow 0.3s;
+}
+
+/* ── Sidebar onglet actif — indicateur lumineux ── */
+.nav-tab.active {
+  position: relative;
+}
+.nav-tab.active::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 25%; bottom: 25%;
+  width: 3px;
+  background: var(--accent);
+  border-radius: 0 3px 3px 0;
+  box-shadow: 0 0 8px var(--accent);
+  animation: sidebarGlow 2s ease-in-out infinite alternate;
+}
+@keyframes sidebarGlow {
+  from { box-shadow: 0 0 6px var(--accent); }
+  to   { box-shadow: 0 0 14px var(--accent); }
+}
+
+/* ── Hover lignes tableau — transition douce ── */
+.h-table tbody tr {
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+.h-table tbody tr:hover {
+  transform: scale(1.002);
+}
+
+/* ── Cards portail chauffeur — coins plus arrondis + hover lift ── */
+.portal-card {
+  border-radius: 14px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.portal-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+/* ── Badge cards — hover scale ── */
+.badge-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.badge-card:hover {
+  transform: scale(1.04);
+}
+
+/* ── Modales — scale-up + backdrop blur ── */
+@keyframes modalScaleIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* ── Toast notifications — slide-in depuis la droite ── */
+@keyframes toastSlideIn {
+  from { opacity: 0; transform: translateX(40px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ── Zebra striping plus visible ── */
+.h-table tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.02);
+}
+body.light-mode .h-table tbody tr:nth-child(even) {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+/* ── Accent pulse sur éléments importants ── */
+@keyframes accentPulse {
+  0%, 100% { box-shadow: 0 0 0 0 var(--accent-dim); }
+  50% { box-shadow: 0 0 0 6px transparent; }
+}
+
+/* ── Compteur animé (pour JS) ── */
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 /* ============================================================

@@ -125,7 +125,7 @@ function handleDemandeNotification(payload, type) {
  */
 function showRealtimeToast(title, message) {
   const toast = document.createElement('div');
-  toast.style.cssText = 'position:fixed;top:16px;right:16px;z-index:999999;background:var(--bg-sidebar);border:1px solid var(--accent);border-radius:10px;padding:12px 18px;box-shadow:0 8px 32px rgba(0,0,0,0.4);max-width:300px;animation:fadeInDown 0.3s ease;';
+  toast.style.cssText = 'position:fixed;top:16px;right:16px;z-index:999999;background:var(--bg-sidebar);border:1px solid var(--accent);border-radius:10px;padding:12px 18px;box-shadow:0 8px 32px rgba(0,0,0,0.4);max-width:300px;animation:toastSlideIn 0.3s ease;';
   toast.innerHTML = `
     <div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:4px;">${title}</div>
     <div style="font-size:12px;color:var(--text-muted);">${message}</div>`;
