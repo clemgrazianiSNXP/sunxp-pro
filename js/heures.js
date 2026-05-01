@@ -524,6 +524,24 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
       // Re-binder les étoiles après sélection du nom
       starCell.innerHTML = buildStarRating(row.trajet, '');
       bindStars();
+      // Focus la ligne suivante après stabilisation du DOM
+      const rowIdx = allRows.indexOf(row);
+      if (rowIdx >= 0) {
+        window._focusNextNomRow = rowIdx + 1;
+        setTimeout(() => {
+          if (window._focusNextNomRow != null) {
+            const tbody = tr.closest('tbody');
+            if (tbody) {
+              const targetTr = tbody.children[window._focusNextNomRow];
+              if (targetTr) {
+                const nextInp = targetTr.querySelector('.h-inp-nom');
+                if (nextInp) nextInp.focus();
+              }
+            }
+            window._focusNextNomRow = null;
+          }
+        }, 200);
+      }
     });
   }
   refreshNomCell();
