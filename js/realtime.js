@@ -106,20 +106,14 @@ function handleDemandeNotification(payload, type) {
     localStorage.setItem(lsKey, JSON.stringify(row.data));
   }
 
-  // Trouver le dernier demandeur dans les données
-  const demandes = Array.isArray(row.data) ? row.data : [];
-  const derniere = demandes.length ? demandes[demandes.length - 1] : null;
-  const nomDemandeur = derniere ? (derniere.chauffeur || derniere.nom || '') : '';
-
-  const typeLabels = { repos: 'repos', acompte: 'acompte', congés: 'congé' };
-  const typeLabel = typeLabels[type] || 'demande';
-
-  // Côté responsable
+  // Côté responsable : toast seulement pour les nouvelles demandes (statut en_attente)
   if (!isDriverMode()) {
-    const titre = nomDemandeur
-      ? `📬 Nouvelle demande de ${typeLabel} de ${nomDemandeur}`
-      : `📬 Nouvelle demande de ${typeLabel}`;
-    showRealtimeToast(titre);
+    const demandes = Array.isArray(row.data) ? row.data : [];
+    const nouvelle = demandes.find(d => d.statut === 'en_attente');
+    if (nouvelle) {
+      const nom = nouvelle.chauffeurNom || nouvelle.chauffeur || nouvelle.nom || '';
+      if (nom) showRealtimeToast('📬 Nouvelle demande de ' + nom);
+    }
   }
 
   // Côté chauffeur
