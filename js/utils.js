@@ -94,6 +94,13 @@ document.addEventListener('DOMContentLoaded', initNavigation);
   right.id = 'topbar-right';
   right.style.cssText = 'margin-right:40px;display:none;align-items:center;gap:8px;';
 
+  // Logo petit et discret
+  const logo = document.createElement('img');
+  logo.src = 'img/matting_2026-4-21_fa553fc4-3d99-11f1-9b2d-16737e16766a.png';
+  logo.alt = 'SunXP';
+  logo.style.cssText = 'width:24px;height:24px;border-radius:4px;opacity:0.7;';
+  right.appendChild(logo);
+
   // Cloche notifications repos
   const bellBtn = document.createElement('button');
   bellBtn.id = 'topbar-bell';
