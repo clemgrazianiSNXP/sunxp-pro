@@ -179,6 +179,16 @@ function buildPrimesTable(chauffeurs, data, reports, sid) {
     // Jours travaillés — calculé automatiquement depuis les heures du mois
     const joursAuto = countJoursTravailles(sid, c, primesYear, primesMonth);
     row.jours = joursAuto;
+    // Fico auto — impacts mentor du mois
+    const nom = ((c.prenom || '') + ' ' + (c.nom || '')).trim();
+    if (typeof window.countFicoForMonth === 'function' && nom) {
+      row.fico = window.countFicoForMonth(sid, nom, primesYear, primesMonth);
+    }
+    // Absences auto — depuis rapport chauffeur
+    if (typeof window.countAbsencesForMonth === 'function' && nom) {
+      row.absences = window.countAbsencesForMonth(sid, nom, primesYear, primesMonth);
+    }
+    data[key] = row;
     const total = calcTotalPrime(row, report);
     const tr = document.createElement('tr');
     tr.style.backgroundColor = idx % 2 === 0 ? 'var(--bg-sidebar)' : 'var(--bg-primary)';

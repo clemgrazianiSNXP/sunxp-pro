@@ -77,6 +77,11 @@ function getReportPrecedent(stationId, year, month) {
     if (!hasPrevData) {
       reports[key] = (c.soldeInitialPrime != null) ? c.soldeInitialPrime : 0;
     } else {
+      // Recalculer les champs auto pour le mois précédent
+      const nom = ((c.prenom || '') + ' ' + (c.nom || '')).trim();
+      row.jours = countJoursTravailles(stationId, c, prevYear, prevMonth);
+      if (typeof window.countFicoForMonth === 'function' && nom) row.fico = window.countFicoForMonth(stationId, nom, prevYear, prevMonth);
+      if (typeof window.countAbsencesForMonth === 'function' && nom) row.absences = window.countAbsencesForMonth(stationId, nom, prevYear, prevMonth);
       const total = calcTotalPrime(row, 0);
       reports[key] = total < 0 ? total : 0;
     }
