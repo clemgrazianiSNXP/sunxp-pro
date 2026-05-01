@@ -69,17 +69,41 @@ function getReportPrecedent(stationId, year, month) {
   const prevYear  = month === 0 ? year - 1 : year;
   const prevData  = loadPrimesData(stationId, prevYear, prevMonth);
   const chauffeurs = getChauffeursList(stationId);
+  // Récursivement obtenir le report du mois encore avant
+  const prevReports = getReportPrecedentRec(stationId, prevYear, prevMonth);
   const reports = {};
   chauffeurs.forEach(c => {
     const key = c.id_amazon || c.id;
     const row = prevData[key] || {};
     const nom = ((c.prenom || '') + ' ' + (c.nom || '')).trim();
-    // Toujours recalculer les champs auto
     row.jours = countJoursTravailles(stationId, c, prevYear, prevMonth);
     if (typeof window.countFicoForMonth === 'function' && nom) row.fico = window.countFicoForMonth(stationId, nom, prevYear, prevMonth);
     if (typeof window.countAbsencesForMonth === 'function' && nom) row.absences = window.countAbsencesForMonth(stationId, nom, prevYear, prevMonth);
-    // Calculer le total du mois précédent (sans report en cascade)
-    const total = calcTotalPrime(row, 0);
+    const prevReport = prevReports[key] || 0;
+    const total = calcTotalPrime(row, prevReport);
+    reports[key] = total < 0 ? total : 0;
+  });
+  return reports;
+}
+
+// Version récursive limitée à 12 mois pour éviter boucle infinie
+function getReportPrecedentRec(stationId, year, month, depth) {
+  if ((depth || 0) >= 12) return {};
+  const prevMonth = month === 0 ? 11 : month - 1;
+  const prevYear  = month === 0 ? year - 1 : year;
+  const prevData  = loadPrimesData(stationId, prevYear, prevMonth);
+  const chauffeurs = getChauffeursList(stationId);
+  const prevReports = getReportPrecedentRec(stationId, prevYear, prevMonth, (depth || 0) + 1);
+  const reports = {};
+  chauffeurs.forEach(c => {
+    const key = c.id_amazon || c.id;
+    const row = prevData[key] || {};
+    const nom = ((c.prenom || '') + ' ' + (c.nom || '')).trim();
+    row.jours = typeof countJoursTravailles === 'function' ? countJoursTravailles(stationId, c, prevYear, prevMonth) : 0;
+    if (typeof window.countFicoForMonth === 'function' && nom) row.fico = window.countFicoForMonth(stationId, nom, prevYear, prevMonth);
+    if (typeof window.countAbsencesForMonth === 'function' && nom) row.absences = window.countAbsencesForMonth(stationId, nom, prevYear, prevMonth);
+    const prevReport = prevReports[key] || 0;
+    const total = calcTotalPrime(row, prevReport);
     reports[key] = total < 0 ? total : 0;
   });
   return reports;
