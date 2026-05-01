@@ -661,6 +661,58 @@ body.theme-green {
 }
 
 /* ============================================================
+   Tableau Heures — Colonnes et couleurs travail
+   ============================================================ */
+.h-td-name {
+  min-width: 180px;
+  max-width: 180px;
+  width: 180px;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.h-travail {
+  display: inline-block;
+  text-align: center;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  min-width: 48px;
+}
+.h-table td:nth-child(2) {
+  text-align: center;
+}
+.travail-vert {
+  color: #4ade80;
+  background: rgba(74, 222, 128, 0.12);
+}
+.travail-orange {
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.12);
+}
+.travail-rouge {
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.15);
+}
+.h-table td:nth-child(13),
+.h-table td:nth-child(14),
+.h-table td:nth-child(15) {
+  width: 50px;
+  max-width: 50px;
+  text-align: center;
+}
+.h-table th:nth-child(13),
+.h-table th:nth-child(14),
+.h-table th:nth-child(15) {
+  width: 50px;
+  max-width: 50px;
+  text-align: center;
+}
+
+/* ============================================================
    Mode clair — Corrections de lisibilité
    ============================================================ */
 body.light-mode .h-table td {
@@ -683,6 +735,18 @@ body.light-mode .h-dash-input {
 body.light-mode .h-table tr:hover td {
   filter: none;
   background: var(--bg-tab-hover);
+}
+body.light-mode .travail-vert {
+  color: #16a34a;
+  background: rgba(22, 163, 74, 0.1);
+}
+body.light-mode .travail-orange {
+  color: #d97706;
+  background: rgba(217, 119, 6, 0.1);
+}
+body.light-mode .travail-rouge {
+  color: #dc2626;
+  background: rgba(220, 38, 38, 0.1);
 }
 body.light-mode .h-alerte-popup-item:hover {
   background: rgba(0, 0, 0, 0.04);
