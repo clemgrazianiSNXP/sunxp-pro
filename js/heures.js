@@ -370,7 +370,7 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
     <td>${isSpecial ? '' : `<input class="h-inp h-inp-sm" data-f="backups" value="${row.backups}" style="width:40px;color:#f97316;font-weight:700;" ${dis}>`}</td>
     <td>${isSpecial ? '' : `<input class="h-inp h-inp-sm" data-f="mentor" value="${row.mentor}" style="color:${mentorColor(row.mentor, row.trajet)};font-weight:700;" ${dis}>`}</td>
     <td class="h-trajet-stars" data-key="${row.key}">${isSpecial ? '' : buildStarRating(row.trajet, dis)}</td>
-    <td>${isSpecial ? '' : `<input class="h-inp h-inp-faute" data-f="faute" value="${row.faute || ''}" placeholder="" ${dis}>`}</td>
+    <td>${isSpecial ? '' : `<input class="h-inp h-inp-faute" data-f="faute" value="${row.faute || ''}" placeholder="" style="width:70px;max-width:70px;" ${dis}>`}</td>
     <td>${isSpecial ? '' : `<input type="checkbox" data-f="essence" ${row.essence ? 'checked' : ''} ${dis}>`}</td>
     <td>${isSpecial ? '' : `<input type="checkbox" data-f="adblue" ${row.adblue ? 'checked' : ''} ${dis}>`}</td>
     <td>${isSpecial ? '' : `<input type="checkbox" data-f="ticket" ${row.ticket ? 'checked' : ''} ${dis}>`}</td>
@@ -480,13 +480,7 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
       if (e.key === 'Enter') {
         e.preventDefault();
         handler();
-        // Passer au champ suivant dans la même ligne ou la ligne suivante
-        const allInputs = Array.from(tr.closest('tbody').querySelectorAll('.h-inp:not([disabled]):not(.h-inp-nom), .h-inp-sm:not([disabled])'));
-        const idx = allInputs.indexOf(inp);
-        if (idx >= 0 && idx < allInputs.length - 1) {
-          allInputs[idx + 1].focus();
-          allInputs[idx + 1].select();
-        }
+        inp.blur();
       }
     });
   });
