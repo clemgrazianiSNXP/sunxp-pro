@@ -73,18 +73,14 @@ function getReportPrecedent(stationId, year, month) {
   chauffeurs.forEach(c => {
     const key = c.id_amazon || c.id;
     const row = prevData[key] || {};
-    const hasPrevData = Object.keys(row).some(k => k !== 'jours' && row[k]);
-    if (!hasPrevData) {
-      reports[key] = 0;
-    } else {
-      // Recalculer les champs auto pour le mois précédent
-      const nom = ((c.prenom || '') + ' ' + (c.nom || '')).trim();
-      row.jours = countJoursTravailles(stationId, c, prevYear, prevMonth);
-      if (typeof window.countFicoForMonth === 'function' && nom) row.fico = window.countFicoForMonth(stationId, nom, prevYear, prevMonth);
-      if (typeof window.countAbsencesForMonth === 'function' && nom) row.absences = window.countAbsencesForMonth(stationId, nom, prevYear, prevMonth);
-      const total = calcTotalPrime(row, 0);
-      reports[key] = total < 0 ? total : 0;
-    }
+    const nom = ((c.prenom || '') + ' ' + (c.nom || '')).trim();
+    // Toujours recalculer les champs auto
+    row.jours = countJoursTravailles(stationId, c, prevYear, prevMonth);
+    if (typeof window.countFicoForMonth === 'function' && nom) row.fico = window.countFicoForMonth(stationId, nom, prevYear, prevMonth);
+    if (typeof window.countAbsencesForMonth === 'function' && nom) row.absences = window.countAbsencesForMonth(stationId, nom, prevYear, prevMonth);
+    // Calculer le total du mois précédent (sans report en cascade)
+    const total = calcTotalPrime(row, 0);
+    reports[key] = total < 0 ? total : 0;
   });
   return reports;
 }
