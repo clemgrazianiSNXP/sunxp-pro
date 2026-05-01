@@ -34,35 +34,61 @@ function renderBadgesManager() {
   // Liste des chauffeurs
   results.forEach(r => {
     const card = document.createElement('div');
-    card.style.cssText = 'border:1px solid var(--border);border-radius:8px;padding:12px;background:var(--bg-sidebar);';
+    card.style.cssText = 'border:1px solid var(--border);border-radius:8px;background:var(--bg-sidebar);overflow:hidden;';
 
     const header = document.createElement('div');
-    header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;';
+    header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:12px;cursor:pointer;transition:background 0.15s;';
     header.innerHTML = `
       <span style="font-size:13px;font-weight:700;">${escBM(r.nom)}</span>
-      <span style="font-size:11px;color:var(--text-muted);">${r.unlocked.length}/${r.total}</span>`;
+      <span style="font-size:11px;color:var(--text-muted);">${r.unlocked.length}/${r.total} ▼</span>`;
+    header.onmouseenter = () => { header.style.background = 'var(--bg-tab-hover)'; };
+    header.onmouseleave = () => { header.style.background = ''; };
     card.appendChild(header);
 
+    // Contenu dépliable (fermé par défaut)
+    const body = document.createElement('div');
+    body.style.cssText = 'display:none;padding:0 12px 12px;';
+
     if (r.unlocked.length) {
-      const badgesWrap = document.createElement('div');
-      badgesWrap.style.cssText = 'display:flex;flex-wrap:wrap;gap:4px;';
+      // Grouper par section
+      const bySection = {};
       r.unlocked.forEach(b => {
-        const chip = document.createElement('span');
-        chip.style.cssText = 'font-size:11px;background:var(--bg-primary);border:1px solid var(--border);border-radius:12px;padding:2px 8px;white-space:nowrap;cursor:pointer;transition:border-color 0.15s;';
-        chip.textContent = b.icon + ' ' + b.name;
-        chip.title = b.desc;
-        chip.addEventListener('click', () => showBadgeDetailPopup(b));
-        chip.onmouseenter = () => { chip.style.borderColor = 'var(--accent)'; };
-        chip.onmouseleave = () => { chip.style.borderColor = 'var(--border)'; };
-        badgesWrap.appendChild(chip);
+        if (!bySection[b.section]) bySection[b.section] = [];
+        bySection[b.section].push(b);
       });
-      card.appendChild(badgesWrap);
+      Object.entries(bySection).forEach(([section, badges]) => {
+        const secDiv = document.createElement('div');
+        secDiv.style.cssText = 'margin-top:8px;';
+        secDiv.innerHTML = `<div style="font-size:11px;font-weight:600;color:var(--accent);margin-bottom:4px;">${section}</div>`;
+        const badgesWrap = document.createElement('div');
+        badgesWrap.style.cssText = 'display:flex;flex-wrap:wrap;gap:4px;';
+        badges.forEach(b => {
+          const chip = document.createElement('span');
+          chip.style.cssText = 'font-size:11px;background:var(--bg-primary);border:1px solid var(--border);border-radius:12px;padding:2px 8px;white-space:nowrap;cursor:pointer;transition:border-color 0.15s;';
+          chip.textContent = b.icon + ' ' + b.name;
+          chip.addEventListener('click', e => { e.stopPropagation(); showBadgeDetailPopup(b); });
+          chip.onmouseenter = () => { chip.style.borderColor = 'var(--accent)'; };
+          chip.onmouseleave = () => { chip.style.borderColor = 'var(--border)'; };
+          badgesWrap.appendChild(chip);
+        });
+        secDiv.appendChild(badgesWrap);
+        body.appendChild(secDiv);
+      });
     } else {
       const empty = document.createElement('div');
-      empty.style.cssText = 'font-size:11px;color:var(--text-muted);font-style:italic;';
+      empty.style.cssText = 'font-size:11px;color:var(--text-muted);font-style:italic;padding:8px 0;';
       empty.textContent = 'Aucun badge débloqué';
-      card.appendChild(empty);
+      body.appendChild(empty);
     }
+
+    card.appendChild(body);
+
+    // Toggle ouverture/fermeture
+    header.addEventListener('click', () => {
+      const isOpen = body.style.display !== 'none';
+      body.style.display = isOpen ? 'none' : 'block';
+      header.querySelector('span:last-child').textContent = `${r.unlocked.length}/${r.total} ${isOpen ? '▼' : '▲'}`;
+    });
 
     wrap.appendChild(card);
   });
