@@ -528,6 +528,7 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
       const rowIdx = allRows.indexOf(row);
       if (rowIdx >= 0) {
         window._focusNextNomRow = rowIdx + 1;
+        window._skipNextNomBlur = true;
         setTimeout(() => {
           if (window._focusNextNomRow != null) {
             const tbody = tr.closest('tbody');
@@ -535,12 +536,15 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
               const targetTr = tbody.children[window._focusNextNomRow];
               if (targetTr) {
                 const nextInp = targetTr.querySelector('.h-inp-nom');
-                if (nextInp) nextInp.focus();
+                if (nextInp) {
+                  window._skipNextNomBlur = true;
+                  nextInp.focus();
+                }
               }
             }
             window._focusNextNomRow = null;
           }
-        }, 200);
+        }, 250);
       }
     });
   }
@@ -664,7 +668,7 @@ function buildNomCell(container, row, allRows, stationId, onSelect) {
 
     inp.addEventListener('input',  () => showDropdown(inp.value));
     inp.addEventListener('focus',  () => showDropdown(inp.value));
-    inp.addEventListener('blur',   () => { if (!nomSelected) setTimeout(hideDropdown, 160); });
+    inp.addEventListener('blur',   () => { if (!nomSelected && !window._skipNextNomBlur) setTimeout(hideDropdown, 160); window._skipNextNomBlur = false; });
     inp.addEventListener('keydown', e => {
       if (e.key === 'Enter') {
         e.preventDefault();
