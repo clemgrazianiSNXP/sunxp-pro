@@ -237,7 +237,7 @@ function buildImpactCell(colKey, row, chauffeurKey, data, sid) {
   // Absences: auto-rempli depuis le rapport chauffeur, pas de saisie manuelle
   if (colKey === 'absences') {
     const chauffeurs = getChauffeursList(sid);
-    const c = chauffeurs.find(ch => (ch.id || ch.id_amazon) === chauffeurKey);
+    const c = chauffeurs.find(ch => (ch.id_amazon || ch.id) === chauffeurKey);
     const nom = c ? ((c.prenom || '') + ' ' + (c.nom || '')).trim() : '';
     const absCount = (typeof window.countAbsencesForMonth === 'function' && nom)
       ? window.countAbsencesForMonth(sid, nom, primesYear, primesMonth)
@@ -248,6 +248,24 @@ function buildImpactCell(colKey, row, chauffeurKey, data, sid) {
     span.style.cssText = 'display:inline-block;width:36px;text-align:center;font-size:12px;font-weight:700;color:' + (absCount > 0 ? '#f87171' : 'var(--text-muted)') + ';';
     span.textContent = absCount;
     span.title = 'Calculé depuis le rapport chauffeur';
+    td.appendChild(span);
+    return td;
+  }
+
+  // Fico: auto-rempli depuis les impacts mentor dans heures
+  if (colKey === 'fico') {
+    const chauffeurs = getChauffeursList(sid);
+    const c = chauffeurs.find(ch => (ch.id_amazon || ch.id) === chauffeurKey);
+    const nom = c ? ((c.prenom || '') + ' ' + (c.nom || '')).trim() : '';
+    const ficoCount = (typeof window.countFicoForMonth === 'function' && nom)
+      ? window.countFicoForMonth(sid, nom, primesYear, primesMonth)
+      : 0;
+    row[colKey] = ficoCount;
+    data[chauffeurKey] = row;
+    const span = document.createElement('span');
+    span.style.cssText = 'display:inline-block;width:36px;text-align:center;font-size:12px;font-weight:700;color:' + (ficoCount > 0 ? '#f87171' : 'var(--text-muted)') + ';';
+    span.textContent = ficoCount;
+    span.title = 'Calculé depuis les impacts mentor dans heures';
     td.appendChild(span);
     return td;
   }

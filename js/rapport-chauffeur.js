@@ -722,4 +722,29 @@ console.log('rapport-chauffeur.js chargé');
     return count;
   };
 
+  /**
+   * Compte les impacts mentor (fico) d'un chauffeur pour un mois donné.
+   * Un impact = mentor < 810 ET trajet !== 5
+   */
+  window.countFicoForMonth = function (stationId, chauffeurNom, year, month) {
+    let count = 0;
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dateStr = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+      const key = stationId + '-heures-' + dateStr;
+      try {
+        const raw = localStorage.getItem(key);
+        if (!raw) continue;
+        const data = JSON.parse(raw);
+        if (!data.rows) continue;
+        const row = Object.values(data.rows).find(r => r.nom && r.nom.trim() === chauffeurNom);
+        if (!row) continue;
+        const mentor = parseInt(row.mentor);
+        const trajet = parseInt(row.trajet);
+        if (!isNaN(mentor) && !isNaN(trajet) && mentor < 810 && trajet !== 5) count++;
+      } catch (_) {}
+    }
+    return count;
+  };
+
 })();

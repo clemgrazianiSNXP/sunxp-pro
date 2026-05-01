@@ -56,6 +56,7 @@ function toggleMenuPanel() {
       }
     }
     bindTabTooltips();
+    updateDemandesBadge();
     setMenuTab('parametres');
   }
 }
@@ -173,3 +174,26 @@ document.addEventListener('click', function(e) {
   btn.appendChild(circle);
   setTimeout(() => circle.remove(), 500);
 });
+
+/* ── Badge notification sur onglet Demandes ───────────────── */
+function updateDemandesBadge() {
+  const tab = document.querySelector('.menu-panel-tab[data-tab="demandes-mgr"]');
+  if (!tab) return;
+  // Supprimer ancien badge
+  const old = tab.querySelector('.menu-tab-badge');
+  if (old) old.remove();
+  // Compter les demandes en attente
+  const sid = window.getActiveStationId ? window.getActiveStationId() : null;
+  if (!sid) return;
+  let count = 0;
+  if (typeof loadReposDemandes === 'function') count += loadReposDemandes(sid).filter(d => d.statut === 'en_attente').length;
+  if (typeof loadAcomptes === 'function') count += loadAcomptes(sid).filter(d => d.statut === 'en_attente').length;
+  if (typeof loadConges === 'function') count += loadConges(sid).filter(d => d.statut === 'en_attente').length;
+  if (count > 0) {
+    const badge = document.createElement('span');
+    badge.className = 'menu-tab-badge';
+    badge.style.cssText = 'position:absolute;top:2px;right:2px;background:#f87171;color:#fff;font-size:8px;font-weight:700;border-radius:50%;width:14px;height:14px;display:flex;align-items:center;justify-content:center;';
+    badge.textContent = count;
+    tab.appendChild(badge);
+  }
+}
