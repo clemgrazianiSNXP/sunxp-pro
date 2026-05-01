@@ -453,6 +453,20 @@ window.preloadStationData = async function (stationId) {
       });
     }
 
+    // Absences injustifiées
+    const { data: absData } = await sb().from('absences').select('semaine, data').eq('station_id', stationId);
+    if (absData) {
+      const supabaseKeys = new Set(absData.map(a => stationId + '-absences-' + a.semaine));
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith(stationId + '-absences-') && !supabaseKeys.has(k)) localStorage.removeItem(k);
+      }
+      absData.forEach(a => {
+        const key = stationId + '-absences-' + a.semaine;
+        localStorage.setItem(key, JSON.stringify(a.data));
+      });
+    }
+
     // Dégâts
     const { data: degData } = await sb().from('degats').select('*').eq('station_id', stationId);
     if (degData) {
