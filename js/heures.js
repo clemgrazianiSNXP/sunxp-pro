@@ -374,7 +374,7 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
     <td>${isSpecial ? '' : `<input type="checkbox" data-f="essence" ${row.essence ? 'checked' : ''} ${dis}>`}</td>
     <td>${isSpecial ? '' : `<input type="checkbox" data-f="adblue" ${row.adblue ? 'checked' : ''} ${dis}>`}</td>
     <td>${isSpecial ? '' : `<input type="checkbox" data-f="ticket" ${row.ticket ? 'checked' : ''} ${dis}>`}</td>
-    <td>${isSpecial ? '' : `<input class="h-inp h-inp-sm" data-f="camion" value="${row.camion}" style="width:80px;" ${dis}>`}</td>
+    <td>${isSpecial ? '' : '<span class="h-camion-cell"></span>'}</td>
   `;
 
   // Calcul temps de travail en temps réel
@@ -513,6 +513,51 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
     });
   }
   bindStars();
+
+  // Camion autocomplete
+  const camionCell = tr.querySelector('.h-camion-cell');
+  if (camionCell && !isSpecial) {
+    const camionInp = document.createElement('input');
+    camionInp.className = 'h-inp h-inp-sm';
+    camionInp.value = row.camion || '';
+    camionInp.style.cssText = 'width:70px;';
+    camionInp.disabled = isAbsent || isLocked;
+    camionInp.dataset.f = 'camion';
+    camionCell.appendChild(camionInp);
+    const camionDrop = document.createElement('div');
+    camionDrop.style.cssText = 'position:fixed;z-index:9999;background:var(--bg-sidebar);border:1px solid var(--accent);border-radius:6px;max-height:150px;overflow-y:auto;display:none;box-shadow:0 4px 16px rgba(0,0,0,0.4);';
+    document.body.appendChild(camionDrop);
+    function getCamions() { try { return JSON.parse(localStorage.getItem((window.getActiveStationId ? window.getActiveStationId() : 'default') + '-camions')) || []; } catch(_) { return []; } }
+    function showCamionDrop(q) {
+      const plaques = getCamions().map(c => c.plaque).filter(p => p && p.toLowerCase().includes(q.toLowerCase()));
+      camionDrop.innerHTML = '';
+      if (!plaques.length) { camionDrop.style.display = 'none'; return; }
+      plaques.slice(0, 6).forEach(p => {
+        const item = document.createElement('div');
+        item.textContent = p;
+        item.style.cssText = 'padding:5px 10px;cursor:pointer;font-size:11px;color:var(--text-primary);';
+        item.onmouseenter = () => item.style.background = 'var(--bg-tab-hover)';
+        item.onmouseleave = () => item.style.background = '';
+        item.onmousedown = e => { e.preventDefault(); camionInp.value = p; row.camion = p; saveDay(storageKey, allRows, stationId); camionDrop.style.display = 'none'; };
+        camionDrop.appendChild(item);
+      });
+      const rect = camionInp.getBoundingClientRect();
+      camionDrop.style.top = (rect.bottom + 2) + 'px';
+      camionDrop.style.left = rect.left + 'px';
+      camionDrop.style.minWidth = '100px';
+      camionDrop.style.display = 'block';
+    }
+    camionInp.addEventListener('input', () => showCamionDrop(camionInp.value));
+    camionInp.addEventListener('focus', () => showCamionDrop(camionInp.value));
+    camionInp.addEventListener('blur', () => setTimeout(() => { camionDrop.style.display = 'none'; }, 150));
+    camionInp.addEventListener('change', () => { row.camion = camionInp.value; saveDay(storageKey, allRows, stationId); });
+    camionInp.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); const first = camionDrop.querySelector('div'); if (first && camionDrop.style.display !== 'none') camionInp.value = first.textContent; row.camion = camionInp.value; saveDay(storageKey, allRows, stationId); camionDrop.style.display = 'none'; }
+      if (e.key === 'Escape') camionDrop.style.display = 'none';
+    });
+    const camionObs = new MutationObserver(() => { if (!document.body.contains(camionInp)) { camionDrop.remove(); camionObs.disconnect(); } });
+    camionObs.observe(document.body, { childList: true, subtree: true });
+  }
 
   // Affichage nom dans la cellule
   const nomDisplay = tr.querySelector('.h-nom-display');
