@@ -961,6 +961,17 @@ body.light-mode .stats-impact-panel {
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* ── Tableaux stats (rep-table) — centrage ── */
+.rep-table th,
+.rep-table td {
+  text-align: center;
+  padding: 6px 8px;
+}
+.rep-table th:first-child,
+.rep-table td:first-child {
+  text-align: left;
+}
+
 /* ── Lignes tableau en cascade (stagger) — uniquement au premier affichage ── */
 .h-table.h-table-animate tbody tr {
   animation: rowFadeIn 0.25s ease both;
