@@ -75,7 +75,7 @@ function getReportPrecedent(stationId, year, month) {
     const row = prevData[key] || {};
     const hasPrevData = Object.keys(row).some(k => k !== 'jours' && row[k]);
     if (!hasPrevData) {
-      reports[key] = (c.soldeInitialPrime != null) ? c.soldeInitialPrime : 0;
+      reports[key] = 0;
     } else {
       // Recalculer les champs auto pour le mois précédent
       const nom = ((c.prenom || '') + ' ' + (c.nom || '')).trim();

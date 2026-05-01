@@ -38,10 +38,6 @@ function showRepertoireForm(container, chauffeur, onSave, onCancel) {
           <label>Matricule TSM</label>
           <input id="rf-matricule" class="rep-input" value="${esc(chauffeur?.matricule_tsm || '')}" placeholder="Matricule TSM">
         </div>
-        <div class="rep-field">
-          <label>Solde prime initial (€) <small>(laisser vide si nouveau chauffeur)</small></label>
-          <input id="rf-solde-prime" class="rep-input" type="number" value="${chauffeur?.soldeInitialPrime != null ? chauffeur.soldeInitialPrime : ''}" placeholder="0">
-        </div>
 
         <div class="rep-form-actions">
           <button class="rep-btn rep-btn-primary" id="rf-save">Enregistrer</button>
@@ -58,8 +54,6 @@ function showRepertoireForm(container, chauffeur, onSave, onCancel) {
     const tel     = container.querySelector('#rf-tel').value.trim();
     const amazon  = container.querySelector('#rf-amazon').value.trim();
     const matricule = container.querySelector('#rf-matricule').value.trim();
-    const soldeRaw = container.querySelector('#rf-solde-prime').value.trim();
-    const soldePrime = soldeRaw !== '' ? parseFloat(soldeRaw) : null;
     let valid = true;
 
     const setErr = (id, msg) => {
@@ -79,7 +73,7 @@ function showRepertoireForm(container, chauffeur, onSave, onCancel) {
 
     onSave({
       id: chauffeur?.id || ('c_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7)),
-      prenom, nom, telephone: tel, id_amazon: amazon.toUpperCase(), matricule_tsm: matricule, soldeInitialPrime: soldePrime
+      prenom, nom, telephone: tel, id_amazon: amazon.toUpperCase(), matricule_tsm: matricule
     });
   });
 }
