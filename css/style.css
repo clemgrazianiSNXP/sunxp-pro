@@ -321,6 +321,9 @@ body { padding-top: 36px; }
   flex-shrink: 0;
   width: 48px;
   padding-top: 40px;
+  overflow: visible;
+  position: relative;
+  z-index: 3;
 }
 .menu-panel-tab {
   padding: 14px 0;
@@ -330,32 +333,38 @@ body { padding-top: 36px; }
   font-size: 16px;
   font-family: var(--font-family);
   cursor: pointer;
-  transition: color 0.25s, background 0.25s, width 0.25s, padding 0.25s;
+  transition: color 0.25s, background 0.25s;
   border-left: 2px solid transparent;
-  text-align: left;
+  text-align: center;
   position: relative;
   width: 48px;
-  overflow: hidden;
   white-space: nowrap;
   z-index: 2;
-}
-.menu-panel-tab::after {
-  content: attr(title);
-  font-size: 12px;
-  font-weight: 600;
-  margin-left: 6px;
-  opacity: 0;
-  transition: opacity 0.2s;
-  vertical-align: middle;
 }
 .menu-panel-tab:hover {
   color: var(--text-primary);
   background: var(--bg-tab-hover);
-  width: 180px;
-  padding-left: 12px;
 }
-.menu-panel-tab:hover::after {
-  opacity: 1;
+.menu-panel-tab:hover::before {
+  content: attr(title);
+  position: absolute;
+  right: 100%;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 14px 0 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: var(--bg-tab-hover);
+  white-space: nowrap;
+  border-radius: 8px 0 0 8px;
+  animation: tabSlideLeft 0.2s ease;
+}
+@keyframes tabSlideLeft {
+  from { opacity: 0; transform: translateX(8px); }
+  to   { opacity: 1; transform: translateX(0); }
 }
 .menu-panel-tab.active {
   color: var(--accent);
