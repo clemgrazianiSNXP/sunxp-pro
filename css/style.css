@@ -330,7 +330,7 @@ body { padding-top: 36px; }
   font-size: 16px;
   font-family: var(--font-family);
   cursor: pointer;
-  transition: color var(--transition), background var(--transition);
+  transition: color 0.2s, background 0.2s, transform 0.2s, font-size 0.2s;
   border-left: 2px solid transparent;
   text-align: center;
   position: relative;
@@ -338,6 +338,31 @@ body { padding-top: 36px; }
 .menu-panel-tab:hover {
   color: var(--text-primary);
   background: var(--bg-tab-hover);
+  transform: scale(1.15);
+  font-size: 20px;
+}
+.menu-panel-tab:hover::after {
+  content: attr(title);
+  position: absolute;
+  left: calc(100% + 8px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--bg-sidebar);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+  animation: tabTooltipIn 0.15s ease;
+  pointer-events: none;
+}
+@keyframes tabTooltipIn {
+  from { opacity: 0; transform: translateY(-50%) translateX(-6px); }
+  to   { opacity: 1; transform: translateY(-50%) translateX(0); }
 }
 .menu-panel-tab.active {
   color: var(--accent);
