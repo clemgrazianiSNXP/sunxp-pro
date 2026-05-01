@@ -31,13 +31,6 @@ function renderBadgesManager() {
   // Trier par nombre de badges débloqués (desc)
   results.sort((a, b) => b.unlocked.length - a.unlocked.length);
 
-  // Résumé global
-  const totalBadges = results.reduce((s, r) => s + r.unlocked.length, 0);
-  const summary = document.createElement('div');
-  summary.style.cssText = 'background:var(--accent-dim);border:1px solid var(--accent);border-radius:8px;padding:12px;text-align:center;';
-  summary.innerHTML = `<div style="font-size:12px;color:var(--text-muted);">Total badges débloqués dans l'équipe</div><div style="font-size:24px;font-weight:700;color:var(--accent);">${totalBadges}</div>`;
-  wrap.appendChild(summary);
-
   // Liste des chauffeurs
   results.forEach(r => {
     const card = document.createElement('div');
@@ -55,9 +48,12 @@ function renderBadgesManager() {
       badgesWrap.style.cssText = 'display:flex;flex-wrap:wrap;gap:4px;';
       r.unlocked.forEach(b => {
         const chip = document.createElement('span');
-        chip.style.cssText = 'font-size:11px;background:var(--bg-primary);border:1px solid var(--border);border-radius:12px;padding:2px 8px;white-space:nowrap;';
+        chip.style.cssText = 'font-size:11px;background:var(--bg-primary);border:1px solid var(--border);border-radius:12px;padding:2px 8px;white-space:nowrap;cursor:pointer;transition:border-color 0.15s;';
         chip.textContent = b.icon + ' ' + b.name;
         chip.title = b.desc;
+        chip.addEventListener('click', () => showBadgeDetailPopup(b));
+        chip.onmouseenter = () => { chip.style.borderColor = 'var(--accent)'; };
+        chip.onmouseleave = () => { chip.style.borderColor = 'var(--border)'; };
         badgesWrap.appendChild(chip);
       });
       card.appendChild(badgesWrap);
@@ -72,6 +68,29 @@ function renderBadgesManager() {
   });
 
   return wrap;
+}
+
+function showBadgeDetailPopup(badge) {
+  const existing = document.getElementById('badge-detail-popup');
+  if (existing) existing.remove();
+  const overlay = document.createElement('div');
+  overlay.id = 'badge-detail-popup';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;padding:16px;';
+  overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
+  const box = document.createElement('div');
+  box.style.cssText = 'background:var(--bg-sidebar);border:2px solid var(--accent);border-radius:14px;padding:24px;text-align:center;max-width:300px;width:100%;animation:badgePop 0.3s ease;';
+  box.innerHTML = `
+    <div style="font-size:40px;margin-bottom:8px;">${badge.icon}</div>
+    <div style="font-size:16px;font-weight:700;color:var(--accent);margin-bottom:4px;">${badge.name}</div>
+    <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:12px;">${badge.section}</div>
+    <div style="background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:14px;">
+      <div style="font-size:12px;font-weight:600;color:#4ade80;margin-bottom:4px;">✅ Objectif atteint</div>
+      <div style="font-size:13px;color:var(--text-primary);">${badge.desc}</div>
+    </div>
+    <button style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px 24px;font-size:13px;cursor:pointer;">OK</button>`;
+  box.querySelector('button').onclick = () => overlay.remove();
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
 }
 
 function escBM(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
