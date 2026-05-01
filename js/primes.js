@@ -105,7 +105,7 @@ function buildPrimesToolbar() {
         return;
       }
       const c = withTel[idx];
-      const key = c.id || c.id_amazon;
+      const key = c.id_amazon || c.id;
       const row = data[key] || {};
       row.jours = countJoursTravailles(sid, c, primesYear, primesMonth);
       const report = reports[key] || 0;
@@ -173,7 +173,7 @@ function buildPrimesTable(chauffeurs, data, reports, sid) {
 
   const tbody = document.createElement('tbody');
   chauffeurs.forEach((c, idx) => {
-    const key = c.id || c.id_amazon;
+    const key = c.id_amazon || c.id;
     const row = data[key] || {};
     const report = reports[key] || 0;
     // Jours travaillés — calculé automatiquement depuis les heures du mois

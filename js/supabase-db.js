@@ -396,18 +396,18 @@ window.preloadStationData = async function (stationId) {
       console.log(`  Stats: ${statsData.length} entrées`);
     }
 
-    // Primes — seulement si pas déjà en localStorage (portail chauffeur)
+    // Primes — ne charger que si pas déjà en localStorage
     const { data: primesData } = await sb().from('primes').select('annee, mois, data').eq('station_id', stationId);
     if (primesData) {
+      let loaded = 0;
       primesData.forEach(p => {
         const key = stationId + '-primes-' + p.annee + '-' + String(p.mois).padStart(2, '0');
-        // Toujours écraser côté chauffeur, jamais côté responsable
-        const isDriver = typeof portalChauffeur !== 'undefined' && portalChauffeur !== null;
-        if (isDriver || !localStorage.getItem(key)) {
+        if (!localStorage.getItem(key) && p.data && Object.keys(p.data).length > 0) {
           localStorage.setItem(key, JSON.stringify(p.data));
+          loaded++;
         }
       });
-      console.log(`  Primes: ${primesData.length} mois`);
+      if (loaded) console.log(`  Primes: ${loaded} mois chargés depuis Supabase`);
     }
 
     // Activité

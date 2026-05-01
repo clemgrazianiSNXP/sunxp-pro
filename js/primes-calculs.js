@@ -53,16 +53,13 @@ function primesStorageKey(stationId, year, month) {
 
 function loadPrimesData(stationId, year, month) {
   try {
-    const key = primesStorageKey(stationId, year, month);
-    const raw = localStorage.getItem(key);
-    console.log('📖 loadPrimesData', key, raw ? raw.slice(0, 100) : 'null');
+    const raw = localStorage.getItem(primesStorageKey(stationId, year, month));
     return raw ? JSON.parse(raw) : {};
   } catch(_) { return {}; }
 }
 
 function savePrimesData(stationId, year, month, data) {
   const key = primesStorageKey(stationId, year, month);
-  console.log('💾 savePrimesData', key, JSON.stringify(data).slice(0, 200));
   try { localStorage.setItem(key, JSON.stringify(data)); } catch(_) {}
   if (typeof dbSave === 'function') dbSave('primes', key, { station_id: stationId, annee: year, mois: month + 1 }, data);
 }
@@ -74,7 +71,7 @@ function getReportPrecedent(stationId, year, month) {
   const chauffeurs = getChauffeursList(stationId);
   const reports = {};
   chauffeurs.forEach(c => {
-    const key = c.id || c.id_amazon;
+    const key = c.id_amazon || c.id;
     const row = prevData[key] || {};
     const hasPrevData = Object.keys(row).some(k => k !== 'jours' && row[k]);
     if (!hasPrevData) {
