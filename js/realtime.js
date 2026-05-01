@@ -115,11 +115,6 @@ function handleDemandeNotification(payload, type) {
       if (nom) showRealtimeToast('📬 Nouvelle demande de ' + nom);
     }
   }
-
-  // Côté chauffeur
-  if (isDriverMode()) {
-    showRealtimeToast('📬 Ta demande sera traitée');
-  }
 }
 
 /**
