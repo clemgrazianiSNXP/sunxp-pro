@@ -35,7 +35,7 @@ function renderDashboard(dash, rows) {
 
       <div class="h-dash-colis-row">
         <div class="h-dash-colis-cell">
-          <span class="h-dash-mini-label">📦 Colis livrés</span>
+          <span class="h-dash-mini-label">📦 Colis expédiés</span>
           <input class="h-dash-input h-dash-colis-input" data-dash="colis" type="number" min="0" value="${esc(d.colis || '')}" placeholder="0">
         </div>
         <div class="h-dash-colis-divider"></div>
@@ -92,7 +92,7 @@ function calcDS(colis, retours) {
   const c = parseFloat(colis);
   const r = parseFloat(retours);
   if (!c || isNaN(c) || c === 0) return '—';
-  const pct = ((c - (r || 0)) / c * 100).toFixed(1);
+  const pct = ((c - (r || 0)) / c * 100).toFixed(2);
   return pct + '%';
 }
 
@@ -126,7 +126,7 @@ function buildWAMessage(rows, dateStr, stationId) {
  */
 function bindDashboard(saveCallback, rows, dateStr, stationId) {
   document.querySelectorAll('.h-dash-input').forEach(input => {
-    input.addEventListener('input', () => {
+    input.addEventListener('change', () => {
       const dsEl = document.getElementById('dash-ds');
       if (dsEl) {
         const colis   = document.querySelector('[data-dash="colis"]')?.value;
@@ -137,7 +137,6 @@ function bindDashboard(saveCallback, rows, dateStr, stationId) {
         const dsStroke = dsPct > 0 ? Math.min(dsPct, 100) * 2.51327 : 0;
         dsEl.textContent = dsVal;
         dsEl.style.color = dsColor;
-        // Update gauge circle
         const gaugeCircle = document.querySelector('.h-dash-gauge circle:nth-child(2)');
         if (gaugeCircle) {
           gaugeCircle.setAttribute('stroke', dsColor);
@@ -146,6 +145,26 @@ function bindDashboard(saveCallback, rows, dateStr, stationId) {
       }
       saveCallback();
     });
+    // Mise à jour DS en temps réel pour colis/retours uniquement
+    if (input.dataset.dash === 'colis' || input.dataset.dash === 'retours') {
+      input.addEventListener('input', () => {
+        const dsEl = document.getElementById('dash-ds');
+        if (!dsEl) return;
+        const colis   = document.querySelector('[data-dash="colis"]')?.value;
+        const retours = document.querySelector('[data-dash="retours"]')?.value;
+        const dsVal = calcDS(colis, retours);
+        const dsPct = parseFloat(dsVal) || 0;
+        const dsColor = dsPct >= 98.5 ? '#4ade80' : dsPct >= 97 ? '#f59e0b' : dsPct > 0 ? '#f87171' : 'var(--text-muted)';
+        const dsStroke = dsPct > 0 ? Math.min(dsPct, 100) * 2.51327 : 0;
+        dsEl.textContent = dsVal;
+        dsEl.style.color = dsColor;
+        const gaugeCircle = document.querySelector('.h-dash-gauge circle:nth-child(2)');
+        if (gaugeCircle) {
+          gaugeCircle.setAttribute('stroke', dsColor);
+          gaugeCircle.setAttribute('stroke-dasharray', dsStroke + ' 251.327');
+        }
+      });
+    }
   });
 
   const waBtn = document.getElementById('btn-copy-wa');
