@@ -52,7 +52,7 @@
   color: var(--text-muted);
   font-weight: 600;
   padding: 8px 12px;
-  text-align: left;
+  text-align: center;
   border-bottom: 1px solid var(--border);
   font-size: 11px;
   text-transform: uppercase;
@@ -64,6 +64,11 @@
   padding: 10px 12px;
   border-bottom: 1px solid rgba(255,255,255,0.04);
   vertical-align: middle;
+  text-align: center;
+}
+.rep-table th:first-child,
+.rep-table td:first-child {
+  text-align: left;
 }
 .rep-table tr:hover td { background: var(--bg-tab-hover); }
 .rep-actions { display: flex; gap: 6px; align-items: center; }
