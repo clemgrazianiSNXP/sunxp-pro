@@ -689,6 +689,21 @@ body.theme-green {
 /* ============================================================
    Tableau Heures — Colonnes et couleurs travail
    ============================================================ */
+/* ── Tableau Primes — colonnes optimisées ── */
+.h-table-primes th:first-child,
+.h-table-primes td:first-child {
+  width: 120px;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.h-table-primes th,
+.h-table-primes td {
+  padding: 3px 2px;
+  overflow: visible;
+}
+
 /* ── Boutons vue Jour/Semaine/Mois ── */
 .h-view-btn {
   padding: 6px 14px;

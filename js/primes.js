@@ -161,8 +161,8 @@ const COLS = [
 
 function buildPrimesTable(chauffeurs, data, reports, sid) {
   const table = document.createElement('table');
-  table.className = 'h-table';
-  table.style.cssText = 'table-layout:auto;font-size:11px;';
+  table.className = 'h-table h-table-primes';
+  table.style.cssText = 'table-layout:fixed;font-size:11px;width:100%;';
 
   const thead = document.createElement('thead');
   let hRow = '<tr><th>Chauffeur</th>';
