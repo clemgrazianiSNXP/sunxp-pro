@@ -230,7 +230,7 @@ function renderCongesManager() {
 /* ── Chauffeur : formulaire acompte ───────────────────────── */
 function renderAcompteChauffeur() {
   const wrap = document.createElement('div');
-  wrap.style.cssText = 'display:flex;flex-direction:column;gap:10px;';
+  wrap.style.cssText = 'display:flex;flex-direction:column;gap:10px;padding:16px;';
   if (!portalChauffeur || !portalStationId) { wrap.innerHTML = '<p style="color:var(--text-muted);">Non connecté.</p>'; return wrap; }
 
   const sid = portalStationId;
@@ -289,7 +289,7 @@ function renderAcompteChauffeur() {
 /* ── Chauffeur : formulaire congés payés ──────────────────── */
 function renderCongesChauffeur() {
   const wrap = document.createElement('div');
-  wrap.style.cssText = 'display:flex;flex-direction:column;gap:10px;';
+  wrap.style.cssText = 'display:flex;flex-direction:column;gap:10px;padding:16px;';
   if (!portalChauffeur || !portalStationId) { wrap.innerHTML = '<p style="color:var(--text-muted);">Non connecté.</p>'; return wrap; }
 
   const sid = portalStationId;
