@@ -164,6 +164,27 @@ function buildPrimesTable(chauffeurs, data, reports, sid) {
   table.className = 'h-table h-table-primes';
   table.style.cssText = 'table-layout:fixed;font-size:11px;width:100%;';
 
+  // Colgroup pour contrôler les largeurs
+  // Chauffeur(110) + 12 impacts + Total(60) + Jours(40) + WA(36)
+  const colgroup = document.createElement('colgroup');
+  colgroup.innerHTML = '<col style="width:110px">' // Chauffeur
+    + '<col style="width:60px">'  // Casse Camion
+    + '<col style="width:36px">'  // Fico (auto)
+    + '<col style="width:50px">'  // Mentor/Vidéo
+    + '<col style="width:50px">'  // ECR
+    + '<col style="width:50px">'  // Concessions
+    + '<col style="width:40px">'  // Clé
+    + '<col style="width:50px">'  // Trousseau
+    + '<col style="width:40px">'  // Vigik
+    + '<col style="width:50px">'  // PDA Cassé
+    + '<col style="width:36px">'  // Absences (auto)
+    + '<col style="width:40px">'  // Prod
+    + '<col style="width:70px">'  // Autre
+    + '<col style="width:60px">'  // Total Prime
+    + '<col style="width:36px">'  // Jours
+    + '<col style="width:36px">'; // WA
+  table.appendChild(colgroup);
+
   const thead = document.createElement('thead');
   let hRow = '<tr><th>Chauffeur</th>';
   COLS.forEach(c => { hRow += `<th style="white-space:pre-line;font-size:10px;">${c.label}\n<span style="color:#9090b0;font-size:9px;">${c.tarif}</span></th>`; });
