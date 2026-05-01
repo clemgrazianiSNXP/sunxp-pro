@@ -308,7 +308,7 @@ body { padding-top: 36px; }
   box-shadow: -12px 0 40px rgba(0, 0, 0, 0.35);
   display: flex;
   flex-direction: row;
-  overflow: visible;
+  overflow: hidden;
 }
 .menu-panel[hidden] { display: none; }
 
@@ -345,25 +345,23 @@ body { padding-top: 36px; }
   color: var(--text-primary);
   background: var(--bg-tab-hover);
 }
-.menu-panel-tab:hover::before {
-  content: attr(title);
-  position: absolute;
-  right: 100%;
-  top: 0;
-  bottom: 0;
-  display: flex;
-  align-items: center;
-  padding: 0 14px 0 12px;
+.menu-tab-tooltip {
+  position: fixed;
+  padding: 6px 14px;
   font-size: 12px;
   font-weight: 600;
   color: var(--text-primary);
-  background: var(--bg-tab-hover);
+  background: var(--bg-sidebar);
+  border: 1px solid var(--border);
   white-space: nowrap;
-  border-radius: 8px 0 0 8px;
-  animation: tabSlideLeft 0.2s ease;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  z-index: 10001;
+  pointer-events: none;
+  animation: tabTooltipFade 0.15s ease;
 }
-@keyframes tabSlideLeft {
-  from { opacity: 0; transform: translateX(8px); }
+@keyframes tabTooltipFade {
+  from { opacity: 0; transform: translateX(4px); }
   to   { opacity: 1; transform: translateX(0); }
 }
 .menu-panel-tab.active {

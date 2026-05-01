@@ -55,6 +55,7 @@ function toggleMenuPanel() {
         `;
       }
     }
+    bindTabTooltips();
     setMenuTab('parametres');
   }
 }
@@ -131,4 +132,29 @@ function renderDriverOwnStats() {
   }
 
   return wrap;
+}
+
+/* ── Tooltip au survol des onglets hamburger ──────────────── */
+function bindTabTooltips() {
+  let tooltip = null;
+  document.querySelectorAll('.menu-panel-tab').forEach(tab => {
+    tab.addEventListener('mouseenter', e => {
+      if (tooltip) tooltip.remove();
+      const title = tab.getAttribute('title');
+      if (!title) return;
+      tooltip = document.createElement('div');
+      tooltip.className = 'menu-tab-tooltip';
+      tooltip.textContent = title;
+      document.body.appendChild(tooltip);
+      const rect = tab.getBoundingClientRect();
+      tooltip.style.top = (rect.top + rect.height / 2 - tooltip.offsetHeight / 2) + 'px';
+      tooltip.style.left = (rect.left - tooltip.offsetWidth - 8) + 'px';
+    });
+    tab.addEventListener('mouseleave', () => {
+      if (tooltip) { tooltip.remove(); tooltip = null; }
+    });
+    tab.addEventListener('click', () => {
+      if (tooltip) { tooltip.remove(); tooltip = null; }
+    });
+  });
 }
