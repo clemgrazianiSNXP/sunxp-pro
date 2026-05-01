@@ -541,7 +541,7 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
             nextNomInp._autoFocused = true;
             nextNomInp.focus();
             // Réactiver le blur après un court délai
-            setTimeout(() => { if (nextNomInp) nextNomInp._autoFocused = false; }, 400);
+            setTimeout(() => { if (nextNomInp) nextNomInp._autoFocused = false; }, 10000);
           }
         }, 100);
       }
