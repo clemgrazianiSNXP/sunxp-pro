@@ -233,7 +233,7 @@ function renderAcompteChauffeur() {
   const nom = ((portalChauffeur.prenom || '') + ' ' + (portalChauffeur.nom || '')).trim();
 
   wrap.innerHTML = '<h3 style="font-size:14px;color:var(--accent);margin:0;">💶 Demander un acompte</h3>';
-  wrap.innerHTML += '<p style="font-size:13px;color:var(--text-muted);margin:6px 0 12px;">Demande un acompte sur ton salaire. Le montant sera validé par ton responsable.</p>';
+  wrap.innerHTML += '<p style="font-size:13px;color:var(--text-muted);margin:6px 0 12px;">Tu peux faire 2 demandes par mois :<br>• Du 10 au 14 → virement vers le 15<br>• Du 15 au 22 → virement vers le 22</p>';
 
   const form = document.createElement('div');
   form.style.cssText = 'display:flex;flex-direction:column;gap:8px;background:var(--bg-sidebar);padding:12px;border-radius:8px;border:1px solid var(--border);';
