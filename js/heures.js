@@ -524,16 +524,6 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
       // Re-binder les étoiles après sélection du nom
       starCell.innerHTML = buildStarRating(row.trajet, '');
       bindStars();
-      // Focus le champ nom de la ligne suivante
-      const nextTr = tr.nextElementSibling;
-      if (nextTr) {
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            const nextNomInp = nextTr.querySelector('.h-inp-nom');
-            if (nextNomInp) nextNomInp.focus();
-          });
-        });
-      }
     });
   }
   refreshNomCell();
