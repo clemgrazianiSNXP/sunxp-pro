@@ -467,7 +467,17 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
       }
     });
     inp.addEventListener('keydown', e => {
-      if (e.key === 'Enter') { e.preventDefault(); handler(); inp.blur(); }
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handler();
+        // Passer au champ suivant dans la même ligne ou la ligne suivante
+        const allInputs = Array.from(tr.closest('tbody').querySelectorAll('.h-inp:not([disabled]):not(.h-inp-nom), .h-inp-sm:not([disabled])'));
+        const idx = allInputs.indexOf(inp);
+        if (idx >= 0 && idx < allInputs.length - 1) {
+          allInputs[idx + 1].focus();
+          allInputs[idx + 1].select();
+        }
+      }
     });
   });
   tr.querySelectorAll('input[type="checkbox"]').forEach(cb => {
@@ -646,14 +656,22 @@ function buildNomCell(container, row, allRows, stationId, onSelect) {
     inp.addEventListener('focus',  () => showDropdown(inp.value));
     inp.addEventListener('blur',   () => { if (!nomSelected) setTimeout(hideDropdown, 160); });
     inp.addEventListener('keydown', e => {
-      if (e.key === 'Enter' && inp.value.trim()) {
+      if (e.key === 'Enter') {
         e.preventDefault();
-        nomSelected = true;
-        row.nom = inp.value.trim();
-        if (!row.pause) row.pause = 45;
-        dropdown.style.display = 'none';
-        dropdown.remove();
-        onSelect();
+        // Sélectionner le premier élément de la dropdown s'il y en a
+        const firstItem = dropdown.querySelector('div');
+        if (firstItem && dropdown.style.display !== 'none') {
+          firstItem.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+          return;
+        }
+        if (inp.value.trim()) {
+          nomSelected = true;
+          row.nom = inp.value.trim();
+          if (!row.pause) row.pause = 45;
+          dropdown.style.display = 'none';
+          dropdown.remove();
+          onSelect();
+        }
       }
       if (e.key === 'Escape') hideDropdown();
     });
