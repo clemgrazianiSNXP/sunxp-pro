@@ -521,31 +521,20 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
       saveDay(storageKey, allRows, stationId);
       updateTravail();
       refreshNomCell();
-      // Re-binder les étoiles après sélection du nom
       starCell.innerHTML = buildStarRating(row.trajet, '');
       bindStars();
-      // Focus la ligne suivante après stabilisation du DOM
-      const rowIdx = allRows.indexOf(row);
-      if (rowIdx >= 0) {
-        window._focusNextNomRow = rowIdx + 1;
-        window._skipNextNomBlur = true;
-        setTimeout(() => {
-          if (window._focusNextNomRow != null) {
-            const tbody = tr.closest('tbody');
-            if (tbody) {
-              const targetTr = tbody.children[window._focusNextNomRow];
-              if (targetTr) {
-                const nextInp = targetTr.querySelector('.h-inp-nom');
-                if (nextInp) {
-                  window._skipNextNomBlur = true;
-                  nextInp.focus();
-                }
-              }
-            }
-            window._focusNextNomRow = null;
-          }
-        }, 250);
-      }
+      // Focus la ligne suivante après que tout soit stable
+      setTimeout(() => {
+        const tbody = tr.closest('tbody');
+        if (!tbody) return;
+        const nextTr = tr.nextElementSibling;
+        if (!nextTr) return;
+        const nextInp = nextTr.querySelector('.h-inp-nom');
+        if (nextInp && !nextInp.disabled) {
+          nextInp.dataset.skipBlur = '1';
+          nextInp.focus();
+        }
+      }, 300);
     });
   }
   refreshNomCell();
@@ -668,7 +657,7 @@ function buildNomCell(container, row, allRows, stationId, onSelect) {
 
     inp.addEventListener('input',  () => showDropdown(inp.value));
     inp.addEventListener('focus',  () => showDropdown(inp.value));
-    inp.addEventListener('blur',   () => { if (!nomSelected && !window._skipNextNomBlur) setTimeout(hideDropdown, 160); window._skipNextNomBlur = false; });
+    inp.addEventListener('blur',   () => { if (!nomSelected && !inp.dataset.skipBlur) setTimeout(hideDropdown, 160); delete inp.dataset.skipBlur; });
     inp.addEventListener('keydown', e => {
       if (e.key === 'Enter') {
         e.preventDefault();
