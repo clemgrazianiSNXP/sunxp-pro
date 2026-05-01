@@ -236,6 +236,8 @@ function buildPrimesTable(chauffeurs, data, reports, sid) {
 
     tbody.appendChild(tr);
   });
+  // Sauvegarder les champs auto-calculés (fico, absences, jours) pour le report du mois suivant
+  savePrimesData(sid, primesYear, primesMonth, data);
   table.appendChild(tbody);
   return table;
 }
