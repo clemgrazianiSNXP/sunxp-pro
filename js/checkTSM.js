@@ -52,7 +52,7 @@ function buildCheckTSMContent(stationId) {
   wrap.style.cssText = 'display:flex;flex-direction:column;gap:12px;';
 
   // Charger les données du jour
-  const dk = checkTSMDate.toISOString().slice(0, 10);
+  const dk = dateKey(checkTSMDate);
   const key = stationId + '-heures-' + dk;
   let dayData = null;
   try {
@@ -85,7 +85,7 @@ function buildCheckTSMContent(stationId) {
   table.className = 'h-table';
   table.style.cssText = 'font-size:11px;width:100%;';
 
-  const cols = ['Chauffeur','Vague','Pause','Fin Pause','Retour','Travail','Backups','Astreinte','Chime','Safety','Validé'];
+  const cols = ['Chauffeur','Vague','Début Pause','Pause','Fin Pause','Retour','Travail','Backups','Astreinte','Chime','Safety','Validé'];
   table.innerHTML = '<thead><tr>' + cols.map(c => `<th style="padding:5px 4px;white-space:nowrap;font-size:10px;">${c}</th>`).join('') + '</tr></thead>';
 
   const tbody = document.createElement('tbody');
@@ -95,40 +95,38 @@ function buildCheckTSMContent(stationId) {
 
     // Calcul temps de travail
     let travail = '';
-    if (isSpecial) {
-      const def = r.statut === 'Chime' ? '5:00' : '2:00';
-      travail = r.specialTravail || def;
-    } else if (!isAbsent && r.heureVague && r.retourDepot) {
+    if (!isSpecial && !isAbsent && r.heureVague && r.retourDepot) {
       const min = typeof calcTravail === 'function' ? calcTravail(r.heureVague, r.retourDepot, r.pause || 45, r.backups) : null;
       travail = min != null && typeof minToTime === 'function' ? minToTime(min) : '';
     }
 
     // Fin de pause
     let finPause = '';
-    if (r.heurePause && r.pause && typeof timeToMin === 'function' && typeof minToTime === 'function') {
+    if (!isSpecial && r.heurePause && r.pause && typeof timeToMin === 'function' && typeof minToTime === 'function') {
       const hp = timeToMin(r.heurePause);
       if (hp != null) finPause = minToTime(hp + parseInt(r.pause || 45));
     }
 
     // Backups
-    const bu = r.backups || '';
-    // Astreinte / Chime / Safety
+    const bu = (!isSpecial && r.backups) ? r.backups : '';
+    // Astreinte / Chime / Safety — seulement la colonne concernée
     const astreinte = r.statut === 'Astreinte' ? (r.specialTravail || '2:00') : '';
     const chime = r.statut === 'Chime' ? (r.specialTravail || '5:00') : '';
     const safety = r.statut === 'Safety' ? (r.specialTravail || '2:00') : '';
 
     const checked = validData[r.nom] ? 'checked' : '';
-    const rowColor = isAbsent ? 'opacity:0.4;' : isSpecial ? 'background:#2a2a00;' : '';
+    const rowColor = isAbsent ? 'opacity:0.4;' : r.statut === 'Astreinte' ? 'background:#2a2a00;' : r.statut === 'Chime' ? 'background:#0a1a3a;' : r.statut === 'Safety' ? 'background:#0a2a3a;' : '';
 
     const tr = document.createElement('tr');
     tr.style.cssText = rowColor;
     tr.innerHTML = `
       <td style="padding:3px 4px;text-align:center;white-space:nowrap;">${r.nom}</td>
-      <td style="padding:3px 4px;text-align:center;">${isAbsent ? '—' : (r.heureVague || '')}</td>
-      <td style="padding:3px 4px;text-align:center;">${isAbsent ? '—' : (r.pause || '')}</td>
-      <td style="padding:3px 4px;text-align:center;">${isAbsent ? '—' : finPause}</td>
-      <td style="padding:3px 4px;text-align:center;">${isAbsent ? '—' : (r.retourDepot || '')}</td>
-      <td style="padding:3px 4px;text-align:center;font-weight:600;">${isAbsent ? 'ABS' : travail}</td>
+      <td style="padding:3px 4px;text-align:center;">${(isAbsent || isSpecial) ? '—' : (r.heureVague || '')}</td>
+      <td style="padding:3px 4px;text-align:center;">${(isAbsent || isSpecial) ? '—' : (r.heurePause || '')}</td>
+      <td style="padding:3px 4px;text-align:center;">${(isAbsent || isSpecial) ? '—' : (r.pause || '')}</td>
+      <td style="padding:3px 4px;text-align:center;">${(isAbsent || isSpecial) ? '—' : finPause}</td>
+      <td style="padding:3px 4px;text-align:center;">${(isAbsent || isSpecial) ? '—' : (r.retourDepot || '')}</td>
+      <td style="padding:3px 4px;text-align:center;font-weight:600;">${isAbsent ? 'ABS' : isSpecial ? '—' : travail}</td>
       <td style="padding:3px 4px;text-align:center;color:#f97316;">${bu}</td>
       <td style="padding:3px 4px;text-align:center;color:#fbbf24;">${astreinte}</td>
       <td style="padding:3px 4px;text-align:center;color:#1e3a8a;">${chime}</td>
