@@ -1013,7 +1013,7 @@ body.light-mode .stats-impact-panel {
 /* ── Ripple effect sur les boutons ── */
 .h-btn, .rep-btn, .rep-btn-primary, .h-view-btn, .menu-param-btn {
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 .ripple-circle {
   position: absolute;

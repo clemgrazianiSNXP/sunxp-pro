@@ -76,14 +76,16 @@ function renderAcomptesManager() {
     return wrap;
   }
 
-  if (!pending.length) {
+  if (pending.length) {
+    wrap.innerHTML += `<div style="font-size:13px;font-weight:700;color:#fbbf24;margin-top:8px;">⏳ En attente (${pending.length})</div>`;
+  } else {
     wrap.innerHTML += '<p style="color:var(--text-muted);font-size:12px;">Aucune demande en attente.</p>';
   }
 
   // Pending
   pending.forEach(d => {
     const card = document.createElement('div');
-    card.style.cssText = 'background:var(--bg-tab-active);border:1px solid var(--border);border-left:3px solid #fbbf24;border-radius:6px;padding:10px;font-size:12px;';
+    card.style.cssText = 'background:var(--bg-tab-active);border:2px solid #fbbf24;border-radius:8px;padding:12px;font-size:12px;margin-top:6px;';
     card.innerHTML = `
       <div style="font-weight:600;">${d.chauffeurNom}</div>
       <div>Montant : <b>${d.montant}€</b></div>
@@ -160,13 +162,15 @@ function renderCongesManager() {
     return wrap;
   }
 
-  if (!pending.length) {
+  if (pending.length) {
+    wrap.innerHTML += `<div style="font-size:13px;font-weight:700;color:#fbbf24;margin-top:8px;">⏳ En attente (${pending.length})</div>`;
+  } else {
     wrap.innerHTML += '<p style="color:var(--text-muted);font-size:12px;">Aucune demande en attente.</p>';
   }
 
   pending.forEach(d => {
     const card = document.createElement('div');
-    card.style.cssText = 'background:var(--bg-tab-active);border:1px solid var(--border);border-left:3px solid #fbbf24;border-radius:6px;padding:10px;font-size:12px;';
+    card.style.cssText = 'background:var(--bg-tab-active);border:2px solid #fbbf24;border-radius:8px;padding:12px;font-size:12px;margin-top:6px;';
     card.innerHTML = `
       <div style="font-weight:600;">${d.chauffeurNom}</div>
       <div>📅 Du ${new Date(d.dateDebut).toLocaleDateString('fr-FR')} au ${new Date(d.dateFin).toLocaleDateString('fr-FR')}</div>

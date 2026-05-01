@@ -1,6 +1,18 @@
 /* js/repos-demandes.js — Demandes de repos chauffeurs (SunXP Pro) */
 console.log('repos-demandes.js chargé');
 
+function fmtReposDates(d) {
+  const d1 = d.date1 ? new Date(d.date1).toLocaleDateString('fr-FR', {weekday:'short',day:'numeric',month:'short'}) : '?';
+  if (!d.date2) return '📅 ' + d1;
+  const d2 = new Date(d.date2).toLocaleDateString('fr-FR', {weekday:'short',day:'numeric',month:'short'});
+  return '📅 ' + d1 + ' & ' + d2;
+}
+function fmtReposDatesShort(d) {
+  const d1 = d.date1 ? new Date(d.date1).toLocaleDateString('fr-FR') : '?';
+  if (!d.date2) return d1;
+  return d1 + ' & ' + new Date(d.date2).toLocaleDateString('fr-FR');
+}
+
 /**
  * Stockage : localStorage key = {stationId}-repos-demandes
  * Format : [{ id, chauffeurId, chauffeurNom, date1, date2, dateDemande, statut, reponse }]
@@ -139,7 +151,7 @@ function renderReposChauffeur() {
       const color = d.statut === 'acceptee' ? '#4ade80' : d.statut === 'refusee' ? '#f87171' : '#fbbf24';
       const icon = d.statut === 'acceptee' ? '✅' : d.statut === 'refusee' ? '❌' : '⏳';
       card.style.cssText = `padding:8px 10px;background:var(--bg-sidebar);border:1px solid var(--border);border-left:3px solid ${color};border-radius:6px;margin-bottom:6px;font-size:12px;`;
-      card.innerHTML = `${icon} <b>${new Date(d.date1).toLocaleDateString('fr-FR')} & ${new Date(d.date2).toLocaleDateString('fr-FR')}</b> — <span style="color:${color};">${d.statut.replace('_',' ')}</span>${d.reponse ? '<br><span style="font-size:10px;color:var(--text-muted);">'+d.reponse+'</span>' : ''}`;
+      card.innerHTML = `${icon} <b>${fmtReposDatesShort(d)}</b> — <span style="color:${color};">${d.statut.replace('_',' ')}</span>${d.reponse ? '<br><span style="font-size:10px;color:var(--text-muted);">'+d.reponse+'</span>' : ''}`;
       hist.appendChild(card);
     });
     wrap.appendChild(hist);
@@ -170,7 +182,7 @@ function renderReposResponsable() {
       card.style.cssText = 'padding:10px;background:var(--bg-sidebar);border:1px solid #fbbf24;border-radius:8px;margin-bottom:8px;font-size:12px;';
       card.innerHTML = `
         <div style="font-weight:700;margin-bottom:4px;">${d.chauffeurNom}</div>
-        <div>📅 ${new Date(d.date1).toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'})} & ${new Date(d.date2).toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'})}</div>
+        <div>${fmtReposDates(d)}</div>
         <div style="font-size:10px;color:var(--text-muted);margin:4px 0;">Demandé le ${new Date(d.dateDemande).toLocaleDateString('fr-FR')} à ${new Date(d.dateDemande).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</div>
         <div style="display:flex;gap:6px;margin-top:6px;">
           <button class="rep-btn rep-btn-primary repos-accept" data-id="${d.id}" style="flex:1;font-size:11px;">✅ Accepter</button>
@@ -193,7 +205,7 @@ function renderReposResponsable() {
       const icon = d.statut === 'acceptee' ? '✅' : '❌';
       const div = document.createElement('div');
       div.style.cssText = `display:flex;align-items:center;gap:8px;padding:8px 10px;border-left:3px solid ${color};background:var(--bg-sidebar);border:1px solid var(--border);border-radius:6px;margin-bottom:6px;font-size:12px;color:var(--text-muted);`;
-      div.innerHTML = `<span style="flex:1;">${icon} <b>${d.chauffeurNom}</b> — ${new Date(d.date1).toLocaleDateString('fr-FR')} & ${new Date(d.date2).toLocaleDateString('fr-FR')} <span style="font-size:10px;color:var(--text-muted);">· demandé le ${d.dateDemande ? new Date(d.dateDemande).toLocaleDateString('fr-FR') : '?'}</span></span>`;
+      div.innerHTML = `<span style="flex:1;">${icon} <b>${d.chauffeurNom}</b> — ${fmtReposDatesShort(d)} <span style="font-size:10px;color:var(--text-muted);">· demandé le ${d.dateDemande ? new Date(d.dateDemande).toLocaleDateString('fr-FR') : '?'}</span></span>`;
       // Bouton modifier (changer le statut)
       const modBtn = document.createElement('button');
       modBtn.className = 'h-btn';
@@ -342,7 +354,7 @@ function toggleBellPopup() {
       reposDemandes.forEach(d => {
         html += `<div style="padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.03);font-size:12px;">
           <div style="font-weight:600;">${d.chauffeurNom}</div>
-          <div style="font-size:11px;color:var(--text-muted);">${new Date(d.date1).toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'})} & ${new Date(d.date2).toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'})}</div>
+          <div style="font-size:11px;color:var(--text-muted);">${fmtReposDates(d)}</div>
           <div style="display:flex;gap:6px;margin-top:4px;">
             <button class="h-btn bell-accept-repos" data-id="${d.id}" style="font-size:10px;padding:2px 8px;background:rgba(74,222,128,0.2);color:#4ade80;border-color:#4ade80;">✅</button>
             <button class="h-btn bell-refuse-repos" data-id="${d.id}" style="font-size:10px;padding:2px 8px;background:rgba(248,113,113,0.2);color:#f87171;border-color:#f87171;">❌</button>
