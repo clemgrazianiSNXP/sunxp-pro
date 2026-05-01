@@ -822,14 +822,17 @@ body.light-mode .h-dash-mini-card {
 .travail-vert {
   color: #4ade80;
   background: rgba(74, 222, 128, 0.12);
+  box-shadow: 0 0 8px rgba(74, 222, 128, 0.3);
 }
 .travail-orange {
   color: #f59e0b;
   background: rgba(245, 158, 11, 0.12);
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.3);
 }
 .travail-rouge {
   color: #f87171;
   background: rgba(248, 113, 113, 0.15);
+  box-shadow: 0 0 8px rgba(248, 113, 113, 0.35);
 }
 .h-table td:nth-child(13),
 .h-table td:nth-child(14),
@@ -873,14 +876,29 @@ body.light-mode .h-table tr:hover td {
 body.light-mode .travail-vert {
   color: #16a34a;
   background: rgba(22, 163, 74, 0.1);
+  box-shadow: 0 0 8px rgba(22, 163, 74, 0.2);
 }
 body.light-mode .travail-orange {
   color: #d97706;
   background: rgba(217, 119, 6, 0.1);
+  box-shadow: 0 0 8px rgba(217, 119, 6, 0.2);
 }
 body.light-mode .travail-rouge {
   color: #dc2626;
   background: rgba(220, 38, 38, 0.1);
+  box-shadow: 0 0 8px rgba(220, 38, 38, 0.2);
+}
+
+/* Bouton WhatsApp rebondit au survol */
+.h-dash-wa-btn:hover {
+  animation: waBounce 0.5s ease;
+}
+@keyframes waBounce {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(1.12); }
+  50%  { transform: scale(0.95); }
+  70%  { transform: scale(1.06); }
+  100% { transform: scale(1); }
 }
 body.light-mode .h-alerte-popup-item:hover {
   background: rgba(0, 0, 0, 0.04);

@@ -10,7 +10,13 @@ function renderDashboard(dash, rows) {
   const dsVal = calcDS(d.colis, d.retours);
   const dsPct = parseFloat(dsVal) || 0;
   const dsColor = dsPct >= 98.5 ? '#4ade80' : dsPct >= 97 ? '#f59e0b' : dsPct > 0 ? '#f87171' : 'var(--text-muted)';
-  const dsStroke = dsPct > 0 ? Math.min(dsPct, 100) * 2.51327 : 0; // circumference = 2*PI*40 ≈ 251.327
+  const dsStroke = dsPct > 0 ? Math.min(dsPct, 100) * 2.51327 : 0;
+
+  // Chauffeurs sur la route : présents sans heure de retour
+  const presents = (rows || []).filter(r => r.statut === 'Présent' && r.nom && r.nom.trim());
+  const withRetour = presents.filter(r => r.retourDepot && r.retourDepot.trim());
+  const surRoute = presents.length - withRetour.length;
+  const surRouteColor = surRoute > 0 ? '#f59e0b' : '#4ade80';
 
   return `
     <div class="h-dashboard">
@@ -55,6 +61,21 @@ function renderDashboard(dash, rows) {
         </svg>
         <div class="h-dash-gauge-text" id="dash-ds" style="color:${dsColor};">${dsVal}</div>
         <div class="h-dash-gauge-label">DS%</div>
+      </div>
+
+      <div class="h-dash-cards-row" style="margin-top:4px;">
+        <div class="h-dash-mini-card" style="border-color:var(--accent);">
+          <span class="h-dash-mini-label">🚛 Présents</span>
+          <span style="font-size:20px;font-weight:700;color:var(--accent);">${presents.length}</span>
+        </div>
+        <div class="h-dash-mini-card" style="border-color:${surRouteColor};">
+          <span class="h-dash-mini-label">🛣 Sur la route</span>
+          <span id="dash-sur-route" style="font-size:20px;font-weight:700;color:${surRouteColor};">${surRoute}</span>
+        </div>
+        <div class="h-dash-mini-card" style="border-color:#4ade80;">
+          <span class="h-dash-mini-label">✅ Rentrés</span>
+          <span style="font-size:20px;font-weight:700;color:#4ade80;">${withRetour.length}</span>
+        </div>
       </div>
 
       <div class="h-dash-sep"></div>
