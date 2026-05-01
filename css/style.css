@@ -953,12 +953,7 @@ body.light-mode .stats-impact-panel {
    ============================================================ */
 
 /* ── Fade-in slide-up pour le contenu des modules ── */
-.module-content > *,
-.menu-panel-content > *,
-#module-heures > *,
-#module-stats > *,
-#module-primes > *,
-#module-repertoire > * {
+[id^="module-"] > *:first-child {
   animation: fadeSlideUp 0.3s ease both;
 }
 @keyframes fadeSlideUp {
@@ -966,22 +961,35 @@ body.light-mode .stats-impact-panel {
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ── Lignes tableau en cascade (stagger) ── */
-.h-table tbody tr,
+/* ── Lignes tableau en cascade (stagger) — uniquement au premier affichage ── */
+.h-table.h-table-animate tbody tr {
+  animation: rowFadeIn 0.25s ease both;
+}
+.h-table.h-table-animate tbody tr:nth-child(1) { animation-delay: 0ms; }
+.h-table.h-table-animate tbody tr:nth-child(2) { animation-delay: 20ms; }
+.h-table.h-table-animate tbody tr:nth-child(3) { animation-delay: 20ms; }
+.h-table.h-table-animate tbody tr:nth-child(4) { animation-delay: 40ms; }
+.h-table.h-table-animate tbody tr:nth-child(5) { animation-delay: 60ms; }
+.h-table.h-table-animate tbody tr:nth-child(6) { animation-delay: 80ms; }
+.h-table.h-table-animate tbody tr:nth-child(7) { animation-delay: 100ms; }
+.h-table.h-table-animate tbody tr:nth-child(8) { animation-delay: 120ms; }
+.h-table.h-table-animate tbody tr:nth-child(9) { animation-delay: 140ms; }
+.h-table.h-table-animate tbody tr:nth-child(10) { animation-delay: 160ms; }
+.h-table.h-table-animate tbody tr:nth-child(n+11) { animation-delay: 180ms; }
 .rep-table tbody tr {
   animation: rowFadeIn 0.25s ease both;
 }
-.h-table tbody tr:nth-child(1), .rep-table tbody tr:nth-child(1) { animation-delay: 0ms; }
-.h-table tbody tr:nth-child(2), .rep-table tbody tr:nth-child(2) { animation-delay: 20ms; }
-.h-table tbody tr:nth-child(3), .rep-table tbody tr:nth-child(3) { animation-delay: 40ms; }
-.h-table tbody tr:nth-child(4), .rep-table tbody tr:nth-child(4) { animation-delay: 60ms; }
-.h-table tbody tr:nth-child(5), .rep-table tbody tr:nth-child(5) { animation-delay: 80ms; }
-.h-table tbody tr:nth-child(6), .rep-table tbody tr:nth-child(6) { animation-delay: 100ms; }
-.h-table tbody tr:nth-child(7), .rep-table tbody tr:nth-child(7) { animation-delay: 120ms; }
-.h-table tbody tr:nth-child(8), .rep-table tbody tr:nth-child(8) { animation-delay: 140ms; }
-.h-table tbody tr:nth-child(9), .rep-table tbody tr:nth-child(9) { animation-delay: 160ms; }
-.h-table tbody tr:nth-child(10), .rep-table tbody tr:nth-child(10) { animation-delay: 180ms; }
-.h-table tbody tr:nth-child(n+11), .rep-table tbody tr:nth-child(n+11) { animation-delay: 200ms; }
+.rep-table tbody tr:nth-child(1) { animation-delay: 0ms; }
+.rep-table tbody tr:nth-child(2) { animation-delay: 20ms; }
+.rep-table tbody tr:nth-child(3) { animation-delay: 40ms; }
+.rep-table tbody tr:nth-child(4) { animation-delay: 60ms; }
+.rep-table tbody tr:nth-child(5) { animation-delay: 80ms; }
+.rep-table tbody tr:nth-child(6) { animation-delay: 100ms; }
+.rep-table tbody tr:nth-child(7) { animation-delay: 120ms; }
+.rep-table tbody tr:nth-child(8) { animation-delay: 140ms; }
+.rep-table tbody tr:nth-child(9) { animation-delay: 160ms; }
+.rep-table tbody tr:nth-child(10) { animation-delay: 180ms; }
+.rep-table tbody tr:nth-child(n+11) { animation-delay: 200ms; }
 @keyframes rowFadeIn {
   from { opacity: 0; transform: translateX(-8px); }
   to   { opacity: 1; transform: translateX(0); }
@@ -992,22 +1000,16 @@ body.light-mode .stats-impact-panel {
   position: relative;
   overflow: hidden;
 }
-.h-btn::after, .rep-btn::after, .rep-btn-primary::after, .h-view-btn::after, .menu-param-btn::after {
-  content: '';
+.ripple-circle {
   position: absolute;
-  top: 50%; left: 50%;
-  width: 0; height: 0;
-  background: rgba(255, 255, 255, 0.2);
   border-radius: 50%;
-  transform: translate(-50%, -50%);
-  transition: width 0.4s ease, height 0.4s ease, opacity 0.4s ease;
-  opacity: 0;
+  background: rgba(255, 255, 255, 0.25);
+  transform: scale(0);
+  animation: rippleAnim 0.5s ease-out;
   pointer-events: none;
 }
-.h-btn:active::after, .rep-btn:active::after, .rep-btn-primary:active::after, .h-view-btn:active::after, .menu-param-btn:active::after {
-  width: 200px; height: 200px;
-  opacity: 0;
-  transition: 0s;
+@keyframes rippleAnim {
+  to { transform: scale(4); opacity: 0; }
 }
 
 /* ── Input focus — bordure animée ── */

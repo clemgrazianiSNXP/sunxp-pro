@@ -158,3 +158,18 @@ function bindTabTooltips() {
     });
   });
 }
+
+/* ── Ripple effect global ─────────────────────────────────── */
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('.h-btn, .rep-btn, .rep-btn-primary, .h-view-btn, .menu-param-btn');
+  if (!btn) return;
+  const circle = document.createElement('span');
+  circle.className = 'ripple-circle';
+  const rect = btn.getBoundingClientRect();
+  const size = Math.max(rect.width, rect.height);
+  circle.style.width = circle.style.height = size + 'px';
+  circle.style.left = (e.clientX - rect.left - size / 2) + 'px';
+  circle.style.top = (e.clientY - rect.top - size / 2) + 'px';
+  btn.appendChild(circle);
+  setTimeout(() => circle.remove(), 500);
+});

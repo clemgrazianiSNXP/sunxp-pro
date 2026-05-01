@@ -6,6 +6,7 @@ const STATUTS = ['Présent', 'Absent', 'Astreinte', 'Chime', 'Safety'];
 
 let heuresCurrentDate = new Date();
 let heuresView = 'jour'; // 'jour' | 'semaine' | 'mois'
+let heuresFirstRender = true;
 
 /* ── Point d'entrée ───────────────────────────────────────── */
 function initHeures() {
@@ -162,9 +163,9 @@ function buildToolbar(stationId) {
   bar.querySelector('#h-prev').onclick = () => { navigate(-1); };
   bar.querySelector('#h-next').onclick = () => { navigate(1); };
   bar.querySelector('#h-today').onclick = () => { heuresCurrentDate = new Date(); renderHeures(); };
-  bar.querySelector('#h-view-jour').onclick = () => { heuresView = 'jour'; renderHeures(); };
-  bar.querySelector('#h-view-semaine').onclick = () => { heuresView = 'semaine'; renderHeures(); };
-  bar.querySelector('#h-view-mois').onclick = () => { heuresView = 'mois'; renderHeures(); };
+  bar.querySelector('#h-view-jour').onclick = () => { heuresFirstRender = true; heuresView = 'jour'; renderHeures(); };
+  bar.querySelector('#h-view-semaine').onclick = () => { heuresFirstRender = true; heuresView = 'semaine'; renderHeures(); };
+  bar.querySelector('#h-view-mois').onclick = () => { heuresFirstRender = true; heuresView = 'mois'; renderHeures(); };
 
   // Bulle d'alerte heures supplémentaires semaine précédente
   const overtimeData = getOvertimeData(stationId, heuresCurrentDate);
@@ -230,6 +231,7 @@ function showNear35hPopup(button, data) {
 }
 
 function navigate(delta) {
+  heuresFirstRender = true;
   if (heuresView === 'semaine') heuresCurrentDate.setDate(heuresCurrentDate.getDate() + delta * 7);
   else if (heuresView === 'mois') heuresCurrentDate.setMonth(heuresCurrentDate.getMonth() + delta);
   else heuresCurrentDate.setDate(heuresCurrentDate.getDate() + delta);
@@ -293,6 +295,10 @@ function buildTable(rows, storageKey, stationId) {
 
   const table = document.createElement('table');
   table.className = 'h-table';
+  if (heuresFirstRender) {
+    table.classList.add('h-table-animate');
+    heuresFirstRender = false;
+  }
 
   const thead = document.createElement('thead');
   thead.innerHTML = '<tr>' + cols.map(c => `<th>${c}</th>`).join('') + '</tr>';
@@ -508,6 +514,14 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
       // Re-binder les étoiles après sélection du nom
       starCell.innerHTML = buildStarRating(row.trajet, '');
       bindStars();
+      // Focus le champ nom de la ligne suivante
+      setTimeout(() => {
+        const nextTr = tr.nextElementSibling;
+        if (nextTr) {
+          const nextNomInp = nextTr.querySelector('.h-inp-nom');
+          if (nextNomInp) nextNomInp.focus();
+        }
+      }, 50);
     });
   }
   refreshNomCell();
