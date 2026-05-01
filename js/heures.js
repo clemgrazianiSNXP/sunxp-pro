@@ -374,7 +374,7 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
     <td>${isSpecial ? '' : `<input type="checkbox" data-f="essence" ${row.essence ? 'checked' : ''} ${dis}>`}</td>
     <td>${isSpecial ? '' : `<input type="checkbox" data-f="adblue" ${row.adblue ? 'checked' : ''} ${dis}>`}</td>
     <td>${isSpecial ? '' : `<input type="checkbox" data-f="ticket" ${row.ticket ? 'checked' : ''} ${dis}>`}</td>
-    <td>${isSpecial ? '' : `<input class="h-inp h-inp-sm" data-f="camion" value="${row.camion}" style="width:60px;" ${dis}>`}</td>
+    <td>${isSpecial ? '' : `<input class="h-inp h-inp-sm" data-f="camion" value="${row.camion}" style="width:80px;" ${dis}>`}</td>
   `;
 
   // Calcul temps de travail en temps réel
@@ -526,19 +526,53 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
     buildNomCell(nomDisplay, row, allRows, stationId, () => {
       saveDay(storageKey, allRows, stationId);
       updateTravail();
-      refreshNomCell();
+      
+      // Mettre à jour visuellement SANS reconstruire le DOM
+      const hasNomNow = !!(row.nom && row.nom.trim());
+      tr.style.opacity = hasNomNow ? '' : '0.35';
+      tr.querySelectorAll('input:not(.h-inp-nom), input[type="checkbox"]').forEach(el => {
+        el.disabled = !hasNomNow;
+      });
+      
+      // Reconstruire la cellule nom (affiche le nom + bouton ×)
+      nomDisplay.innerHTML = '';
+      if (hasNomNow) {
+        const wrap = document.createElement('span');
+        wrap.style.cssText = 'display:inline-flex;align-items:center;gap:3px;max-width:150px;width:150px;';
+        const txt = document.createElement('span');
+        txt.textContent = row.nom;
+        txt.style.cssText = 'font-size:12px;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;';
+        const clr = document.createElement('button');
+        clr.textContent = '✕';
+        clr.style.cssText = 'background:none;border:none;color:#f87171;cursor:pointer;font-size:13px;padding:2px 4px;flex-shrink:0;line-height:1;';
+        clr.addEventListener('click', e => {
+          e.stopPropagation();
+          row.nom = ''; row.heureVague = ''; row.pause = '';
+          row.heurePause = ''; row.secteur = ''; row.retourDepot = '';
+          row.backups = ''; row.mentor = ''; row.trajet = '';
+          row.essence = false; row.adblue = false;
+          row.ticket = false; row.camion = ''; row.statut = 'Présent';
+          saveDay(storageKey, allRows, stationId);
+          updateTravail();
+          refreshNomCell();
+          starCell.innerHTML = buildStarRating(row.trajet, '');
+          bindStars();
+        });
+        wrap.appendChild(txt);
+        wrap.appendChild(clr);
+        nomDisplay.appendChild(wrap);
+      }
+      
       starCell.innerHTML = buildStarRating(row.trajet, '');
       bindStars();
-      // Cliquer sur la cellule nom de la ligne suivante
+      
+      // Focus la ligne suivante
       const nextTr = tr.nextElementSibling;
       if (nextTr) {
-        const nextNomCell = nextTr.querySelector('.h-nom-display');
-        if (nextNomCell) {
-          setTimeout(() => {
-            const nextInp = nextNomCell.querySelector('.h-inp-nom');
-            if (nextInp) nextInp.click();
-          }, 50);
-        }
+        setTimeout(() => {
+          const nextInp = nextTr.querySelector('.h-inp-nom');
+          if (nextInp) nextInp.focus();
+        }, 50);
       }
     });
   }
