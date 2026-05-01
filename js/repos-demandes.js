@@ -74,7 +74,7 @@ function renderReposChauffeur() {
   form.innerHTML = `
     <label style="font-size:12px;color:var(--text-muted);">Jour 1</label>
     <input type="date" id="repos-date1" class="h-inp" style="width:100%;text-align:left;">
-    <label style="font-size:12px;color:var(--text-muted);">Jour 2</label>
+    <label style="font-size:12px;color:var(--text-muted);">Jour 2 <span style="opacity:0.5;">(optionnel)</span></label>
     <input type="date" id="repos-date2" class="h-inp" style="width:100%;text-align:left;">
     <p id="repos-error" style="color:#f87171;font-size:11px;display:none;"></p>
     <p id="repos-limite" style="color:var(--text-muted);font-size:10px;"></p>
@@ -99,7 +99,7 @@ function renderReposChauffeur() {
       const errEl = form.querySelector('#repos-error');
       errEl.style.display = 'none';
 
-      if (!date1 || !date2) { errEl.textContent = 'Renseigne les 2 dates.'; errEl.style.display = 'block'; return; }
+      if (!date1) { errEl.textContent = 'Renseigne au moins le jour 1.'; errEl.style.display = 'block'; return; }
       if (!isDemandeValide(date1)) {
         const lim = getDateLimite(date1);
         errEl.textContent = '❌ Date limite dépassée ! Tu devais faire la demande avant le ' + lim.toLocaleDateString('fr-FR') + ' à 12h.';
@@ -118,7 +118,7 @@ function renderReposChauffeur() {
         id: 'r_' + Date.now(),
         chauffeurId: cId,
         chauffeurNom: nom,
-        date1, date2,
+        date1, date2: date2 || '',
         dateDemande: new Date().toISOString(),
         statut: 'en_attente',
         reponse: ''
