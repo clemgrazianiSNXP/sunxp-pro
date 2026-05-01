@@ -94,7 +94,6 @@ function handleDemandeNotification(payload, type) {
   const row = payload.new;
   if (!row || !row.data) return;
 
-  // Mettre à jour localStorage
   const stationId = window.getActiveStationId ? window.getActiveStationId() : null;
   if (!stationId) return;
 
@@ -107,32 +106,40 @@ function handleDemandeNotification(payload, type) {
     localStorage.setItem(lsKey, JSON.stringify(row.data));
   }
 
-  // Côté responsable : notification de nouvelle demande
+  // Trouver le dernier demandeur dans les données
+  const demandes = Array.isArray(row.data) ? row.data : [];
+  const derniere = demandes.length ? demandes[demandes.length - 1] : null;
+  const nomDemandeur = derniere ? (derniere.chauffeur || derniere.nom || '') : '';
+
+  const typeLabels = { repos: 'repos', acompte: 'acompte', congés: 'congé' };
+  const typeLabel = typeLabels[type] || 'demande';
+
+  // Côté responsable
   if (!isDriverMode()) {
-    const labels = { repos: '📅 Demande de repos', acompte: '💶 Demande d\'acompte', congés: '🏖 Demande de congés' };
-    showRealtimeToast(labels[type] || '🔔 Nouvelle demande', 'Une demande vient d\'être mise à jour.');
+    const titre = nomDemandeur
+      ? `📬 Nouvelle demande de ${typeLabel} de ${nomDemandeur}`
+      : `📬 Nouvelle demande de ${typeLabel}`;
+    showRealtimeToast(titre);
   }
 
-  // Côté chauffeur : notification de réponse du responsable
+  // Côté chauffeur
   if (isDriverMode()) {
-    const labels = { repos: '📅 Repos', acompte: '💶 Acompte', congés: '🏖 Congés' };
-    showRealtimeToast(labels[type] || '🔔 Mise à jour', 'Votre demande a été traitée par le responsable.');
+    showRealtimeToast('📬 Ta demande sera traitée');
   }
 }
 
 /**
- * Affiche un toast de notification en haut de l'écran.
+ * Affiche un toast centré en haut qui tombe.
  */
-function showRealtimeToast(title, message) {
+function showRealtimeToast(message) {
   const toast = document.createElement('div');
-  toast.style.cssText = 'position:fixed;top:16px;right:16px;z-index:999999;background:var(--bg-sidebar);border:1px solid var(--accent);border-radius:10px;padding:12px 18px;box-shadow:0 8px 32px rgba(0,0,0,0.4);max-width:300px;animation:toastSlideIn 0.3s ease;';
-  toast.innerHTML = `
-    <div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:4px;">${title}</div>
-    <div style="font-size:12px;color:var(--text-muted);">${message}</div>`;
+  toast.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:999999;background:var(--bg-sidebar);border:1px solid var(--accent);border-radius:12px;padding:14px 24px;box-shadow:0 8px 32px rgba(0,0,0,0.4);max-width:400px;text-align:center;animation:toastDropIn 0.4s ease;';
+  toast.innerHTML = `<div style="font-size:13px;font-weight:700;color:var(--accent);">${message}</div>`;
   document.body.appendChild(toast);
   setTimeout(() => {
     toast.style.opacity = '0';
-    toast.style.transition = 'opacity 0.3s';
+    toast.style.transform = 'translateX(-50%) translateY(-20px)';
+    toast.style.transition = 'opacity 0.3s, transform 0.3s';
     setTimeout(() => toast.remove(), 300);
   }, 4000);
 }
