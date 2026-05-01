@@ -114,9 +114,14 @@ function renderParametres() {
   // Presets fond
   const bgPresets = document.createElement('div');
   bgPresets.style.cssText = 'display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;';
-  ['#12121a','#0a1628','#0a1a10','#1a1020','#1a1a1a','#2a1a1a','#1a2a2a'].forEach(c => {
+  const isLight = document.body.classList.contains('light-mode');
+  const presetColors = isLight
+    ? ['#f0ece4','#e8e4dc','#e0e8e0','#e4dce8','#e8e0d4','#dce0e8','#e8dcd8']
+    : ['#12121a','#0a1628','#0a1a10','#1a1020','#1a1a1a','#2a1a1a','#1a2a2a'];
+  presetColors.forEach(c => {
     const dot = document.createElement('button');
-    dot.style.cssText = `width:28px;height:28px;border-radius:50%;border:2px solid ${c === currentBg ? '#fff' : 'rgba(255,255,255,0.2)'};background:${c};cursor:pointer;`;
+    const borderCol = isLight ? (c === currentBg ? '#333' : 'rgba(0,0,0,0.15)') : (c === currentBg ? '#fff' : 'rgba(255,255,255,0.2)');
+    dot.style.cssText = `width:28px;height:28px;border-radius:50%;border:2px solid ${borderCol};background:${c};cursor:pointer;`;
     dot.onclick = () => { bgPicker.value = c; applyBgColor(c); bgLabel.textContent = c; };
     bgPresets.appendChild(dot);
   });
@@ -151,37 +156,39 @@ function renderParametres() {
   });
   wrap.appendChild(fontSection);
 
-  // ── Sidebar compacte ──
-  const compactSection = document.createElement('div');
-  compactSection.innerHTML = '<h3 style="font-size:14px;margin-bottom:10px;color:var(--accent);">📐 Sidebar compacte</h3>';
-  const isCompact = localStorage.getItem('sunxp-compact') === 'true';
-  const toggle = document.createElement('label');
-  toggle.style.cssText = 'display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;';
-  const cb = document.createElement('input');
-  cb.type = 'checkbox';
-  cb.checked = isCompact;
-  cb.onchange = () => {
-    localStorage.setItem('sunxp-compact', cb.checked);
-    document.documentElement.style.setProperty('--sidebar-width', cb.checked ? '60px' : '220px');
-    document.querySelectorAll('.nav-tab .label').forEach(l => l.style.display = cb.checked ? 'none' : '');
-    // Réduire le header sidebar en mode compact
-    const sh = document.querySelector('.sidebar-header');
-    if (sh) {
-      if (cb.checked) {
-        sh.style.cssText = 'padding:6px 4px;font-size:9px;overflow:hidden;text-align:center;';
-        const csBtn = sh.querySelector('#btn-change-station');
-        if (csBtn) { csBtn.dataset.fullText = csBtn.textContent; csBtn.textContent = '⇌'; csBtn.style.fontSize = '14px'; csBtn.style.padding = '4px'; }
-      } else {
-        sh.style.cssText = '';
-        const csBtn = sh.querySelector('#btn-change-station');
-        if (csBtn && csBtn.dataset.fullText) { csBtn.textContent = csBtn.dataset.fullText; csBtn.style.fontSize = ''; csBtn.style.padding = ''; }
+  // ── Sidebar compacte (responsable uniquement) ──
+  if (!isDriverMode()) {
+    const compactSection = document.createElement('div');
+    compactSection.innerHTML = '<h3 style="font-size:14px;margin-bottom:10px;color:var(--accent);">📐 Sidebar compacte</h3>';
+    const isCompact = localStorage.getItem('sunxp-compact') === 'true';
+    const toggle = document.createElement('label');
+    toggle.style.cssText = 'display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;';
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.checked = isCompact;
+    cb.onchange = () => {
+      localStorage.setItem('sunxp-compact', cb.checked);
+      document.documentElement.style.setProperty('--sidebar-width', cb.checked ? '60px' : '220px');
+      document.querySelectorAll('.nav-tab .label').forEach(l => l.style.display = cb.checked ? 'none' : '');
+      // Réduire le header sidebar en mode compact
+      const sh = document.querySelector('.sidebar-header');
+      if (sh) {
+        if (cb.checked) {
+          sh.style.cssText = 'padding:6px 4px;font-size:9px;overflow:hidden;text-align:center;';
+          const csBtn = sh.querySelector('#btn-change-station');
+          if (csBtn) { csBtn.dataset.fullText = csBtn.textContent; csBtn.textContent = '⇌'; csBtn.style.fontSize = '14px'; csBtn.style.padding = '4px'; }
+        } else {
+          sh.style.cssText = '';
+          const csBtn = sh.querySelector('#btn-change-station');
+          if (csBtn && csBtn.dataset.fullText) { csBtn.textContent = csBtn.dataset.fullText; csBtn.style.fontSize = ''; csBtn.style.padding = ''; }
+        }
       }
-    }
-  };
-  toggle.appendChild(cb);
-  toggle.appendChild(document.createTextNode('Réduire la sidebar aux icônes'));
-  compactSection.appendChild(toggle);
-  wrap.appendChild(compactSection);
+    };
+    toggle.appendChild(cb);
+    toggle.appendChild(document.createTextNode('Réduire la sidebar aux icônes'));
+    compactSection.appendChild(toggle);
+    wrap.appendChild(compactSection);
+  }
 
   return wrap;
 }
