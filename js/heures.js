@@ -368,13 +368,13 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
     <td>${isSpecial ? '' : `<input class="h-inp" data-f="secteur" value="${row.secteur}" style="width:60px;" ${dis}>`}</td>
     <td>${isSpecial ? '' : `<input class="h-inp h-calc" data-f="retourDepot" value="${row.retourDepot}" ${dis}>`}</td>
     <td>${isSpecial ? '' : `<input class="h-inp h-inp-sm" data-f="backups" value="${row.backups}" style="width:40px;color:#f97316;font-weight:700;" ${dis}>`}</td>
-    <td>${isSpecial ? '' : `<input class="h-inp h-inp-sm" data-f="mentor" value="${row.mentor}" style="color:${mentorColor(row.mentor, row.trajet)};font-weight:700;" ${dis}>`}</td>
+    <td>${isSpecial ? '' : `<input class="h-inp h-inp-sm" data-f="mentor" value="${row.mentor}" style="color:${mentorColor(row.mentor, row.trajet)};font-weight:700;width:36px;" ${dis}>`}</td>
     <td class="h-trajet-stars" data-key="${row.key}">${isSpecial ? '' : buildStarRating(row.trajet, dis)}</td>
-    <td>${isSpecial ? '' : `<input class="h-inp h-inp-faute" data-f="faute" value="${row.faute || ''}" placeholder="" style="width:70px;max-width:70px;" ${dis}>`}</td>
+    <td>${isSpecial ? '' : `<input class="h-inp h-inp-faute" data-f="faute" value="${row.faute || ''}" placeholder="" style="width:90px;max-width:90px;" ${dis}>`}</td>
     <td>${isSpecial ? '' : `<input type="checkbox" data-f="essence" ${row.essence ? 'checked' : ''} ${dis}>`}</td>
     <td>${isSpecial ? '' : `<input type="checkbox" data-f="adblue" ${row.adblue ? 'checked' : ''} ${dis}>`}</td>
     <td>${isSpecial ? '' : `<input type="checkbox" data-f="ticket" ${row.ticket ? 'checked' : ''} ${dis}>`}</td>
-    <td>${isSpecial ? '' : `<input class="h-inp h-inp-sm" data-f="camion" value="${row.camion}" ${dis}>`}</td>
+    <td>${isSpecial ? '' : `<input class="h-inp h-inp-sm" data-f="camion" value="${row.camion}" style="width:60px;" ${dis}>`}</td>
   `;
 
   // Calcul temps de travail en temps réel

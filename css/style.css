@@ -860,15 +860,15 @@ body.light-mode .h-dash-mini-card {
 .h-table td:nth-child(13),
 .h-table td:nth-child(14),
 .h-table td:nth-child(15) {
-  width: 50px;
-  max-width: 50px;
+  width: 35px;
+  max-width: 35px;
   text-align: center;
 }
 .h-table th:nth-child(13),
 .h-table th:nth-child(14),
 .h-table th:nth-child(15) {
-  width: 50px;
-  max-width: 50px;
+  width: 35px;
+  max-width: 35px;
   text-align: center;
 }
 
