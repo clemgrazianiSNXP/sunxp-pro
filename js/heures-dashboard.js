@@ -64,10 +64,6 @@ function renderDashboard(dash, rows) {
       </div>
 
       <div class="h-dash-cards-row" style="margin-top:4px;">
-        <div class="h-dash-mini-card" style="border-color:var(--accent);">
-          <span class="h-dash-mini-label">🚛 Présents</span>
-          <span style="font-size:20px;font-weight:700;color:var(--accent);">${presents.length}</span>
-        </div>
         <div class="h-dash-mini-card" style="border-color:${surRouteColor};">
           <span class="h-dash-mini-label">🛣 Sur la route</span>
           <span id="dash-sur-route" style="font-size:20px;font-weight:700;color:${surRouteColor};">${surRoute}</span>
