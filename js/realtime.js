@@ -79,6 +79,19 @@ function initRealtime() {
     }
   });
 
+  // ── Écouter les changements sur les primes ──
+  realtimeChannel.on('postgres_changes', {
+    event: '*',
+    schema: 'public',
+    table: 'primes'
+  }, payload => {
+    if (payload.new && payload.new.station_id === stationId && payload.new.data) {
+      const key = stationId + '-primes-' + payload.new.annee + '-' + String(payload.new.mois).padStart(2, '0');
+      localStorage.setItem(key, JSON.stringify(payload.new.data));
+      console.log('🔄 Realtime primes:', key);
+    }
+  });
+
   realtimeChannel.subscribe(status => {
     if (status === 'SUBSCRIBED') {
       console.log('✅ Realtime connecté pour station', stationId);
