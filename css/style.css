@@ -39,13 +39,13 @@ body {
 
 /* Mode clair */
 body.light-mode {
-  --bg-primary:    #f2f4fa;
-  --bg-sidebar:    #e4e6f0;
-  --bg-card:       #ffffff;
-  --bg-tab-hover:  #dadce8;
-  --bg-tab-active: #d0d2e2;
-  --text-primary:  #1a1e30;
-  --text-muted:    #555a78;
+  --bg-primary:    #f0ece4;
+  --bg-sidebar:    #e6e1d8;
+  --bg-card:       #f5f2ec;
+  --bg-tab-hover:  #ddd8ce;
+  --bg-tab-active: #d4cfc4;
+  --text-primary:  #2c2a26;
+  --text-muted:    #6b6760;
   --accent:        #6355d8;
   --accent-dim:    rgba(99, 85, 216, 0.08);
   --border:        rgba(0, 0, 0, 0.10);
@@ -839,7 +839,7 @@ body.light-mode .h-dashboard,
 body.light-mode .portal-card,
 body.light-mode .badge-card,
 body.light-mode .h-dash-mini-card {
-  background: rgba(255, 255, 255, 0.6);
+  background: rgba(245, 242, 236, 0.7);
   border: 1px solid rgba(0, 0, 0, 0.06);
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
 }
