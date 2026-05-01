@@ -87,7 +87,7 @@ window.dbLoadChauffeurs = async function (stationId) {
     const { data, error } = await sb().from('chauffeurs').select('*').eq('station_id', stationId);
     if (error) throw error;
     if (data && data.length) {
-      const chauffeurs = data.map(c => ({ id: c.local_id || ('c_' + Date.now() + '_' + Math.random().toString(36).slice(2,5)), nom: c.nom, prenom: c.prenom, telephone: c.telephone, id_amazon: c.id_amazon }));
+      const chauffeurs = data.map(c => ({ id: c.local_id || ('c_' + Date.now() + '_' + Math.random().toString(36).slice(2,5)), nom: c.nom, prenom: c.prenom, telephone: c.telephone, id_amazon: c.id_amazon, soldeInitialPrime: c.solde_initial_prime != null ? c.solde_initial_prime : null, matricule_tsm: c.matricule_tsm || '' }));
       localStorage.setItem(stationId + '-repertoire', JSON.stringify(chauffeurs));
       return chauffeurs;
     }
@@ -109,7 +109,7 @@ window.dbSaveChauffeurs = async function (stationId, chauffeurs) {
     // Supprimer les anciens et réinsérer
     await sb().from('chauffeurs').delete().eq('station_id', stationId);
     if (chauffeurs.length) {
-      const rows = chauffeurs.map(c => ({ station_id: stationId, nom: c.nom || '', prenom: c.prenom || '', telephone: c.telephone || '', id_amazon: c.id_amazon || '', local_id: c.id || '' }));
+      const rows = chauffeurs.map(c => ({ station_id: stationId, nom: c.nom || '', prenom: c.prenom || '', telephone: c.telephone || '', id_amazon: c.id_amazon || '', local_id: c.id || '', solde_initial_prime: c.soldeInitialPrime != null ? c.soldeInitialPrime : null, matricule_tsm: c.matricule_tsm || '' }));
       await sb().from('chauffeurs').insert(rows);
     }
   } catch (e) { console.warn('dbSaveChauffeurs error:', e.message); }
@@ -477,7 +477,7 @@ window.preloadStationData = async function (stationId) {
     // Chauffeurs
     const { data: chData } = await sb().from('chauffeurs').select('*').eq('station_id', stationId);
     if (chData && chData.length) {
-      const chauffeurs = chData.map(c => ({ id: c.local_id || ('c_' + Date.now() + '_' + Math.random().toString(36).slice(2,5)), nom: c.nom, prenom: c.prenom, telephone: c.telephone, id_amazon: c.id_amazon }));
+      const chauffeurs = chData.map(c => ({ id: c.local_id || ('c_' + Date.now() + '_' + Math.random().toString(36).slice(2,5)), nom: c.nom, prenom: c.prenom, telephone: c.telephone, id_amazon: c.id_amazon, soldeInitialPrime: c.solde_initial_prime != null ? c.solde_initial_prime : null, matricule_tsm: c.matricule_tsm || '' }));
       localStorage.setItem(stationId + '-repertoire', JSON.stringify(chauffeurs));
     }
 
