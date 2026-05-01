@@ -525,13 +525,15 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
       starCell.innerHTML = buildStarRating(row.trajet, '');
       bindStars();
       // Focus le champ nom de la ligne suivante
-      setTimeout(() => {
-        const nextTr = tr.nextElementSibling;
-        if (nextTr) {
-          const nextNomInp = nextTr.querySelector('.h-inp-nom');
-          if (nextNomInp) nextNomInp.focus();
-        }
-      }, 50);
+      const nextTr = tr.nextElementSibling;
+      if (nextTr) {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            const nextNomInp = nextTr.querySelector('.h-inp-nom');
+            if (nextNomInp) nextNomInp.focus();
+          });
+        });
+      }
     });
   }
   refreshNomCell();
@@ -661,7 +663,13 @@ function buildNomCell(container, row, allRows, stationId, onSelect) {
         // Sélectionner le premier élément de la dropdown s'il y en a
         const firstItem = dropdown.querySelector('div');
         if (firstItem && dropdown.style.display !== 'none') {
-          firstItem.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+          const name = firstItem.textContent;
+          nomSelected = true;
+          row.nom = name;
+          if (!row.pause) row.pause = 45;
+          dropdown.style.display = 'none';
+          dropdown.remove();
+          onSelect();
           return;
         }
         if (inp.value.trim()) {
