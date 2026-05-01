@@ -7,36 +7,54 @@
  */
 function renderDashboard(dash, rows) {
   const d = dash || {};
+  const dsVal = calcDS(d.colis, d.retours);
+  const dsPct = parseFloat(dsVal) || 0;
+  const dsColor = dsPct >= 98.5 ? '#4ade80' : dsPct >= 97 ? '#f59e0b' : dsPct > 0 ? '#f87171' : 'var(--text-muted)';
+  const dsStroke = dsPct > 0 ? Math.min(dsPct, 100) * 2.51327 : 0; // circumference = 2*PI*40 ≈ 251.327
+
   return `
     <div class="h-dashboard">
       <div class="h-dash-title">Dashboard journalier</div>
 
-      <div class="h-dash-field">
-        <label>DSP</label>
-        <input class="h-dash-input" data-dash="dsp" value="${esc(d.dsp || '')}" placeholder="ex: Clément">
-      </div>
-      <div class="h-dash-field">
-        <label>CE</label>
-        <input class="h-dash-input" data-dash="ce" value="${esc(d.ce || '')}" placeholder="ex: Julien">
-      </div>
-      <div class="h-dash-field">
-        <label>CES</label>
-        <input class="h-dash-input" data-dash="ces" value="${esc(d.ces || '')}" placeholder="optionnel">
+      <div class="h-dash-cards-row">
+        <div class="h-dash-mini-card">
+          <span class="h-dash-mini-label">DSP</span>
+          <input class="h-dash-input h-dash-mini-value" data-dash="dsp" value="${esc(d.dsp || '')}" placeholder="—">
+        </div>
+        <div class="h-dash-mini-card">
+          <span class="h-dash-mini-label">CE</span>
+          <input class="h-dash-input h-dash-mini-value" data-dash="ce" value="${esc(d.ce || '')}" placeholder="—">
+        </div>
+        <div class="h-dash-mini-card">
+          <span class="h-dash-mini-label">CES</span>
+          <input class="h-dash-input h-dash-mini-value" data-dash="ces" value="${esc(d.ces || '')}" placeholder="—">
+        </div>
       </div>
 
       <div class="h-dash-sep"></div>
 
-      <div class="h-dash-field">
-        <label>Colis livrés</label>
-        <input class="h-dash-input" data-dash="colis" type="number" min="0" value="${esc(d.colis || '')}" placeholder="0">
+      <div class="h-dash-colis-row">
+        <div class="h-dash-colis-cell">
+          <span class="h-dash-mini-label">📦 Colis livrés</span>
+          <input class="h-dash-input h-dash-colis-input" data-dash="colis" type="number" min="0" value="${esc(d.colis || '')}" placeholder="0">
+        </div>
+        <div class="h-dash-colis-divider"></div>
+        <div class="h-dash-colis-cell">
+          <span class="h-dash-mini-label">↩ Retours</span>
+          <input class="h-dash-input h-dash-colis-input" data-dash="retours" type="number" min="0" value="${esc(d.retours || '')}" placeholder="0">
+        </div>
       </div>
-      <div class="h-dash-field">
-        <label>Retours</label>
-        <input class="h-dash-input" data-dash="retours" type="number" min="0" value="${esc(d.retours || '')}" placeholder="0">
-      </div>
-      <div class="h-dash-field">
-        <label>DS%</label>
-        <span class="h-dash-ds" id="dash-ds">${calcDS(d.colis, d.retours)}</span>
+
+      <div class="h-dash-gauge-wrap">
+        <svg class="h-dash-gauge" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="40" fill="none" stroke="var(--border)" stroke-width="8" opacity="0.3"/>
+          <circle cx="50" cy="50" r="40" fill="none" stroke="${dsColor}" stroke-width="8"
+            stroke-dasharray="${dsStroke} 251.327"
+            stroke-linecap="round" transform="rotate(-90 50 50)"
+            style="transition:stroke-dasharray 0.5s ease;"/>
+        </svg>
+        <div class="h-dash-gauge-text" id="dash-ds" style="color:${dsColor};">${dsVal}</div>
+        <div class="h-dash-gauge-label">DS%</div>
       </div>
 
       <div class="h-dash-sep"></div>
@@ -113,7 +131,18 @@ function bindDashboard(saveCallback, rows, dateStr, stationId) {
       if (dsEl) {
         const colis   = document.querySelector('[data-dash="colis"]')?.value;
         const retours = document.querySelector('[data-dash="retours"]')?.value;
-        dsEl.textContent = calcDS(colis, retours);
+        const dsVal = calcDS(colis, retours);
+        const dsPct = parseFloat(dsVal) || 0;
+        const dsColor = dsPct >= 98.5 ? '#4ade80' : dsPct >= 97 ? '#f59e0b' : dsPct > 0 ? '#f87171' : 'var(--text-muted)';
+        const dsStroke = dsPct > 0 ? Math.min(dsPct, 100) * 2.51327 : 0;
+        dsEl.textContent = dsVal;
+        dsEl.style.color = dsColor;
+        // Update gauge circle
+        const gaugeCircle = document.querySelector('.h-dash-gauge circle:nth-child(2)');
+        if (gaugeCircle) {
+          gaugeCircle.setAttribute('stroke', dsColor);
+          gaugeCircle.setAttribute('stroke-dasharray', dsStroke + ' 251.327');
+        }
       }
       saveCallback();
     });

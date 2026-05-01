@@ -685,6 +685,91 @@ body.theme-green {
 .h-table td:nth-child(2) {
   text-align: center;
 }
+
+/* ============================================================
+   Dashboard journalier — Mini cards & Jauge DS
+   ============================================================ */
+.h-dash-cards-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.h-dash-mini-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 4px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.h-dash-mini-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.h-dash-mini-value {
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  text-align: center !important;
+  width: 100% !important;
+  padding: 2px 4px !important;
+}
+.h-dash-colis-row {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  margin-bottom: 4px;
+}
+.h-dash-colis-cell {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px;
+}
+.h-dash-colis-divider {
+  width: 1px;
+  background: var(--border);
+  margin: 4px 0;
+}
+.h-dash-colis-input {
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  text-align: center !important;
+  width: 80px !important;
+  padding: 4px !important;
+}
+.h-dash-gauge-wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 8px 0;
+}
+.h-dash-gauge {
+  width: 100px;
+  height: 100px;
+}
+.h-dash-gauge-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -60%);
+  font-size: 20px;
+  font-weight: 700;
+}
+.h-dash-gauge-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 600;
+  margin-top: -4px;
+}
 .travail-vert {
   color: #4ade80;
   background: rgba(74, 222, 128, 0.12);
