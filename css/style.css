@@ -952,8 +952,8 @@ body.light-mode .stats-impact-panel {
    Animations & Micro-interactions globales
    ============================================================ */
 
-/* ── Fade-in slide-up pour le contenu des modules ── */
-[id^="module-"] > *:first-child {
+/* ── Fade-in slide-up pour le contenu des modules (sauf heures) ── */
+[id^="module-"]:not(#module-heures) > *:first-child {
   animation: fadeSlideUp 0.3s ease both;
 }
 @keyframes fadeSlideUp {
