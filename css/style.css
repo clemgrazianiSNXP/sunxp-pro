@@ -962,14 +962,26 @@ body.light-mode .stats-impact-panel {
 }
 
 /* ── Tableaux stats (rep-table) — centrage ── */
+.rep-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
 .rep-table th,
 .rep-table td {
   text-align: center;
   padding: 6px 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .rep-table th:first-child,
 .rep-table td:first-child {
   text-align: left;
+  width: 180px;
+}
+.rep-table th:last-child,
+.rep-table td:last-child {
+  width: 40px;
 }
 
 /* ── Lignes tableau en cascade (stagger) — uniquement au premier affichage ── */
