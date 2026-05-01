@@ -358,20 +358,20 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
       <span class="h-nom-display" style="flex:1;overflow:hidden;"></span>
     </td>
     <td>${isSpecial ? `<input class="h-inp" data-f="specialTravail" value="${specialTravail}" style="color:${specialColor};font-weight:700;width:50px;text-align:center;" ${dis}>` : `<span class="h-travail" id="travail-${row.key}"></span>`}</td>
-    <td><input class="h-inp h-calc" data-f="heureVague" value="${row.heureVague}" ${dis || specialDis}></td>
-    <td><input class="h-inp h-inp-sm h-calc" data-f="pause" value="${row.pause}" ${dis || specialDis}></td>
-    <td><input class="h-inp" data-f="heurePause" value="${row.heurePause}" ${dis || specialDis}></td>
-    <td><span class="h-fin-pause" id="finpause-${row.key}"></span></td>
-    <td><input class="h-inp" data-f="secteur" value="${row.secteur}" style="width:60px;" ${dis || specialDis}></td>
-    <td><input class="h-inp h-calc" data-f="retourDepot" value="${row.retourDepot}" ${dis || specialDis}></td>
-    <td><input class="h-inp h-inp-sm" data-f="backups" value="${row.backups}" style="width:40px;" ${dis || specialDis}></td>
-    <td><input class="h-inp h-inp-sm" data-f="mentor" value="${row.mentor}" style="color:${mentorColor(row.mentor, row.trajet)};font-weight:700;" ${dis}></td>
-    <td class="h-trajet-stars" data-key="${row.key}">${buildStarRating(row.trajet, dis)}</td>
-    <td><input class="h-inp h-inp-faute" data-f="faute" value="${row.faute || ''}" placeholder="" ${dis}></td>
-    <td><input type="checkbox" data-f="essence" ${row.essence ? 'checked' : ''} ${dis}></td>
-    <td><input type="checkbox" data-f="adblue" ${row.adblue ? 'checked' : ''} ${dis}></td>
-    <td><input type="checkbox" data-f="ticket" ${row.ticket ? 'checked' : ''} ${dis}></td>
-    <td><input class="h-inp h-inp-sm" data-f="camion" value="${row.camion}" ${dis}></td>
+    <td>${isSpecial ? '' : `<input class="h-inp h-calc" data-f="heureVague" value="${row.heureVague}" ${dis}>`}</td>
+    <td>${isSpecial ? '' : `<input class="h-inp h-inp-sm h-calc" data-f="pause" value="${row.pause}" ${dis}>`}</td>
+    <td>${isSpecial ? '' : `<input class="h-inp" data-f="heurePause" value="${row.heurePause}" ${dis}>`}</td>
+    <td>${isSpecial ? '' : `<span class="h-fin-pause" id="finpause-${row.key}"></span>`}</td>
+    <td>${isSpecial ? '' : `<input class="h-inp" data-f="secteur" value="${row.secteur}" style="width:60px;" ${dis}>`}</td>
+    <td>${isSpecial ? '' : `<input class="h-inp h-calc" data-f="retourDepot" value="${row.retourDepot}" ${dis}>`}</td>
+    <td>${isSpecial ? '' : `<input class="h-inp h-inp-sm" data-f="backups" value="${row.backups}" style="width:40px;color:#f97316;font-weight:700;" ${dis}>`}</td>
+    <td>${isSpecial ? '' : `<input class="h-inp h-inp-sm" data-f="mentor" value="${row.mentor}" style="color:${mentorColor(row.mentor, row.trajet)};font-weight:700;" ${dis}>`}</td>
+    <td class="h-trajet-stars" data-key="${row.key}">${isSpecial ? '' : buildStarRating(row.trajet, dis)}</td>
+    <td>${isSpecial ? '' : `<input class="h-inp h-inp-faute" data-f="faute" value="${row.faute || ''}" placeholder="" ${dis}>`}</td>
+    <td>${isSpecial ? '' : `<input type="checkbox" data-f="essence" ${row.essence ? 'checked' : ''} ${dis}>`}</td>
+    <td>${isSpecial ? '' : `<input type="checkbox" data-f="adblue" ${row.adblue ? 'checked' : ''} ${dis}>`}</td>
+    <td>${isSpecial ? '' : `<input type="checkbox" data-f="ticket" ${row.ticket ? 'checked' : ''} ${dis}>`}</td>
+    <td>${isSpecial ? '' : `<input class="h-inp h-inp-sm" data-f="camion" value="${row.camion}" ${dis}>`}</td>
   `;
 
   // Calcul temps de travail en temps réel

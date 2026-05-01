@@ -125,10 +125,9 @@ function calcWeekTotal(stationId, chauffeurNom, mondayDate) {
       if (['Astreinte','Chime','Safety'].includes(row.statut)) {
         const defaultSp = row.statut==='Chime' ? '5:00' : '2:00';
         const sp = timeToMin(row.specialTravail || defaultSp) || 0;
-        if (row.statut === 'Astreinte') astreinteMin += sp;
-        if (row.statut === 'Chime') chimeMin += sp;
-        if (row.statut === 'Safety') safetyMin += sp;
-        totalMin += sp; joursTravailes++; continue;
+        if (row.statut === 'Astreinte') { astreinteMin += sp; totalMin += sp; continue; }
+        if (row.statut === 'Chime') { chimeMin += sp; totalMin += sp; joursTravailes++; continue; }
+        if (row.statut === 'Safety') { safetyMin += sp; totalMin += sp; joursTravailes++; continue; }
       }
       if (row.statut === 'Absent') { absences++; continue; }
       if (row.statut !== 'Présent') continue;
@@ -158,10 +157,9 @@ function calcMonthTotal(stationId, chauffeurNom, year, month) {
       if (['Astreinte','Chime','Safety'].includes(row.statut)) {
         const defaultSp = row.statut==='Chime' ? '5:00' : '2:00';
         const sp = timeToMin(row.specialTravail || defaultSp) || 0;
-        if (row.statut === 'Astreinte') astreinteMin += sp;
-        if (row.statut === 'Chime') chimeMin += sp;
-        if (row.statut === 'Safety') safetyMin += sp;
-        totalMin += sp; joursTravailes++; continue;
+        if (row.statut === 'Astreinte') { astreinteMin += sp; totalMin += sp; continue; }
+        if (row.statut === 'Chime') { chimeMin += sp; totalMin += sp; joursTravailes++; continue; }
+        if (row.statut === 'Safety') { safetyMin += sp; totalMin += sp; joursTravailes++; continue; }
       }
       if (row.statut === 'Absent') { absences++; continue; }
       if (row.statut !== 'Présent') continue;
