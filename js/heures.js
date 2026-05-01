@@ -1,7 +1,9 @@
 /* js/heures.js — Onglet Heures (SunXP Pro) */
 console.log('heures.js chargé');
 
-const VAGUE_COLORS = ['#2d1f4e', '#1a3a2a', '#1a2a3e', '#3a2a1a', '#1a3a3a', '#2a1a3a', '#3a1a2a', '#1a2a2a']; // 8 couleurs distinctes
+const VAGUE_COLORS_DARK  = ['#2d1f4e', '#1a3a2a', '#1a2a3e', '#3a2a1a', '#1a3a3a', '#2a1a3a', '#3a1a2a', '#1a2a2a'];
+const VAGUE_COLORS_LIGHT = ['#e8e0f0', '#d8ece0', '#d8e4f0', '#f0e8d8', '#d8f0f0', '#e8d8f0', '#f0d8e0', '#d8e8e8'];
+function getVagueColors() { return document.body.classList.contains('light-mode') ? VAGUE_COLORS_LIGHT : VAGUE_COLORS_DARK; }
 const STATUTS = ['Présent', 'Absent', 'Astreinte', 'Chime', 'Safety'];
 
 let heuresCurrentDate = new Date();
@@ -314,11 +316,12 @@ function buildTable(rows, storageKey, stationId) {
 }
 
 function assignVagueColors(rows) {
+  const colors = getVagueColors();
   const map = {};
   let ci = 0;
   rows.forEach(r => {
     if (r.heureVague && !(r.heureVague in map)) {
-      map[r.heureVague] = VAGUE_COLORS[ci % VAGUE_COLORS.length];
+      map[r.heureVague] = colors[ci % colors.length];
       ci++;
     }
   });
@@ -334,9 +337,9 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
   const bgColor = (!isLocked && !isAbsent && !isSpecial) ? (vagueColors[row.heureVague] || '') : '';
   if (bgColor) tr.style.backgroundColor = bgColor;
   if (isAbsent || isLocked) tr.style.opacity = isLocked ? '0.35' : '0.45';
-  if (row.statut === 'Astreinte') tr.style.backgroundColor = '#3a3000';
-  if (row.statut === 'Chime') tr.style.backgroundColor = '#0a1a3a';
-  if (row.statut === 'Safety') tr.style.backgroundColor = '#0a2a3a';
+  if (row.statut === 'Astreinte') tr.style.backgroundColor = document.body.classList.contains('light-mode') ? '#f5f0d0' : '#3a3000';
+  if (row.statut === 'Chime') tr.style.backgroundColor = document.body.classList.contains('light-mode') ? '#d8e4f8' : '#0a1a3a';
+  if (row.statut === 'Safety') tr.style.backgroundColor = document.body.classList.contains('light-mode') ? '#d0eef8' : '#0a2a3a';
 
   const travailMin = calcTravail(row.heureVague, row.retourDepot, row.pause, row.backups);
   const travailStr = travailMin != null ? minToTime(travailMin) : '';
@@ -571,7 +574,7 @@ function buildNomCell(container, row, allRows, stationId, onSelect) {
       wrap.style.cssText = 'display:inline-flex;align-items:center;gap:3px;max-width:150px;width:150px;';
       const txt = document.createElement('span');
       txt.textContent = row.nom;
-      txt.style.cssText = 'font-size:12px;color:#e8e8f0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;';
+      txt.style.cssText = 'font-size:12px;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;';
       const clr = document.createElement('button');
       clr.textContent = '✕';
       clr.style.cssText = 'background:none;border:none;color:#f87171;cursor:pointer;font-size:13px;padding:2px 4px;flex-shrink:0;line-height:1;';
@@ -600,12 +603,13 @@ function buildNomCell(container, row, allRows, stationId, onSelect) {
     container.appendChild(inp);
 
     const dropdown = document.createElement('div');
+    const isLightDD = document.body.classList.contains('light-mode');
     dropdown.style.cssText = [
       'position:fixed', 'z-index:9999',
-      'background:#2a2a3e', 'border:1px solid #7c6af7',
+      'background:' + (isLightDD ? '#f5f2ec' : '#2a2a3e'), 'border:1px solid var(--accent)',
       'border-radius:6px', 'min-width:180px',
       'max-height:220px', 'overflow-y:auto',
-      'box-shadow:0 6px 20px rgba(0,0,0,0.6)', 'display:none'
+      'box-shadow:0 6px 20px rgba(0,0,0,' + (isLightDD ? '0.15' : '0.6') + ')', 'display:none'
     ].join(';');
     document.body.appendChild(dropdown);
 
@@ -640,8 +644,8 @@ function buildNomCell(container, row, allRows, stationId, onSelect) {
       matches.forEach(name => {
         const item = document.createElement('div');
         item.textContent = name;
-        item.style.cssText = 'padding:7px 12px;cursor:pointer;font-size:12px;color:#e8e8f0;white-space:nowrap;';
-        item.addEventListener('mouseenter', () => item.style.background = '#3a3a5e');
+        item.style.cssText = 'padding:7px 12px;cursor:pointer;font-size:12px;color:var(--text-primary);white-space:nowrap;';
+        item.addEventListener('mouseenter', () => item.style.background = 'var(--bg-tab-hover)');
         item.addEventListener('mouseleave', () => item.style.background = '');
         item.addEventListener('mousedown', e => {
           e.preventDefault();

@@ -115,7 +115,8 @@ function buildCheckTSMContent(stationId) {
     const safety = r.statut === 'Safety' ? (r.specialTravail || '2:00') : '';
 
     const checked = validData[r.nom] ? 'checked' : '';
-    const rowColor = isAbsent ? 'opacity:0.4;' : r.statut === 'Astreinte' ? 'background:#2a2a00;' : r.statut === 'Chime' ? 'background:#0a1a3a;' : r.statut === 'Safety' ? 'background:#0a2a3a;' : '';
+    const isLight = document.body.classList.contains('light-mode');
+    const rowColor = isAbsent ? 'opacity:0.4;' : r.statut === 'Astreinte' ? ('background:' + (isLight ? '#f5f0d0' : '#2a2a00') + ';') : r.statut === 'Chime' ? ('background:' + (isLight ? '#d8e4f8' : '#0a1a3a') + ';') : r.statut === 'Safety' ? ('background:' + (isLight ? '#d0eef8' : '#0a2a3a') + ';') : '';
 
     const tr = document.createElement('tr');
     tr.style.cssText = rowColor;
