@@ -376,11 +376,15 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
 
   // Calcul temps de travail en temps réel
   function updateTravail() {
-    const vague  = tr.querySelector('[data-f="heureVague"]').value.trim();
-    const retour = tr.querySelector('[data-f="retourDepot"]').value.trim();
-    const pause  = tr.querySelector('[data-f="pause"]').value.trim();
-    const cell   = tr.querySelector('#travail-' + row.key);
-    if (!cell) return;
+    if (isSpecial) return; // Pas de calcul pour Astreinte/Chime/Safety
+    const vagueEl  = tr.querySelector('[data-f="heureVague"]');
+    const retourEl = tr.querySelector('[data-f="retourDepot"]');
+    const pauseEl  = tr.querySelector('[data-f="pause"]');
+    const cell     = tr.querySelector('#travail-' + row.key);
+    if (!vagueEl || !retourEl || !pauseEl || !cell) return;
+    const vague = vagueEl.value.trim();
+    const retour = retourEl.value.trim();
+    const pause = pauseEl.value.trim();
     if (!vague || !retour || !pause) { cell.textContent = ''; cell.className = 'h-travail'; return; }
     const min = calcTravail(vague, retour, parseInt(pause), '');
     if (min == null) { cell.textContent = ''; cell.className = 'h-travail'; return; }
@@ -389,12 +393,15 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
     // Fin de pause = heure de pause + durée de pause
     const fpCell = tr.querySelector('#finpause-' + row.key);
     if (fpCell) {
-      const hp = tr.querySelector('[data-f="heurePause"]').value.trim();
-      if (hp && pause) {
-        const hpMin = timeToMin(hp);
-        if (hpMin != null) fpCell.textContent = minToTime(hpMin + parseInt(pause));
-        else fpCell.textContent = '';
-      } else fpCell.textContent = '';
+      const hpEl = tr.querySelector('[data-f="heurePause"]');
+      if (hpEl) {
+        const hp = hpEl.value.trim();
+        if (hp && pause) {
+          const hpMin = timeToMin(hp);
+          if (hpMin != null) fpCell.textContent = minToTime(hpMin + parseInt(pause));
+          else fpCell.textContent = '';
+        } else fpCell.textContent = '';
+      }
     }
   }
   updateTravail();
