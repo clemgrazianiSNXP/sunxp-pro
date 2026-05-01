@@ -332,7 +332,7 @@ function portalPrime() {
   const impacts = getImpactsList(row);
 
   // Prime de base
-  wrap.appendChild(portalCard('💵', 'Prime de base', base + '€', `Calculée sur ${row.jours || 0} jour${(row.jours||0) !== 1 ? 's' : ''} travaillé${(row.jours||0) !== 1 ? 's' : ''}`));
+  wrap.appendChild(portalCard('💵', 'Prime du mois en cours', base + '€', `Calculée sur ${row.jours || 0} jour${(row.jours||0) !== 1 ? 's' : ''} travaillé${(row.jours||0) !== 1 ? 's' : ''}`));
 
   // Jours travaillés
   wrap.appendChild(portalCard('📅', 'Jours travaillés', String(row.jours || 0), 'Nombre de jours où vous avez travaillé ce mois'));

@@ -480,7 +480,6 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
       if (e.key === 'Enter') {
         e.preventDefault();
         handler();
-        inp.blur();
       }
     });
   });

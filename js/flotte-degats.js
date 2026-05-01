@@ -197,15 +197,19 @@ function showDegatsForm(camions, chauffeurs, stationId) {
   box.style.cssText = 'background:var(--bg-sidebar);border:1px solid var(--border);border-radius:12px;padding:24px;width:90%;max-width:400px;display:flex;flex-direction:column;gap:10px;';
   box.innerHTML = `<h3 style="font-size:14px;color:var(--accent);margin:0;">🔧 Signaler un dégât</h3>`;
 
-  const selCamion = document.createElement('select');
-  selCamion.style.cssText = 'background:var(--bg-tab-active);border:1px solid var(--border);color:var(--text-primary);border-radius:5px;padding:8px;font-size:12px;font-family:var(--font-family);';
-  selCamion.innerHTML = '<option value="">-- Camion --</option>' + camions.map(c => `<option value="${c.plaque}">${c.plaque}</option>`).join('');
-  box.appendChild(selCamion);
+  // Input camion avec autocomplete
+  const camionInp = document.createElement('input');
+  camionInp.type = 'text'; camionInp.placeholder = '🚛 Plaque du camion...';
+  camionInp.className = 'rep-input'; camionInp.style.cssText = 'padding:8px;font-size:12px;';
+  box.appendChild(camionInp);
+  buildAutocompleteList(camionInp, camions.map(c => c.plaque), box);
 
-  const selChauffeur = document.createElement('select');
-  selChauffeur.style.cssText = selCamion.style.cssText;
-  selChauffeur.innerHTML = '<option value="">-- Chauffeur --</option>' + chauffeurs.map(c => `<option value="${c.prenom} ${c.nom}">${c.prenom} ${c.nom}</option>`).join('');
-  box.appendChild(selChauffeur);
+  // Input chauffeur avec autocomplete
+  const chauffeurInp = document.createElement('input');
+  chauffeurInp.type = 'text'; chauffeurInp.placeholder = '👤 Nom du chauffeur...';
+  chauffeurInp.className = 'rep-input'; chauffeurInp.style.cssText = 'padding:8px;font-size:12px;';
+  box.appendChild(chauffeurInp);
+  buildAutocompleteList(chauffeurInp, chauffeurs.map(c => (c.prenom + ' ' + c.nom).trim()), box);
 
   const dateInp = document.createElement('input');
   dateInp.type = 'date'; dateInp.className = 'h-inp'; dateInp.style.cssText = 'text-align:left;padding:8px;';
@@ -234,7 +238,7 @@ function showDegatsForm(camions, chauffeurs, stationId) {
   cancelBtn.textContent = 'Annuler';
   cancelBtn.onclick = () => overlay.remove();
   saveBtn.onclick = async () => {
-    if (!selCamion.value || !selChauffeur.value) { alert('Choisissez un camion et un chauffeur.'); return; }
+    if (!camionInp.value.trim() || !chauffeurInp.value.trim()) { alert('Choisissez un camion et un chauffeur.'); return; }
     saveBtn.disabled = true; saveBtn.textContent = '⏳ Upload...';
     const degatId = 'dg_' + Date.now();
     const files = photoInp.files;
@@ -244,7 +248,7 @@ function showDegatsForm(camions, chauffeurs, stationId) {
       if (url) photos.push(url);
     }
     const degats = loadDegats();
-    degats.push({ id: degatId, plaque: selCamion.value, chauffeur: selChauffeur.value, date: dateInp.value, description: desc.value, photos });
+    degats.push({ id: degatId, plaque: camionInp.value.trim(), chauffeur: chauffeurInp.value.trim(), date: dateInp.value, description: desc.value, photos });
     saveDegats(degats);
     overlay.remove();
     if (typeof renderFlotte === 'function') renderFlotte();
@@ -254,4 +258,55 @@ function showDegatsForm(camions, chauffeurs, stationId) {
   overlay.appendChild(box);
   overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
   document.body.appendChild(overlay);
+}
+
+/* ── Autocomplete helper pour les inputs ──────────────────── */
+function buildAutocompleteList(inp, options, container) {
+  const dropdown = document.createElement('div');
+  dropdown.style.cssText = 'position:absolute;z-index:9999;background:var(--bg-sidebar);border:1px solid var(--accent);border-radius:6px;max-height:180px;overflow-y:auto;display:none;box-shadow:0 6px 20px rgba(0,0,0,0.4);';
+  container.style.position = 'relative';
+  container.appendChild(dropdown);
+
+  const normalize = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
+  function show(query) {
+    const q = normalize(query);
+    const matches = options.filter(o => normalize(o).includes(q)).slice(0, 8);
+    dropdown.innerHTML = '';
+    if (!matches.length) { dropdown.style.display = 'none'; return; }
+    matches.forEach(name => {
+      const item = document.createElement('div');
+      item.textContent = name;
+      item.style.cssText = 'padding:7px 12px;cursor:pointer;font-size:12px;color:var(--text-primary);white-space:nowrap;';
+      item.addEventListener('mouseenter', () => item.style.background = 'var(--bg-tab-hover)');
+      item.addEventListener('mouseleave', () => item.style.background = '');
+      item.addEventListener('mousedown', e => {
+        e.preventDefault();
+        inp.value = name;
+        dropdown.style.display = 'none';
+      });
+      dropdown.appendChild(item);
+    });
+    const rect = inp.getBoundingClientRect();
+    const contRect = container.getBoundingClientRect();
+    dropdown.style.top = (rect.bottom - contRect.top + 2) + 'px';
+    dropdown.style.left = (rect.left - contRect.left) + 'px';
+    dropdown.style.minWidth = rect.width + 'px';
+    dropdown.style.display = 'block';
+  }
+
+  inp.addEventListener('input', () => show(inp.value));
+  inp.addEventListener('focus', () => show(inp.value));
+  inp.addEventListener('blur', () => setTimeout(() => { dropdown.style.display = 'none'; }, 150));
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      const first = dropdown.querySelector('div');
+      if (first && dropdown.style.display !== 'none') {
+        e.preventDefault();
+        inp.value = first.textContent;
+        dropdown.style.display = 'none';
+      }
+    }
+    if (e.key === 'Escape') dropdown.style.display = 'none';
+  });
 }
