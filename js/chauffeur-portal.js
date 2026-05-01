@@ -251,9 +251,9 @@ function portalStats() {
       <div style="font-weight:700;font-size:14px;">📦 Delivery Success (DS)</div>
       <div style="font-size:12px;color:var(--text-muted);">Taux de livraison réussie</div>
       <div style="display:flex;justify-content:space-around;margin-top:4px;">
-        <div style="text-align:center;"><div style="font-size:10px;color:var(--text-muted);">Colis livrés</div><div style="font-size:20px;font-weight:700;">${colisLivres}</div></div>
-        <div style="text-align:center;"><div style="font-size:10px;color:var(--text-muted);">Colis retournés</div><div style="font-size:20px;font-weight:700;color:#f87171;">${colisRetournes}</div></div>
-        <div style="text-align:center;"><div style="font-size:10px;color:var(--text-muted);">DS%</div><div style="font-size:20px;font-weight:700;color:${dcrColor};">${dsdpmoRow.dcrPct}%</div></div>
+        <div style="text-align:center;"><div style="font-size:10px;color:var(--text-muted);">Colis livrés</div><div style="font-size:20px;font-weight:700;">${dsdpmoRow.colis || '—'}</div></div>
+        <div style="text-align:center;"><div style="font-size:10px;color:var(--text-muted);">Colis ramenés</div><div style="font-size:20px;font-weight:700;color:#f87171;">${dsdpmoRow.colisRam || '0'}</div></div>
+        <div style="text-align:center;"><div style="font-size:10px;color:var(--text-muted);">DCR%</div><div style="font-size:20px;font-weight:700;color:${dcrColor};">${dsdpmoRow.dcrPct}%</div></div>
       </div>`;
     wrap.appendChild(dsCard);
 
