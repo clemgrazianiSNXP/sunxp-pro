@@ -325,6 +325,10 @@ function portalPrime() {
   const data = loadPrimesData(portalStationId, year, month);
   const row = data[key] || {};
   if (typeof countJoursTravailles === 'function') row.jours = countJoursTravailles(portalStationId, portalChauffeur, year, month);
+  // Calculer les champs auto (fico, absences) pour que le total soit correct
+  const nom = ((portalChauffeur.prenom || '') + ' ' + (portalChauffeur.nom || '')).trim();
+  if (typeof window.countFicoForMonth === 'function' && nom) row.fico = window.countFicoForMonth(portalStationId, nom, year, month);
+  if (typeof window.countAbsencesForMonth === 'function' && nom) row.absences = window.countAbsencesForMonth(portalStationId, nom, year, month);
   const reports = getReportPrecedent(portalStationId, year, month);
   const report = reports[key] || 0;
   const total = calcTotalPrime(row, report);
