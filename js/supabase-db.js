@@ -396,24 +396,14 @@ window.preloadStationData = async function (stationId) {
       console.log(`  Stats: ${statsData.length} entrées`);
     }
 
-    // Primes
+    // Primes — seulement si pas déjà en localStorage (portail chauffeur)
     const { data: primesData } = await sb().from('primes').select('annee, mois, data').eq('station_id', stationId);
     if (primesData) {
       primesData.forEach(p => {
         const key = stationId + '-primes-' + p.annee + '-' + String(p.mois).padStart(2, '0');
-        const existing = localStorage.getItem(key);
-        if (existing) {
-          // Fusionner : garder les données locales, compléter avec Supabase
-          try {
-            const local = JSON.parse(existing);
-            const remote = p.data || {};
-            // Garder les valeurs locales si elles existent
-            Object.keys(remote).forEach(k => {
-              if (!local[k] || Object.keys(local[k]).length === 0) local[k] = remote[k];
-            });
-            localStorage.setItem(key, JSON.stringify(local));
-          } catch (_) {}
-        } else {
+        // Toujours écraser côté chauffeur, jamais côté responsable
+        const isDriver = typeof portalChauffeur !== 'undefined' && portalChauffeur !== null;
+        if (isDriver || !localStorage.getItem(key)) {
           localStorage.setItem(key, JSON.stringify(p.data));
         }
       });
