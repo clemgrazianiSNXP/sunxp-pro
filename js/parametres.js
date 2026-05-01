@@ -87,6 +87,11 @@ function renderParametres() {
       document.documentElement.style.removeProperty('--bg-tab-active');
     }
     if (typeof setMenuTab === 'function') setMenuTab('parametres');
+    // Re-render heures pour adapter les couleurs au nouveau mode
+    if (typeof renderHeures === 'function' && document.getElementById('module-heures')) {
+      if (typeof heuresFirstRender !== 'undefined') heuresFirstRender = true;
+      renderHeures();
+    }
   };
   modeWrap.appendChild(modeBtn);
   themeSection.appendChild(modeWrap);
