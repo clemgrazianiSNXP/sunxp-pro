@@ -401,8 +401,19 @@ window.preloadStationData = async function (stationId) {
     if (primesData) {
       primesData.forEach(p => {
         const key = stationId + '-primes-' + p.annee + '-' + String(p.mois).padStart(2, '0');
-        // Ne pas écraser si des données locales existent déjà (évite de perdre les saisies récentes)
-        if (!localStorage.getItem(key)) {
+        const existing = localStorage.getItem(key);
+        if (existing) {
+          // Fusionner : garder les données locales, compléter avec Supabase
+          try {
+            const local = JSON.parse(existing);
+            const remote = p.data || {};
+            // Garder les valeurs locales si elles existent
+            Object.keys(remote).forEach(k => {
+              if (!local[k] || Object.keys(local[k]).length === 0) local[k] = remote[k];
+            });
+            localStorage.setItem(key, JSON.stringify(local));
+          } catch (_) {}
+        } else {
           localStorage.setItem(key, JSON.stringify(p.data));
         }
       });
