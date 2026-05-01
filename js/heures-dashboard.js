@@ -56,7 +56,7 @@ function renderDashboard(dash, rows) {
           <circle cx="50" cy="50" r="40" fill="none" stroke="var(--border)" stroke-width="8" opacity="0.3"/>
           <circle cx="50" cy="50" r="40" fill="none" stroke="${dsColor}" stroke-width="8"
             stroke-dasharray="${dsStroke} 251.327"
-            stroke-linecap="round" transform="rotate(-90 50 50)"
+            stroke-linecap="butt" transform="rotate(-90 50 50)"
             style="transition:stroke-dasharray 0.5s ease;"/>
         </svg>
         <div class="h-dash-gauge-text" id="dash-ds" style="color:${dsColor};">${dsVal}</div>
