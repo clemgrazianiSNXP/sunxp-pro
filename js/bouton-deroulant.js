@@ -32,32 +32,34 @@ function toggleMenuPanel() {
     if (tabsContainer) {
       tabsContainer.innerHTML = '';
       if (isDriverMode()) {
-        // Chauffeur : paramètres + ses propres courbes + demandes
+        // Chauffeur : stats + repos + congé + acompte + paramètres + contacts
         tabsContainer.innerHTML = `
-          <button class="menu-panel-tab active" data-tab="parametres" onclick="setMenuTab('parametres')" title="Paramètres">⚙️</button>
           <button class="menu-panel-tab" data-tab="mes-stats" onclick="setMenuTab('mes-stats')" title="Mes Statistiques">📊</button>
-          <button class="menu-panel-tab" data-tab="contacts-ch" onclick="setMenuTab('contacts-ch')" title="Contacts">📇</button>
           <button class="menu-panel-tab" data-tab="repos" onclick="setMenuTab('repos')" title="Demande de repos">📅</button>
-          <button class="menu-panel-tab" data-tab="acompte" onclick="setMenuTab('acompte')" title="Demande d'acompte">💶</button>
           <button class="menu-panel-tab" data-tab="conges" onclick="setMenuTab('conges')" title="Congés payés">🏖</button>
+          <button class="menu-panel-tab" data-tab="acompte" onclick="setMenuTab('acompte')" title="Demande d'acompte">💶</button>
+          <button class="menu-panel-tab active" data-tab="parametres" onclick="setMenuTab('parametres')" title="Paramètres">⚙️</button>
+          <button class="menu-panel-tab" data-tab="contacts-ch" onclick="setMenuTab('contacts-ch')" title="Contacts">📇</button>
         `;
       } else {
-        // Responsable : tout + demandes + stations
+        // Responsable : demandes + analyse + badges + docs + paramètres + contacts + stations
         tabsContainer.innerHTML = `
-          <button class="menu-panel-tab active" data-tab="parametres" onclick="setMenuTab('parametres')" title="Paramètres">⚙️</button>
-          <button class="menu-panel-tab" data-tab="documents" onclick="setMenuTab('documents')" title="Documents bureau">📄</button>
-          <button class="menu-panel-tab" data-tab="docs-chauffeurs" onclick="setMenuTab('docs-chauffeurs')" title="Documents chauffeurs">👤</button>
+          <button class="menu-panel-tab" data-tab="demandes-mgr" onclick="setMenuTab('demandes-mgr')" title="Demandes chauffeurs">📋</button>
           <button class="menu-panel-tab" data-tab="analyse" onclick="setMenuTab('analyse')" title="Analyse & Performance">📊</button>
           <button class="menu-panel-tab" data-tab="badges-mgr" onclick="setMenuTab('badges-mgr')" title="Badges chauffeurs">🏆</button>
+          <button class="menu-panel-tab" data-tab="documents" onclick="setMenuTab('documents')" title="Documents bureau">📄</button>
+          <button class="menu-panel-tab" data-tab="docs-chauffeurs" onclick="setMenuTab('docs-chauffeurs')" title="Documents chauffeurs">👤</button>
+          <button class="menu-panel-tab active" data-tab="parametres" onclick="setMenuTab('parametres')" title="Paramètres">⚙️</button>
           <button class="menu-panel-tab" data-tab="contacts" onclick="setMenuTab('contacts')" title="Contacts">📇</button>
-          <button class="menu-panel-tab" data-tab="demandes-mgr" onclick="setMenuTab('demandes-mgr')" title="Demandes chauffeurs">📋</button>
           <button class="menu-panel-tab" data-tab="stations-mgr" onclick="setMenuTab('stations-mgr')" title="Gérer les stations">🏢</button>
         `;
       }
     }
     bindTabTooltips();
     updateDemandesBadge();
-    setMenuTab('parametres');
+    // Ouvrir le premier onglet par défaut
+    const firstTab = isDriverMode() ? 'mes-stats' : 'demandes-mgr';
+    setMenuTab(firstTab);
   }
 }
 
