@@ -445,7 +445,7 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
       }
       saveDay(storageKey, allRows, stationId);
       // Rafraîchir le dashboard si mentor ou trajet changé
-      if (['mentor','trajet','faute'].includes(inp.dataset.f)) {
+      if (['mentor','trajet'].includes(inp.dataset.f)) {
         const dashEl = document.querySelector('.h-dashboard');
         if (dashEl) dashEl.parentElement.innerHTML = renderDashboard(null, allRows);
         bindDashboard(() => saveDay(storageKey, allRows, stationId), allRows, dateLabel(heuresCurrentDate), stationId);
@@ -529,18 +529,6 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
       refreshNomCell();
       starCell.innerHTML = buildStarRating(row.trajet, '');
       bindStars();
-      // Focus la ligne suivante après que tout soit stable
-      setTimeout(() => {
-        const tbody = tr.closest('tbody');
-        if (!tbody) return;
-        const nextTr = tr.nextElementSibling;
-        if (!nextTr) return;
-        const nextInp = nextTr.querySelector('.h-inp-nom');
-        if (nextInp && !nextInp.disabled) {
-          nextInp.dataset.skipBlur = '1';
-          nextInp.focus();
-        }
-      }, 300);
     });
   }
   refreshNomCell();
@@ -664,7 +652,7 @@ function buildNomCell(container, row, allRows, stationId, onSelect) {
 
     inp.addEventListener('input',  () => showDropdown(inp.value));
     inp.addEventListener('focus',  () => showDropdown(inp.value));
-    inp.addEventListener('blur',   () => { if (!nomSelected && !inp.dataset.skipBlur) setTimeout(hideDropdown, 160); delete inp.dataset.skipBlur; });
+    inp.addEventListener('blur',   () => { if (!nomSelected) setTimeout(hideDropdown, 160); });
     inp.addEventListener('keydown', e => {
       if (e.key === 'Enter') {
         e.preventDefault();
