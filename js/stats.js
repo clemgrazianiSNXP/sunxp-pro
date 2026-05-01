@@ -236,7 +236,7 @@ function buildDSDPMO() {
   const tbody = document.createElement('tbody');
   data.forEach(r => {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${driverCell(r.idAmazon)}</td><td>${r.semaine}</td><td>${r.colis}</td><td>${r.colisRam}</td><td>${r.dcrPct}%</td><td>${r.dnrDpmo}</td><td>${r.nombreDnr}</td><td style="display:flex;gap:4px;"></td>`;
+    tr.innerHTML = `<td>${driverCell(r.idAmazon)}</td><td>${r.semaine}</td><td>${r.colis}</td><td>${r.colisRam}</td><td>${r.dcrPct}%</td><td>${r.dnrDpmo}</td><td>${r.nombreDnr}</td><td></td>`;
     tr.lastElementChild.appendChild(deleteRowBtn('dsdpmo', statsWeekDSDPMO, r.idAmazon, tr));
     tbody.appendChild(tr);
   });
@@ -282,7 +282,7 @@ function buildPOD() {
   const tbody = document.createElement('tbody');
   data.forEach(r => {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${driverCell(r.idAmazon)}</td><td>${r.semaine}</td><td>${r.opportunities}</td><td>${r.success ?? ''}</td><td>${r.rejects}</td><td>${r.podPct}%</td><td style="display:flex;gap:4px;"></td>`;
+    tr.innerHTML = `<td>${driverCell(r.idAmazon)}</td><td>${r.semaine}</td><td>${r.opportunities}</td><td>${r.success ?? ''}</td><td>${r.rejects}</td><td>${r.podPct}%</td><td></td>`;
     tr.lastElementChild.appendChild(deleteRowBtn('pod', statsWeekPOD, r.idAmazon, tr));
     tbody.appendChild(tr);
   });
@@ -336,7 +336,7 @@ function buildDWC() {
     const d = resolveDriver(r.idAmazon);
     const prenom = d ? d.nom.split(' ')[0] : r.idAmazon;
     const msg = `Bonjour ${prenom}, voici votre score DWC semaine ${r.semaine} : 📊 DWC : ${r.dwcPct}% | 📵 Contact Miss : ${r.contactMiss}`;
-    tr.innerHTML = `<td>${driverCell(r.idAmazon)}</td><td>${r.dwcPct}%</td><td>${r.contactMiss}</td><td style="display:flex;gap:4px;"></td>`;
+    tr.innerHTML = `<td>${driverCell(r.idAmazon)}</td><td>${r.dwcPct}%</td><td>${r.contactMiss}</td><td></td>`;
     tr.lastElementChild.appendChild(deleteRowBtn('dwc', statsWeekDWC, r.idAmazon, tr));
     tbody.appendChild(tr);
   });
