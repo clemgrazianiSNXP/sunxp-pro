@@ -526,24 +526,19 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
     buildNomCell(nomDisplay, row, allRows, stationId, () => {
       saveDay(storageKey, allRows, stationId);
       updateTravail();
-      // Mettre à jour la cellule nom SANS reconstruire tout le DOM
       refreshNomCell();
       starCell.innerHTML = buildStarRating(row.trajet, '');
       bindStars();
-      // Focus la ligne suivante via un click simulé sur l'input nom
+      // Cliquer sur la cellule nom de la ligne suivante
       const nextTr = tr.nextElementSibling;
       if (nextTr) {
-        // Attendre que le DOM soit stable
-        setTimeout(() => {
-          const nextNomInp = nextTr.querySelector('.h-inp-nom');
-          if (nextNomInp) {
-            // Empêcher le blur de fermer la dropdown
-            nextNomInp._autoFocused = true;
-            nextNomInp.focus();
-            // Réactiver le blur après un court délai
-            setTimeout(() => { if (nextNomInp) nextNomInp._autoFocused = false; }, 10000);
-          }
-        }, 100);
+        const nextNomCell = nextTr.querySelector('.h-nom-display');
+        if (nextNomCell) {
+          setTimeout(() => {
+            const nextInp = nextNomCell.querySelector('.h-inp-nom');
+            if (nextInp) nextInp.click();
+          }, 50);
+        }
       }
     });
   }
@@ -668,7 +663,7 @@ function buildNomCell(container, row, allRows, stationId, onSelect) {
 
     inp.addEventListener('input',  () => showDropdown(inp.value));
     inp.addEventListener('focus',  () => showDropdown(inp.value));
-    inp.addEventListener('blur',   () => { if (!nomSelected && !inp._autoFocused) setTimeout(hideDropdown, 160); });
+    inp.addEventListener('blur',   () => { if (!nomSelected) setTimeout(hideDropdown, 160); });
     inp.addEventListener('keydown', e => {
       if (e.key === 'Enter') {
         e.preventDefault();
