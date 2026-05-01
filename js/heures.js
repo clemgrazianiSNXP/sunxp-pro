@@ -464,10 +464,13 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
     }
     // Re-render les couleurs quand on quitte le champ vague
     if (inp.dataset.f === 'heureVague') {
+      const origVague = row.heureVague || '';
       inp.addEventListener('blur', () => {
-        row.heureVague = inp.value;
-        saveDay(storageKey, allRows, stationId);
-        renderHeures();
+        if (inp.value !== origVague) {
+          row.heureVague = inp.value;
+          saveDay(storageKey, allRows, stationId);
+          renderHeures();
+        }
       });
     }
     inp.addEventListener('input', () => {
