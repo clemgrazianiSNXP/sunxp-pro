@@ -184,7 +184,11 @@ function openForm(chauffeur, stationId) {
     chauffeur,
     (saved) => {
       const list = loadChauffeurs(stationId);
-      const idx = list.findIndex(c => c.id === saved.id);
+      // Chercher par id OU par id_amazon pour éviter les doublons
+      const idx = list.findIndex(c => 
+        (c.id && c.id === saved.id) || 
+        (c.id_amazon && c.id_amazon === saved.id_amazon)
+      );
       if (idx >= 0) list[idx] = saved; else list.push(saved);
       saveChauffeurs(stationId, list);
       zone.innerHTML = '';
@@ -196,7 +200,7 @@ function openForm(chauffeur, stationId) {
 
 function deleteChauffeur(id, stationId) {
   showConfirmModal('Supprimer ce chauffeur ?', () => {
-    const list = loadChauffeurs(stationId).filter(c => c.id !== id);
+    const list = loadChauffeurs(stationId).filter(c => c.id !== id && !(c.id_amazon && c.id_amazon === id));
     saveChauffeurs(stationId, list);
     renderRepertoire();
   });
