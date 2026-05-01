@@ -589,6 +589,7 @@ function buildNomCell(container, row, allRows, stationId, onSelect) {
     ].join(';');
     document.body.appendChild(dropdown);
 
+    let nomSelected = false;
     const normalize = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
     const usedNoms = new Set(allRows.filter(r => r !== row && r.nom).map(r => r.nom.trim()));
 
@@ -624,6 +625,7 @@ function buildNomCell(container, row, allRows, stationId, onSelect) {
         item.addEventListener('mouseleave', () => item.style.background = '');
         item.addEventListener('mousedown', e => {
           e.preventDefault();
+          nomSelected = true;
           row.nom = name;
           if (!row.pause) row.pause = 45;
           dropdown.style.display = 'none';
@@ -642,9 +644,11 @@ function buildNomCell(container, row, allRows, stationId, onSelect) {
 
     inp.addEventListener('input',  () => showDropdown(inp.value));
     inp.addEventListener('focus',  () => showDropdown(inp.value));
-    inp.addEventListener('blur',   () => setTimeout(hideDropdown, 160));
+    inp.addEventListener('blur',   () => { if (!nomSelected) setTimeout(hideDropdown, 160); });
     inp.addEventListener('keydown', e => {
       if (e.key === 'Enter' && inp.value.trim()) {
+        e.preventDefault();
+        nomSelected = true;
         row.nom = inp.value.trim();
         if (!row.pause) row.pause = 45;
         dropdown.style.display = 'none';
