@@ -257,7 +257,7 @@ function buildImpactCell(colKey, row, chauffeurKey, data, sid) {
     row[colKey] = absCount;
     data[chauffeurKey] = row;
     const span = document.createElement('span');
-    span.style.cssText = 'display:inline-block;width:36px;text-align:center;font-size:12px;font-weight:700;color:' + (absCount > 0 ? '#f87171' : 'var(--text-muted)') + ';';
+    span.style.cssText = 'display:inline-block;width:24px;text-align:center;font-size:12px;font-weight:700;color:' + (absCount > 0 ? '#f87171' : 'var(--text-muted)') + ';';
     span.textContent = absCount;
     span.title = 'Calculé depuis le rapport chauffeur';
     td.appendChild(span);
@@ -275,7 +275,7 @@ function buildImpactCell(colKey, row, chauffeurKey, data, sid) {
     row[colKey] = ficoCount;
     data[chauffeurKey] = row;
     const span = document.createElement('span');
-    span.style.cssText = 'display:inline-block;width:36px;text-align:center;font-size:12px;font-weight:700;color:' + (ficoCount > 0 ? '#f87171' : 'var(--text-muted)') + ';';
+    span.style.cssText = 'display:inline-block;width:24px;text-align:center;font-size:12px;font-weight:700;color:' + (ficoCount > 0 ? '#f87171' : 'var(--text-muted)') + ';';
     span.textContent = ficoCount;
     span.title = 'Calculé depuis les impacts mentor dans heures';
     td.appendChild(span);
@@ -285,7 +285,7 @@ function buildImpactCell(colKey, row, chauffeurKey, data, sid) {
   const val = row[colKey] || '';
   const isWide = (colKey === 'casseCamion' || colKey === 'autre');
   const inp = document.createElement('input');
-  inp.className = 'h-inp h-inp-sm'; inp.value = val; inp.style.width = isWide ? '52px' : '36px';
+  inp.className = 'h-inp h-inp-sm'; inp.value = val; inp.style.width = isWide ? '70px' : '36px';
   inp.onchange = () => { row[colKey]=inp.value; data[chauffeurKey]=row; savePrimesData(sid,primesYear,primesMonth,data); renderPrimes(); };
   td.appendChild(inp);
 
