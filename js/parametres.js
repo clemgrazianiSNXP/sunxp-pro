@@ -114,13 +114,13 @@ function renderParametres() {
   // Presets fond
   const bgPresets = document.createElement('div');
   bgPresets.style.cssText = 'display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;';
-  const isLight = document.body.classList.contains('light-mode');
-  const presetColors = isLight
+  const isLightBg = document.body.classList.contains('light-mode');
+  const presetColors = isLightBg
     ? ['#f0ece4','#e8e4dc','#e0e8e0','#e4dce8','#e8e0d4','#dce0e8','#e8dcd8']
     : ['#12121a','#0a1628','#0a1a10','#1a1020','#1a1a1a','#2a1a1a','#1a2a2a'];
   presetColors.forEach(c => {
     const dot = document.createElement('button');
-    const borderCol = isLight ? (c === currentBg ? '#333' : 'rgba(0,0,0,0.15)') : (c === currentBg ? '#fff' : 'rgba(255,255,255,0.2)');
+    const borderCol = isLightBg ? (c === currentBg ? '#333' : 'rgba(0,0,0,0.15)') : (c === currentBg ? '#fff' : 'rgba(255,255,255,0.2)');
     dot.style.cssText = `width:28px;height:28px;border-radius:50%;border:2px solid ${borderCol};background:${c};cursor:pointer;`;
     dot.onclick = () => { bgPicker.value = c; applyBgColor(c); bgLabel.textContent = c; };
     bgPresets.appendChild(dot);
