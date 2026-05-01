@@ -240,18 +240,38 @@ function portalStats() {
   }
 
   if (dsdpmoRow) {
-    const dcrColor = parseFloat(dsdpmoRow.dcrPct) >= 98 ? '#4ade80' : parseFloat(dsdpmoRow.dcrPct) >= 95 ? '#f59e0b' : '#f87171';
-    const card = document.createElement('div'); card.className = 'portal-card';
-    card.style.cssText += 'text-align:left;align-items:stretch;gap:6px;';
-    card.innerHTML = `
-      <div style="font-weight:700;font-size:14px;">📦 Delivery Success (DS/DPMO)</div>
-      <div style="font-size:12px;color:var(--text-muted);">Taux de livraison réussie et colis non livrés</div>
+    // Card 1 : DS (Colis livrés, Colis retournés, DS%)
+    const dcrPct = parseFloat(dsdpmoRow.dcrPct) || 0;
+    const dcrColor = dcrPct >= 98 ? '#4ade80' : dcrPct >= 95 ? '#f59e0b' : '#f87171';
+    const colisLivres = dsdpmoRow.colisLivres || dsdpmoRow.totalColis || '—';
+    const colisRetournes = dsdpmoRow.nombreDnr || '0';
+    const dsCard = document.createElement('div'); dsCard.className = 'portal-card';
+    dsCard.style.cssText += 'text-align:left;align-items:stretch;gap:6px;';
+    dsCard.innerHTML = `
+      <div style="font-weight:700;font-size:14px;">📦 Delivery Success (DS)</div>
+      <div style="font-size:12px;color:var(--text-muted);">Taux de livraison réussie</div>
       <div style="display:flex;justify-content:space-around;margin-top:4px;">
-        <div style="text-align:center;"><div style="font-size:10px;color:var(--text-muted);">DCR</div><div style="font-size:20px;font-weight:700;color:${dcrColor};">${dsdpmoRow.dcrPct}%</div></div>
-        <div style="text-align:center;"><div style="font-size:10px;color:var(--text-muted);">DPMO</div><div style="font-size:20px;font-weight:700;">${dsdpmoRow.dnrDpmo}</div></div>
-        <div style="text-align:center;"><div style="font-size:10px;color:var(--text-muted);">DNR</div><div style="font-size:20px;font-weight:700;color:#f87171;">${dsdpmoRow.nombreDnr}</div></div>
+        <div style="text-align:center;"><div style="font-size:10px;color:var(--text-muted);">Colis livrés</div><div style="font-size:20px;font-weight:700;">${colisLivres}</div></div>
+        <div style="text-align:center;"><div style="font-size:10px;color:var(--text-muted);">Colis retournés</div><div style="font-size:20px;font-weight:700;color:#f87171;">${colisRetournes}</div></div>
+        <div style="text-align:center;"><div style="font-size:10px;color:var(--text-muted);">DS%</div><div style="font-size:20px;font-weight:700;color:${dcrColor};">${dsdpmoRow.dcrPct}%</div></div>
       </div>`;
-    wrap.appendChild(card);
+    wrap.appendChild(dsCard);
+
+    // Card 2 : DPMO (DPMO, DNR)
+    const dpmo = parseInt(dsdpmoRow.dnrDpmo) || 0;
+    const dnr = parseInt(dsdpmoRow.nombreDnr) || 0;
+    const dpmoColor = dpmo < 2500 ? '#4ade80' : '#f87171';
+    const dnrColor = dnr < 3 ? '#4ade80' : '#f87171';
+    const dpmoCard = document.createElement('div'); dpmoCard.className = 'portal-card';
+    dpmoCard.style.cssText += 'text-align:left;align-items:stretch;gap:6px;';
+    dpmoCard.innerHTML = `
+      <div style="font-weight:700;font-size:14px;">📊 DPMO</div>
+      <div style="font-size:12px;color:var(--text-muted);">Défauts par million d'opportunités</div>
+      <div style="display:flex;justify-content:space-around;margin-top:4px;">
+        <div style="text-align:center;"><div style="font-size:10px;color:var(--text-muted);">DPMO</div><div style="font-size:20px;font-weight:700;color:${dpmoColor};">${dsdpmoRow.dnrDpmo}</div></div>
+        <div style="text-align:center;"><div style="font-size:10px;color:var(--text-muted);">DNR</div><div style="font-size:20px;font-weight:700;color:${dnrColor};">${dnr}</div></div>
+      </div>`;
+    wrap.appendChild(dpmoCard);
   }
 
   if (podRow) {
@@ -291,7 +311,7 @@ function portalPrime() {
   const wrap = document.createElement('div');
   const year = portalMonth.getFullYear();
   const month = portalMonth.getMonth();
-  const key = portalChauffeur.id || portalChauffeur.id_amazon;
+  const key = portalChauffeur.id_amazon || portalChauffeur.id;
   const frMonths = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
   const monthLabel = frMonths[month] + ' ' + year;
 
