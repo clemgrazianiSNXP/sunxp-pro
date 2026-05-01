@@ -53,13 +53,16 @@ function primesStorageKey(stationId, year, month) {
 
 function loadPrimesData(stationId, year, month) {
   try {
-    const raw = localStorage.getItem(primesStorageKey(stationId, year, month));
+    const key = primesStorageKey(stationId, year, month);
+    const raw = localStorage.getItem(key);
+    console.log('📖 loadPrimesData', key, raw ? raw.slice(0, 100) : 'null');
     return raw ? JSON.parse(raw) : {};
   } catch(_) { return {}; }
 }
 
 function savePrimesData(stationId, year, month, data) {
   const key = primesStorageKey(stationId, year, month);
+  console.log('💾 savePrimesData', key, JSON.stringify(data).slice(0, 200));
   try { localStorage.setItem(key, JSON.stringify(data)); } catch(_) {}
   if (typeof dbSave === 'function') dbSave('primes', key, { station_id: stationId, annee: year, mois: month + 1 }, data);
 }
