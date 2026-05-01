@@ -401,7 +401,10 @@ window.preloadStationData = async function (stationId) {
     if (primesData) {
       primesData.forEach(p => {
         const key = stationId + '-primes-' + p.annee + '-' + String(p.mois).padStart(2, '0');
-        localStorage.setItem(key, JSON.stringify(p.data));
+        // Ne pas écraser si des données locales existent déjà (évite de perdre les saisies récentes)
+        if (!localStorage.getItem(key)) {
+          localStorage.setItem(key, JSON.stringify(p.data));
+        }
       });
       console.log(`  Primes: ${primesData.length} mois`);
     }
