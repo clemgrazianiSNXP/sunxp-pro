@@ -77,19 +77,19 @@ function renderDashboard(dash, rows) {
       <div class="h-dash-sep"></div>
 
       <div class="h-dash-field">
-        <label>🔴 Absents</label>
+        <label style="font-size:14px;font-weight:700;">🔴 Absents</label>
         <span class="h-dash-auto-list">${buildStatusList(rows, 'Absent')}</span>
       </div>
       <div class="h-dash-field">
-        <label>🟡 Astreinte</label>
+        <label style="font-size:14px;font-weight:700;">🟡 Astreinte</label>
         <span class="h-dash-auto-list">${buildStatusList(rows, 'Astreinte')}</span>
       </div>
       <div class="h-dash-field">
-        <label>🔵 Chime</label>
+        <label style="font-size:14px;font-weight:700;">🔵 Chime</label>
         <span class="h-dash-auto-list">${buildStatusList(rows, 'Chime')}</span>
       </div>
       <div class="h-dash-field">
-        <label>🩵 Safety</label>
+        <label style="font-size:14px;font-weight:700;">🩵 Safety</label>
         <span class="h-dash-auto-list">${buildStatusList(rows, 'Safety')}</span>
       </div>
 
