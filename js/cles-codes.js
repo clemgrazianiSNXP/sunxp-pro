@@ -64,11 +64,13 @@ function renderClesSection(data, canDelete) {
   addBtn.className = 'rep-btn rep-btn-primary'; addBtn.style.cssText = 'font-size:11px;padding:5px 10px;';
   addBtn.textContent = '+ Ajouter un secteur';
   addBtn.onclick = () => {
-    const nom = prompt('Nom du secteur :');
-    if (!nom || !nom.trim()) return;
-    data.cles.push({ secteur: nom.trim(), note: '' });
-    saveClesCodes(data);
-    renderClesContent();
+    if (typeof showPromptModal === 'function') {
+      showPromptModal('Nom du secteur', 'ex: Secteur 5', '', (nom) => {
+        data.cles.push({ secteur: nom, note: '' });
+        saveClesCodes(data);
+        renderClesContent();
+      });
+    }
   };
   addBar.appendChild(addBtn);
   wrap.appendChild(addBar);
@@ -96,7 +98,7 @@ function renderClesSection(data, canDelete) {
       const ta = document.createElement('textarea');
       ta.value = item.note || '';
       ta.placeholder = 'Quelle clé utiliser dans ce secteur...';
-      ta.style.cssText = 'width:100%;min-height:60px;resize:vertical;background:var(--bg-primary);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);font-size:12px;padding:8px;font-family:var(--font-family);';
+      ta.style.cssText = 'width:100%;min-height:100px;resize:vertical;background:var(--bg-primary);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);font-size:12px;padding:8px;font-family:var(--font-family);';
       ta.addEventListener('change', () => { item.note = ta.value; saveClesCodes(data); });
       body.appendChild(ta);
 
@@ -135,11 +137,13 @@ function renderCodesSection(data, canDelete) {
   addSectBtn.className = 'rep-btn rep-btn-primary'; addSectBtn.style.cssText = 'font-size:11px;padding:5px 10px;';
   addSectBtn.textContent = '+ Ajouter un secteur';
   addSectBtn.onclick = () => {
-    const nom = prompt('Nom du secteur :');
-    if (!nom || !nom.trim()) return;
-    data.codes.push({ secteur: nom.trim(), residences: [] });
-    saveClesCodes(data);
-    renderCodesContent();
+    if (typeof showPromptModal === 'function') {
+      showPromptModal('Nom du secteur', 'ex: Secteur 3', '', (nom) => {
+        data.codes.push({ secteur: nom, residences: [] });
+        saveClesCodes(data);
+        renderCodesContent();
+      });
+    }
   };
   addBar.appendChild(addSectBtn);
   wrap.appendChild(addBar);
@@ -172,7 +176,7 @@ function renderCodesSection(data, canDelete) {
           row.innerHTML = `<span style="font-size:12px;font-weight:600;flex:1;">${esc(res.nom)}</span>`;
           const codeInp = document.createElement('input');
           codeInp.className = 'rep-input'; codeInp.value = res.code || '';
-          codeInp.placeholder = 'Code...'; codeInp.style.cssText = 'width:100px;padding:4px 8px;font-size:12px;';
+          codeInp.placeholder = 'Code(s)...'; codeInp.style.cssText = 'width:140px;padding:4px 8px;font-size:12px;';
           codeInp.addEventListener('change', () => { res.code = codeInp.value; saveClesCodes(data); });
           row.appendChild(codeInp);
           if (canDelete) {
@@ -190,11 +194,13 @@ function renderCodesSection(data, canDelete) {
         addResBtn.className = 'h-btn'; addResBtn.style.cssText = 'font-size:10px;margin-top:6px;';
         addResBtn.textContent = '+ Ajouter une résidence';
         addResBtn.onclick = () => {
-          const nom = prompt('Nom de la résidence :');
-          if (!nom || !nom.trim()) return;
-          sect.residences.push({ nom: nom.trim(), code: '' });
-          saveClesCodes(data);
-          renderResidences();
+          if (typeof showPromptModal === 'function') {
+            showPromptModal('Nom de la résidence', 'ex: Résidence Les Oliviers', '', (nom) => {
+              sect.residences.push({ nom, code: '' });
+              saveClesCodes(data);
+              renderResidences();
+            });
+          }
         };
         body.appendChild(addResBtn);
 
