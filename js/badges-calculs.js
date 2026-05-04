@@ -20,11 +20,12 @@ const BADGE_DEFS = [
   { id:'ds_solide', section:'DS 📦', name:'Solide', icon:'🏗️', desc:'DS > 98.5% pendant 4 semaines', type:'ds_high', target:4 },
   { id:'ds_indestructible', section:'DS 📦', name:'Indestructible', icon:'🛡️', desc:'DS > 98.5% pendant 8 semaines', type:'ds_high', target:8 },
   { id:'ds_zero', section:'DS 📦', name:'Zéro retour', icon:'🎯', desc:'0 colis retournés sur une semaine', type:'ds_zero_return', target:1 },
-  // DWC 🚗
-  { id:'dwc_comm', section:'DWC 🚗', name:'Communicant', icon:'📞', desc:'DWC > 90% pendant 1 semaine', type:'dwc_high', target:1 },
-  { id:'dwc_pro', section:'DWC 🚗', name:'Pro du contact', icon:'🤝', desc:'DWC > 90% pendant 4 semaines', type:'dwc_high', target:4 },
-  { id:'dwc_master', section:'DWC 🚗', name:'Contact Master', icon:'🏆', desc:'DWC > 95% pendant 4 semaines', type:'dwc_master', target:4 },
-  { id:'dwc_zero', section:'DWC 🚗', name:'Aucun raté', icon:'💯', desc:'0 Contact Miss sur une semaine', type:'dwc_zero_miss', target:1 },
+  { id:'ds_zero_4', section:'DS 📦', name:'Zéro retour absolu', icon:'🌟', desc:'0 colis retournés pendant 4 semaines consécutives', type:'ds_zero_return_streak', target:4, animated:true },
+  // DWC 📞
+  { id:'dwc_comm', section:'DWC 📞', name:'Communicant', icon:'📞', desc:'DWC > 90% pendant 1 semaine', type:'dwc_high', target:1 },
+  { id:'dwc_pro', section:'DWC 📞', name:'Pro du contact', icon:'🤝', desc:'DWC > 90% pendant 4 semaines', type:'dwc_high', target:4 },
+  { id:'dwc_master', section:'DWC 📞', name:'Contact Master', icon:'🏆', desc:'DWC > 95% pendant 4 semaines', type:'dwc_master', target:4 },
+  { id:'dwc_zero', section:'DWC 📞', name:'Aucun raté', icon:'💯', desc:'0 Contact Miss sur une semaine', type:'dwc_zero_miss', target:1 },
   // ASSIDUITÉ 📅
   { id:'assi_present', section:'ASSIDUITÉ 📅', name:'Présent', icon:'✅', desc:'0 absence sur un mois', type:'no_absence', target:1 },
   { id:'assi_regulier', section:'ASSIDUITÉ 📅', name:'Régulier', icon:'📅', desc:'0 absence sur 2 mois', type:'no_absence', target:2 },
@@ -83,6 +84,9 @@ function calculateBadges(stationId, chauffeur) {
   const hasZeroReturn = weekStats.some(w => w.rejects !== null && w.rejects === 0 && w.podPct !== null);
   const hasZeroMiss = weekStats.some(w => w.contactMiss !== null && w.contactMiss === 0 && w.dwcPct !== null);
 
+  // DS zero return streak (4 semaines consécutives sans retour)
+  const dsZeroReturnStreak = calcStreak(weekStats, w => w.rejects !== null && w.rejects === 0 && w.podPct !== null);
+
   // Assiduité — mois sans absence
   const absenceStreak = calcMonthAbsenceStreak(stationId, nom);
 
@@ -94,6 +98,7 @@ function calculateBadges(stationId, chauffeur) {
       case 'pod_high': streak = podHighStreak.max; current = podHighStreak.current; break;
       case 'ds_high': streak = dsHighStreak.max; current = dsHighStreak.current; break;
       case 'ds_zero_return': streak = hasZeroReturn ? 1 : 0; current = streak; break;
+      case 'ds_zero_return_streak': streak = dsZeroReturnStreak.max; current = dsZeroReturnStreak.current; break;
       case 'dwc_high': streak = dwcHighStreak.max; current = dwcHighStreak.current; break;
       case 'dwc_master': streak = dwcMasterStreak.max; current = dwcMasterStreak.current; break;
       case 'dwc_zero_miss': streak = hasZeroMiss ? 1 : 0; current = streak; break;

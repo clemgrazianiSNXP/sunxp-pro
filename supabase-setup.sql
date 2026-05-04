@@ -194,3 +194,14 @@ CREATE TABLE IF NOT EXISTS conges_payes (
 );
 ALTER TABLE conges_payes ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "allow_all" ON conges_payes FOR ALL USING (true) WITH CHECK (true);
+
+-- 16. Table Clés & Codes (partagés entre chauffeurs)
+CREATE TABLE IF NOT EXISTS cles_codes (
+  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  station_id TEXT NOT NULL REFERENCES stations(id) ON DELETE CASCADE,
+  data JSONB NOT NULL DEFAULT '{}',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(station_id)
+);
+ALTER TABLE cles_codes ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "allow_all" ON cles_codes FOR ALL USING (true) WITH CHECK (true);

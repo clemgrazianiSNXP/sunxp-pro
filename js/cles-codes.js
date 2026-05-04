@@ -10,45 +10,72 @@ function saveClesCodes(data) {
   if (typeof dbSave === 'function') dbSave('cles_codes', key, { station_id: getClesSid() }, data);
 }
 
+/** Charge les données depuis Supabase et met à jour le localStorage */
+async function refreshClesCodesFromSupabase() {
+  if (typeof sb !== 'function' || !sb()) return null;
+  try {
+    const { data, error } = await sb().from('cles_codes').select('data').eq('station_id', getClesSid()).maybeSingle();
+    if (error) throw error;
+    if (data && data.data) {
+      localStorage.setItem(getClesKey(), JSON.stringify(data.data));
+      return data.data;
+    }
+  } catch (e) { console.warn('refreshClesCodesFromSupabase:', e.message); }
+  return null;
+}
+
 /* ══════════════════════════════════════════════════════════════
    RENDU — Utilisé côté chauffeur ET responsable
    ══════════════════════════════════════════════════════════════ */
 function renderClesCodes(canDelete) {
   const wrap = document.createElement('div');
   wrap.style.cssText = 'padding:16px;display:flex;flex-direction:column;gap:14px;overflow-y:auto;';
-  wrap.innerHTML = '<h3 style="font-size:14px;color:var(--accent);margin:0;">🔑 Clés & Codes</h3>';
+  wrap.innerHTML = '<h3 style="font-size:14px;color:var(--accent);margin:0;">🔑 Clés & Codes</h3><p style="color:var(--text-muted);font-size:11px;margin:0;">Chargement...</p>';
 
-  const data = loadClesCodes();
+  let data = loadClesCodes();
   let subTab = 'cles'; // 'cles' | 'codes'
 
-  // Sous-onglets
-  const nav = document.createElement('div');
-  nav.style.cssText = 'display:flex;gap:6px;';
+  function buildUI() {
+    wrap.innerHTML = '<h3 style="font-size:14px;color:var(--accent);margin:0;">🔑 Clés & Codes</h3>';
 
-  function renderNav() {
-    nav.innerHTML = '';
-    [['cles','🔑 Clés par secteur'],['codes','🏠 Codes résidences']].forEach(([id,label]) => {
-      const btn = document.createElement('button');
-      btn.className = 'h-btn';
-      btn.style.cssText = subTab === id ? 'background:var(--accent);color:#fff;border-color:var(--accent);' : '';
-      btn.textContent = label;
-      btn.onclick = () => { subTab = id; renderNav(); renderContent(); };
-      nav.appendChild(btn);
-    });
+    // Sous-onglets
+    const nav = document.createElement('div');
+    nav.style.cssText = 'display:flex;gap:6px;';
+
+    function renderNav() {
+      nav.innerHTML = '';
+      [['cles','🔑 Clés par secteur'],['codes','🏠 Codes résidences']].forEach(([id,label]) => {
+        const btn = document.createElement('button');
+        btn.className = 'h-btn';
+        btn.style.cssText = subTab === id ? 'background:var(--accent);color:#fff;border-color:var(--accent);' : '';
+        btn.textContent = label;
+        btn.onclick = () => { subTab = id; renderNav(); renderContent(); };
+        nav.appendChild(btn);
+      });
+    }
+    wrap.appendChild(nav);
+
+    const content = document.createElement('div');
+    wrap.appendChild(content);
+
+    function renderContent() {
+      content.innerHTML = '';
+      if (subTab === 'cles') content.appendChild(renderClesSection(data, canDelete));
+      else content.appendChild(renderCodesSection(data, canDelete));
+    }
+
+    renderNav();
+    renderContent();
   }
-  wrap.appendChild(nav);
 
-  const content = document.createElement('div');
-  wrap.appendChild(content);
+  // Refresh depuis Supabase puis afficher
+  refreshClesCodesFromSupabase().then(fresh => {
+    if (fresh) data = fresh;
+    buildUI();
+  }).catch(() => {
+    buildUI();
+  });
 
-  function renderContent() {
-    content.innerHTML = '';
-    if (subTab === 'cles') content.appendChild(renderClesSection(data, canDelete));
-    else content.appendChild(renderCodesSection(data, canDelete));
-  }
-
-  renderNav();
-  renderContent();
   return wrap;
 }
 

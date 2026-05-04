@@ -341,6 +341,13 @@ window.dbSyncAll = async function () {
       }
     }
 
+    // Clés & Codes
+    const clesRaw = localStorage.getItem(sid + '-cles-codes');
+    if (clesRaw) {
+      const clesData = JSON.parse(clesRaw);
+      await dbSave('cles_codes', sid + '-cles-codes', { station_id: sid }, clesData);
+    }
+
     console.log(`  ✅ ${sid} synced`);
   }
 
@@ -534,6 +541,13 @@ window.preloadStationData = async function (stationId) {
         localStorage.setItem(stationId + '-docs-chauffeur-' + d.chauffeur, JSON.stringify(d.data));
       });
       console.log(`  Docs chauffeurs: ${docsChData.length} chauffeurs`);
+    }
+
+    // Clés & Codes
+    const { data: clesData } = await sb().from('cles_codes').select('data').eq('station_id', stationId).maybeSingle();
+    if (clesData && clesData.data) {
+      localStorage.setItem(stationId + '-cles-codes', JSON.stringify(clesData.data));
+      console.log('  Clés & Codes: chargés');
     }
 
     console.log('✅ Préchargement terminé');
