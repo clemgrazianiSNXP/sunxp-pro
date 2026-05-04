@@ -199,20 +199,23 @@ function renderCodesSection(data, canDelete) {
         body.innerHTML = '';
         sect.residences.forEach((res, rIdx) => {
           const row = document.createElement('div');
-          row.style.cssText = 'display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid var(--border);';
-          row.innerHTML = `<span style="font-size:12px;font-weight:600;flex:1;">${esc(res.nom)}</span>`;
-          const codeInp = document.createElement('input');
-          codeInp.className = 'rep-input'; codeInp.value = res.code || '';
-          codeInp.placeholder = 'Code(s)...'; codeInp.style.cssText = 'width:140px;padding:4px 8px;font-size:12px;';
-          codeInp.addEventListener('change', () => { res.code = codeInp.value; saveClesCodes(data); });
-          row.appendChild(codeInp);
+          row.style.cssText = 'display:flex;flex-direction:column;gap:4px;padding:8px 0;border-bottom:1px solid var(--border);';
+          const rowHeader = document.createElement('div');
+          rowHeader.style.cssText = 'display:flex;align-items:center;gap:6px;';
+          rowHeader.innerHTML = `<span style="font-size:12px;font-weight:600;flex:1;">${esc(res.nom)}</span>`;
           if (canDelete) {
             const del = document.createElement('button');
             del.className = 'h-btn'; del.style.cssText = 'font-size:9px;padding:2px 5px;color:#f87171;border-color:#f87171;';
             del.textContent = '✕';
             del.onclick = () => { sect.residences.splice(rIdx, 1); saveClesCodes(data); renderResidences(); };
-            row.appendChild(del);
+            rowHeader.appendChild(del);
           }
+          row.appendChild(rowHeader);
+          const codeInp = document.createElement('textarea');
+          codeInp.className = 'rep-input'; codeInp.value = res.code || '';
+          codeInp.placeholder = 'Code(s)...'; codeInp.style.cssText = 'width:100%;min-height:60px;resize:vertical;padding:6px 8px;font-size:12px;font-family:var(--font-family);background:var(--bg-primary);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);';
+          codeInp.addEventListener('change', () => { res.code = codeInp.value; saveClesCodes(data); });
+          row.appendChild(codeInp);
           body.appendChild(row);
         });
 
