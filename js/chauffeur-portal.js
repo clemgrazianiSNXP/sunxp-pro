@@ -263,13 +263,22 @@ function portalStats() {
   const selectedWeek = allWeeks[portalStatsWeekIndex];
 
   // Calculer les dates de la semaine pour l'affichage
-  const weekMatch = selectedWeek.match(/^(\d{4})-S(\d{2})$/);
   let weekDatesLabel = '';
+  const weekMatch = selectedWeek.match(/^(\d{4})-S(\d{2})$/);
+  const weekNumOnly = !weekMatch ? parseInt(selectedWeek) : null;
   if (weekMatch) {
     const wy = parseInt(weekMatch[1]), wn = parseInt(weekMatch[2]);
     const jan4 = new Date(wy, 0, 4);
     const mon = new Date(jan4);
     mon.setDate(jan4.getDate() - (jan4.getDay() || 7) + 1 + (wn - 1) * 7);
+    const sun = new Date(mon); sun.setDate(mon.getDate() + 6);
+    weekDatesLabel = ' (' + mon.toLocaleDateString('fr-FR',{day:'numeric',month:'short'}) + ' → ' + sun.toLocaleDateString('fr-FR',{day:'numeric',month:'short'}) + ')';
+  } else if (weekNumOnly && !isNaN(weekNumOnly)) {
+    // Format simple "17" — on prend l'année courante
+    const yr = new Date().getFullYear();
+    const jan4 = new Date(yr, 0, 4);
+    const mon = new Date(jan4);
+    mon.setDate(jan4.getDate() - (jan4.getDay() || 7) + 1 + (weekNumOnly - 1) * 7);
     const sun = new Date(mon); sun.setDate(mon.getDate() + 6);
     weekDatesLabel = ' (' + mon.toLocaleDateString('fr-FR',{day:'numeric',month:'short'}) + ' → ' + sun.toLocaleDateString('fr-FR',{day:'numeric',month:'short'}) + ')';
   }
