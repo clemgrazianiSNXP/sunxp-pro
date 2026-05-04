@@ -79,9 +79,11 @@ function renderBadgesTab() {
       const date = state.unlocked && state.date ? `<span class="badge-date">${state.date}</span>` : '';
       card.innerHTML = `<div class="badge-icon">${icon}</div><div class="badge-name">${def.name}</div>${date}${progress}`;
       card.title = def.desc;
+      card.style.cursor = 'pointer';
       if (!state.unlocked) {
-        card.style.cursor = 'pointer';
         card.onclick = () => showBadgeQuestModal(def, state);
+      } else {
+        card.onclick = () => showBadgeUnlockedModal(def, state);
       }
       grid.appendChild(card);
     });
@@ -146,6 +148,36 @@ function showBadgeQuestModal(def, state) {
       <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">${pct}% complété</div>
     </div>
     <button style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:10px 28px;font-size:13px;font-weight:600;cursor:pointer;">Compris !</button>
+  `;
+
+  box.querySelector('button').onclick = () => overlay.remove();
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+}
+
+/* ── Modal badge débloqué (voir l'objectif atteint) ───────── */
+function showBadgeUnlockedModal(def, state) {
+  const existing = document.getElementById('badge-quest-overlay');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'badge-quest-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;padding:16px;';
+  overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
+
+  const box = document.createElement('div');
+  box.style.cssText = 'background:var(--bg-sidebar);border:2px solid #4ade80;border-radius:16px;padding:28px 24px;text-align:center;max-width:320px;width:100%;animation:badgePop 0.3s ease;';
+
+  box.innerHTML = `
+    <div style="font-size:48px;margin-bottom:8px;">${def.icon}</div>
+    <div style="font-size:18px;font-weight:700;color:#4ade80;margin-bottom:4px;">${def.name}</div>
+    <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px;">${def.section}</div>
+    <div style="background:var(--bg-primary);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px;">
+      <div style="font-size:13px;font-weight:600;color:#4ade80;margin-bottom:6px;">✅ Objectif atteint</div>
+      <div style="font-size:14px;color:var(--text-primary);">${def.desc}</div>
+    </div>
+    ${state.date ? `<div style="font-size:11px;color:var(--text-muted);margin-bottom:12px;">Débloqué le ${state.date}</div>` : ''}
+    <button style="background:#4ade80;color:#000;border:none;border-radius:8px;padding:10px 28px;font-size:13px;font-weight:600;cursor:pointer;">Super !</button>
   `;
 
   box.querySelector('button').onclick = () => overlay.remove();
