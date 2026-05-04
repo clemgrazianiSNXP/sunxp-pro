@@ -39,6 +39,7 @@ function toggleMenuPanel() {
           <button class="menu-panel-tab" data-tab="conges" onclick="setMenuTab('conges')" title="Congés payés">🏖</button>
           <button class="menu-panel-tab" data-tab="acompte" onclick="setMenuTab('acompte')" title="Demande d'acompte">💶</button>
           <button class="menu-panel-tab active" data-tab="parametres" onclick="setMenuTab('parametres')" title="Paramètres">⚙️</button>
+          <button class="menu-panel-tab" data-tab="cles-codes-ch" onclick="setMenuTab('cles-codes-ch')" title="Clés & Codes">🔑</button>
           <button class="menu-panel-tab" data-tab="contacts-ch" onclick="setMenuTab('contacts-ch')" title="Contacts">📇</button>
         `;
       } else {
@@ -50,6 +51,7 @@ function toggleMenuPanel() {
           <button class="menu-panel-tab" data-tab="documents" onclick="setMenuTab('documents')" title="Documents bureau">📄</button>
           <button class="menu-panel-tab" data-tab="docs-chauffeurs" onclick="setMenuTab('docs-chauffeurs')" title="Documents chauffeurs">👤</button>
           <button class="menu-panel-tab active" data-tab="parametres" onclick="setMenuTab('parametres')" title="Paramètres">⚙️</button>
+          <button class="menu-panel-tab" data-tab="cles-codes" onclick="setMenuTab('cles-codes')" title="Clés & Codes">🔑</button>
           <button class="menu-panel-tab" data-tab="contacts" onclick="setMenuTab('contacts')" title="Contacts">📇</button>
           <button class="menu-panel-tab" data-tab="stations-mgr" onclick="setMenuTab('stations-mgr')" title="Gérer les stations">🏢</button>
         `;
@@ -107,6 +109,10 @@ function setMenuTab(tab) {
     content.appendChild(renderContactsManager());
   } else if (tab === 'contacts-ch' && typeof renderContactsChauffeur === 'function') {
     content.appendChild(renderContactsChauffeur());
+  } else if (tab === 'cles-codes-ch' && typeof renderClesCodesChauffeur === 'function') {
+    content.appendChild(renderClesCodesChauffeur());
+  } else if (tab === 'cles-codes' && typeof renderClesCodesResponsable === 'function') {
+    content.appendChild(renderClesCodesResponsable());
   }
 }
 
