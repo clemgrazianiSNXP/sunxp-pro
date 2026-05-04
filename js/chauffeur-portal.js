@@ -160,7 +160,7 @@ function portalHeures() {
     const wt = calcWeekTotal(portalStationId, nom, w.monday);
     const card = document.createElement('div');
     card.className = 'portal-card';
-    card.style.cssText += 'text-align:left;align-items:stretch;gap:8px;';
+    card.style.cssText += 'text-align:left;align-items:stretch;gap:8px;cursor:pointer;';
     const monStr = String(w.monday.getDate()).padStart(2,'0') + '/' + String(w.monday.getMonth()+1).padStart(2,'0');
     const sunStr = String(w.sunday.getDate()).padStart(2,'0') + '/' + String(w.sunday.getMonth()+1).padStart(2,'0');
     const heuresColor = wt.totalMin > 0 ? 'var(--accent)' : 'var(--text-muted)';
@@ -177,7 +177,48 @@ function portalHeures() {
       <div style="display:flex;gap:8px;flex-wrap:wrap;font-size:11px;color:var(--text-muted);margin-top:2px;">
         <span>🔄 Backups : ${wt.backupsMin > 0 ? minToTime(wt.backupsMin) : '—'}</span>
         <span>📞 Astreinte : ${wt.astreinteMin > 0 ? minToTime(wt.astreinteMin) : '—'}</span>
-      </div>`;
+      </div>
+      <div style="font-size:10px;color:var(--accent);text-align:center;margin-top:4px;">▼ Voir le détail par jour</div>`;
+
+    // Détail par jour (caché par défaut)
+    const detail = document.createElement('div');
+    detail.style.cssText = 'display:none;margin-top:8px;border-top:1px solid var(--border);padding-top:8px;';
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(w.monday); d.setDate(d.getDate() + i);
+      const dk = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+      const key = portalStationId + '-heures-' + dk;
+      let dayInfo = '—';
+      try {
+        const raw = localStorage.getItem(key);
+        if (raw) {
+          const data = JSON.parse(raw);
+          if (data.rows) {
+            const row = Object.values(data.rows).find(r => r.nom && r.nom.trim() === nom);
+            if (row) {
+              if (row.statut === 'Absent') dayInfo = '<span style="color:#f87171;">Absent</span>';
+              else if (row.statut === 'Astreinte') dayInfo = '<span style="color:#fbbf24;">Astreinte ' + (row.specialTravail || '2:00') + '</span>';
+              else if (row.statut === 'Présent' && row.heureVague && row.retourDepot) {
+                const min = calcTravail(row.heureVague, row.retourDepot, row.pause || 45, row.backups);
+                dayInfo = min ? '<span style="color:var(--accent);font-weight:700;">' + minToTime(min) + '</span>' : '—';
+              }
+            }
+          }
+        }
+      } catch(_) {}
+      const dayName = d.toLocaleDateString('fr-FR', {weekday:'short', day:'numeric'});
+      const dayDiv = document.createElement('div');
+      dayDiv.style.cssText = 'display:flex;justify-content:space-between;padding:3px 0;font-size:12px;border-bottom:1px solid rgba(255,255,255,0.03);';
+      dayDiv.innerHTML = `<span>${dayName}</span><span>${dayInfo}</span>`;
+      detail.appendChild(dayDiv);
+    }
+    card.appendChild(detail);
+
+    card.addEventListener('click', () => {
+      const isOpen = detail.style.display !== 'none';
+      detail.style.display = isOpen ? 'none' : 'block';
+      card.querySelector('div:last-of-type').previousElementSibling.textContent = isOpen ? '▼ Voir le détail par jour' : '▲ Masquer le détail';
+    });
+
     wrap.appendChild(card);
   });
 
@@ -221,7 +262,19 @@ function portalStats() {
   if (portalStatsWeekIndex >= allWeeks.length) portalStatsWeekIndex = allWeeks.length - 1;
   const selectedWeek = allWeeks[portalStatsWeekIndex];
 
-  wrap.appendChild(buildMonthNav('Semaine ' + selectedWeek, () => {
+  // Calculer les dates de la semaine pour l'affichage
+  const weekMatch = selectedWeek.match(/^(\d{4})-S(\d{2})$/);
+  let weekDatesLabel = '';
+  if (weekMatch) {
+    const wy = parseInt(weekMatch[1]), wn = parseInt(weekMatch[2]);
+    const jan4 = new Date(wy, 0, 4);
+    const mon = new Date(jan4);
+    mon.setDate(jan4.getDate() - (jan4.getDay() || 7) + 1 + (wn - 1) * 7);
+    const sun = new Date(mon); sun.setDate(mon.getDate() + 6);
+    weekDatesLabel = ' (' + mon.toLocaleDateString('fr-FR',{day:'numeric',month:'short'}) + ' → ' + sun.toLocaleDateString('fr-FR',{day:'numeric',month:'short'}) + ')';
+  }
+
+  wrap.appendChild(buildMonthNav('Semaine ' + selectedWeek + weekDatesLabel, () => {
     if (portalStatsWeekIndex < allWeeks.length - 1) { portalStatsWeekIndex++; renderPortal(); }
   }, () => {
     if (portalStatsWeekIndex > 0) { portalStatsWeekIndex--; renderPortal(); }
