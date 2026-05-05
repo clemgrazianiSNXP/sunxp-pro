@@ -434,15 +434,19 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
       if (inp.dataset.f === 'heureVague' && inp.value.trim()) {
         const rowIdx = allRows.indexOf(row);
         const newVague = inp.value.trim();
+        // Trouver l'ancienne vague de cette ligne (avant modification) en regardant ce qu'avaient les lignes en dessous
+        const oldVague = row._prevVague || '';
         for (let i = rowIdx + 1; i < allRows.length; i++) {
           const r = allRows[i];
-          // Si la ligne a une vague différente déjà saisie manuellement (et c'est un chauffeur assigné), on s'arrête
-          if (r.nom && r.nom.trim() && r.heureVague && r.heureVague.trim() && r.heureVague.trim() !== newVague) break;
-          // Remplir si vide ou si c'est l'ancienne vague
-          if (!r.heureVague || r.heureVague.trim() === '' || !r.nom || !r.nom.trim()) {
+          const rVague = (r.heureVague || '').trim();
+          // Si la ligne a une vague qui n'est ni vide, ni l'ancienne, ni la nouvelle → c'est une vague saisie indépendamment, on s'arrête
+          if (r.nom && r.nom.trim() && rVague && rVague !== newVague && rVague !== oldVague) break;
+          // Propager si : vide, ou même vague que l'ancienne, ou ligne sans nom
+          if (!rVague || rVague === oldVague || !r.nom || !r.nom.trim()) {
             r.heureVague = newVague;
           }
         }
+        row._prevVague = newVague; // Mémoriser pour la prochaine modification
         saveDay(storageKey, allRows, stationId);
         renderHeures();
         return;
@@ -469,6 +473,7 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
     // Re-render les couleurs quand on quitte le champ vague
     if (inp.dataset.f === 'heureVague') {
       const origVague = row.heureVague || '';
+      row._prevVague = origVague; // Mémoriser la vague initiale pour la propagation
       inp.addEventListener('blur', () => {
         if (inp.value !== origVague) {
           row.heureVague = inp.value;
