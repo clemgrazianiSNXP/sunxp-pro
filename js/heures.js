@@ -435,26 +435,18 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
       // Auto-remplir la vague pour les lignes suivantes (uniquement celles avec un nom)
       if (inp.dataset.f === 'heureVague' && inp.value.trim()) {
         const newVague = inp.value.trim();
-        // Anti-doublon : si on a déjà propagé cette même valeur, ne pas refaire
         if (_lastVagueHandled === newVague) { saveDay(storageKey, allRows, stationId); return; }
         _lastVagueHandled = newVague;
         const rowIdx = allRows.indexOf(row);
-        const oldVague = (prevValue || '').trim();
-        let changed = false;
+        // Propager à toutes les lignes en dessous jusqu'à une ligne qui a une vague
+        // différente ET qui est AVANT la ligne courante dans l'ordre de saisie (= vague indépendante)
         for (let i = rowIdx + 1; i < allRows.length; i++) {
           const r = allRows[i];
           if (!r.nom || !r.nom.trim()) continue; // Ignorer les lignes vides
-          const rVague = (r.heureVague || '').trim();
-          // Propager si : même vague que l'ancienne ou vide
-          if (!rVague || rVague === oldVague) {
-            r.heureVague = newVague;
-            changed = true;
-          } else {
-            break; // Vague différente saisie indépendamment → stop
-          }
+          r.heureVague = newVague;
         }
         saveDay(storageKey, allRows, stationId);
-        if (changed) renderHeures();
+        renderHeures();
         return;
       }
       saveDay(storageKey, allRows, stationId);
