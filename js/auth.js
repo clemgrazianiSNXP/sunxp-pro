@@ -185,9 +185,12 @@ function showChauffeurDirect() {
       console.log('tryOpenPortal: searchId =', searchId, '| trouvé =', !!chauffeur, '| initChauffeurPortal =', typeof initChauffeurPortal);
       if (chauffeur && typeof initChauffeurPortal === 'function') {
         console.log('✅ Chauffeur trouvé, ouverture portail');
-        // Cacher la sidebar pour le chauffeur
+        // Cacher la sidebar et les modules responsable
         const sidebar = document.querySelector('.sidebar');
         if (sidebar) sidebar.style.display = 'none';
+        document.querySelectorAll('.module-view').forEach(m => { m.classList.remove('active'); m.removeAttribute('style'); });
+        const portal = document.getElementById('chauffeur-portal');
+        if (portal) portal.hidden = false;
         initChauffeurPortal(chauffeur, sid);
       } else {
         setTimeout(() => tryOpenPortal(attempts + 1), 500);
