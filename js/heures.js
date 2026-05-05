@@ -82,7 +82,7 @@ function getOvertimeData(stationId, referenceDate) {
 function getNear35hData(stationId, referenceDate) {
   const monday = getMondayOf(referenceDate);
   const chauffeurs = getChauffeurs(stationId);
-  const SEUIL = 30 * 60; // 30h = alerte jaune
+  const SEUIL = 27 * 60 + 15; // 27h15 = alerte jaune
   return chauffeurs
     .map(c => {
       const nom = (c.prenom + ' ' + c.nom).trim();
