@@ -32,7 +32,10 @@ function renderAccueil() {
   // 2. Alertes H.S semaine précédente
   grid.appendChild(buildHSCard(sid));
 
-  // 3. Problèmes camions remontés récemment
+  // 3. Chauffeurs proches des 35h (semaine en cours)
+  grid.appendChild(buildNear35hCard(sid));
+
+  // 4. Problèmes camions remontés récemment
   grid.appendChild(buildProblemesCard(sid));
 
   container.appendChild(grid);
@@ -88,6 +91,34 @@ function buildHSCard(sid) {
       html += `<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border);"><span>${item.nom}</span><span style="color:#f87171;font-weight:700;">+${typeof minToTime === 'function' ? minToTime(item.supMin) : item.supMin + 'min'}</span></div>`;
     });
     if (overtimeData.length > 5) html += `<div style="text-align:center;color:var(--text-muted);font-size:10px;margin-top:4px;">+${overtimeData.length - 5} autres...</div>`;
+    html += '</div>';
+    body.innerHTML = html;
+  }
+
+  card.style.cursor = 'pointer';
+  card.onclick = () => { showModule('heures'); };
+  return card;
+}
+
+/* ── Card Proches 35h ──────────────────────────────────────── */
+function buildNear35hCard(sid) {
+  const card = createCard('🟡', 'Proches des 35h (semaine en cours)');
+  const body = card.querySelector('.accueil-card-body');
+
+  let near35h = [];
+  if (typeof getNear35hData === 'function') {
+    near35h = getNear35hData(sid, new Date());
+  }
+
+  if (!near35h.length) {
+    body.innerHTML = '<p style="color:var(--text-muted);font-size:12px;text-align:center;margin:8px 0;">✅ Personne proche des 35h</p>';
+  } else {
+    let html = `<div style="display:flex;justify-content:center;margin:8px 0;"><span style="font-size:28px;font-weight:800;color:#fbbf24;">${near35h.length}</span></div>`;
+    html += '<div style="max-height:100px;overflow-y:auto;font-size:11px;">';
+    near35h.slice(0, 5).forEach(item => {
+      html += `<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border);"><span>${item.nom}</span><span style="color:#fbbf24;font-weight:700;">${item.heures}</span></div>`;
+    });
+    if (near35h.length > 5) html += `<div style="text-align:center;color:var(--text-muted);font-size:10px;margin-top:4px;">+${near35h.length - 5} autres...</div>`;
     html += '</div>';
     body.innerHTML = html;
   }
