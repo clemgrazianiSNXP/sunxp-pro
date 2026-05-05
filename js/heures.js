@@ -284,8 +284,10 @@ function buildRowData(chauffeurs, saved) {
       heurePause: s.heurePause || '', secteur: s.secteur || '',
       retourDepot: s.retourDepot || '', backups: s.backups || '',
       mentor: s.mentor || '', trajet: s.trajet || '',
+      faute: s.faute || '',
       essence: s.essence || false, adblue: s.adblue || false,
-      ticket: s.ticket || false, camion: s.camion || ''
+      ticket: s.ticket || false, camion: s.camion || '',
+      specialTravail: s.specialTravail || ''
     };
   });
 }
