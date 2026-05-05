@@ -7,24 +7,25 @@ function renderAccueil() {
   const container = document.getElementById('module-accueil');
   if (!container) return;
   container.innerHTML = '';
-  container.style.cssText = 'display:flex;flex-direction:column;padding:24px;overflow-y:auto;gap:20px;';
+  container.style.cssText = 'display:flex;flex-direction:column;padding:0;overflow-y:auto;align-items:center;';
 
   const sid = window.getActiveStationId ? window.getActiveStationId() : 'default';
 
-  // Header
+  // Header centré
   const header = document.createElement('div');
-  header.style.cssText = 'display:flex;align-items:center;gap:12px;';
+  header.style.cssText = 'text-align:center;padding:40px 20px 30px;width:100%;';
+  const now = new Date();
+  const hour = now.getHours();
+  const greeting = hour < 12 ? 'Bonjour' : hour < 18 ? 'Bon après-midi' : 'Bonsoir';
   header.innerHTML = `
-    <img src="img/matting_2026-4-21_fa553fc4-3d99-11f1-9b2d-16737e16766a.png" style="height:36px;width:auto;opacity:0.9;">
-    <div>
-      <h1 style="margin:0;font-size:1.3rem;color:var(--text-primary);font-weight:700;">Bonjour 👋</h1>
-      <p style="margin:0;font-size:12px;color:var(--text-muted);">Voici le résumé de votre station</p>
-    </div>`;
+    <h1 style="margin:0;font-size:1.8rem;color:var(--text-primary);font-weight:800;">${greeting} 👋</h1>
+    <p style="margin:6px 0 0;font-size:13px;color:var(--text-muted);">Voici le résumé de votre activité</p>
+  `;
   container.appendChild(header);
 
   // Grid de cards
   const grid = document.createElement('div');
-  grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:16px;';
+  grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));gap:16px;padding:0 24px 24px;width:100%;max-width:1100px;';
 
   // 1. Demandes en attente
   grid.appendChild(buildDemandesCard(sid));
@@ -39,6 +40,14 @@ function renderAccueil() {
   grid.appendChild(buildProblemesCard(sid));
 
   container.appendChild(grid);
+
+  // Footer info
+  const footer = document.createElement('div');
+  footer.style.cssText = 'text-align:center;padding:20px;color:var(--text-muted);font-size:11px;opacity:0.6;';
+  const chauffeurs = [];
+  try { const r = localStorage.getItem(sid + '-repertoire'); if (r) chauffeurs.push(...JSON.parse(r)); } catch(_) {}
+  footer.textContent = `${chauffeurs.length} chauffeur${chauffeurs.length > 1 ? 's' : ''} enregistré${chauffeurs.length > 1 ? 's' : ''} • ${now.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}`;
+  container.appendChild(footer);
 }
 
 /* ── Card Demandes en attente ─────────────────────────────── */
@@ -161,13 +170,18 @@ function buildProblemesCard(sid) {
 /* ── Helper : créer une card ──────────────────────────────── */
 function createCard(icon, title) {
   const card = document.createElement('div');
-  card.style.cssText = 'background:var(--bg-sidebar);border:1px solid var(--border);border-radius:12px;padding:16px;transition:transform 0.15s,box-shadow 0.15s;';
-  card.onmouseenter = () => { card.style.transform = 'translateY(-2px)'; card.style.boxShadow = '0 6px 20px rgba(0,0,0,0.2)'; };
-  card.onmouseleave = () => { card.style.transform = ''; card.style.boxShadow = ''; };
+  card.style.cssText = 'background:var(--bg-sidebar);border:1px solid var(--border);border-radius:14px;padding:20px;transition:transform 0.18s,box-shadow 0.18s,border-color 0.18s;position:relative;overflow:hidden;';
+  card.onmouseenter = () => { card.style.transform = 'translateY(-3px)'; card.style.boxShadow = '0 8px 28px rgba(0,0,0,0.25)'; card.style.borderColor = 'var(--accent)'; };
+  card.onmouseleave = () => { card.style.transform = ''; card.style.boxShadow = ''; card.style.borderColor = 'var(--border)'; };
+
+  // Glow subtil en haut de la card
+  const glow = document.createElement('div');
+  glow.style.cssText = 'position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:0.4;border-radius:14px 14px 0 0;';
+  card.appendChild(glow);
 
   const header = document.createElement('div');
-  header.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:8px;';
-  header.innerHTML = `<span style="font-size:20px;">${icon}</span><span style="font-size:13px;font-weight:700;color:var(--text-primary);">${title}</span>`;
+  header.style.cssText = 'display:flex;align-items:center;gap:10px;margin-bottom:12px;';
+  header.innerHTML = `<span style="font-size:22px;">${icon}</span><span style="font-size:14px;font-weight:700;color:var(--text-primary);">${title}</span>`;
   card.appendChild(header);
 
   const body = document.createElement('div');
