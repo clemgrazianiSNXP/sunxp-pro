@@ -472,7 +472,7 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
     if (inp.dataset.f === 'heureVague') {
       const origVague = row.heureVague || '';
       inp.addEventListener('blur', () => {
-        if (inp.value !== origVague) {
+        if (inp.value !== origVague && inp.value !== row.heureVague) {
           row.heureVague = inp.value;
           saveDay(storageKey, allRows, stationId);
           renderHeures();
