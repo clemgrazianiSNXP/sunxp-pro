@@ -438,15 +438,22 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
         if (_lastVagueHandled === newVague) { saveDay(storageKey, allRows, stationId); return; }
         _lastVagueHandled = newVague;
         const rowIdx = allRows.indexOf(row);
-        // Propager à toutes les lignes en dessous jusqu'à une ligne qui a une vague
-        // différente ET qui est AVANT la ligne courante dans l'ordre de saisie (= vague indépendante)
         for (let i = rowIdx + 1; i < allRows.length; i++) {
           const r = allRows[i];
-          if (!r.nom || !r.nom.trim()) continue; // Ignorer les lignes vides
+          if (!r.nom || !r.nom.trim()) continue;
           r.heureVague = newVague;
         }
+        // Mettre à jour visuellement les inputs vague dans le DOM sans re-render
+        const tbody = tr.parentElement;
+        if (tbody) {
+          const trs = tbody.querySelectorAll('tr');
+          const startIdx = Array.from(trs).indexOf(tr) + 1;
+          for (let i = startIdx; i < trs.length; i++) {
+            const vagueInp = trs[i].querySelector('[data-f="heureVague"]');
+            if (vagueInp) vagueInp.value = newVague;
+          }
+        }
         saveDay(storageKey, allRows, stationId);
-        renderHeures();
         return;
       }
       saveDay(storageKey, allRows, stationId);
@@ -472,7 +479,7 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
     if (inp.dataset.f === 'heureVague') {
       const origVague = row.heureVague || '';
       inp.addEventListener('blur', () => {
-        if (inp.value !== origVague && inp.value !== row.heureVague) {
+        if (inp.value !== origVague) {
           row.heureVague = inp.value;
           saveDay(storageKey, allRows, stationId);
           renderHeures();
