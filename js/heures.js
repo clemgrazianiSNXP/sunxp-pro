@@ -616,25 +616,35 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
       starCell.innerHTML = buildStarRating(row.trajet, '');
       bindStars();
       
+      // Supprimer toute dropdown résiduelle avant de focus la ligne suivante
+      document.querySelectorAll('div[style*="position:fixed"][style*="z-index:9999"]').forEach(d => {
+        if (d.style.display !== 'none' && d.querySelector && !d.classList.contains('h-alerte-popup') && !d.classList.contains('h-near35h-popup') && !d.classList.contains('h-statut-menu')) {
+          d.style.display = 'none';
+        }
+      });
+
       // Focus la ligne suivante — délai plus long pour laisser le DOM se stabiliser
       if (hasNomNow) {
         const nextTr = tr.nextElementSibling;
         if (nextTr) {
-          // Utiliser requestAnimationFrame + setTimeout pour s'assurer que le DOM est stable
-          requestAnimationFrame(() => {
-            setTimeout(() => {
-              const nextNomDisplay = nextTr.querySelector('.h-nom-display');
-              if (nextNomDisplay) {
-                const nextInp = nextNomDisplay.querySelector('.h-inp-nom');
-                if (nextInp) {
-                  // Marquer comme auto-focus pour ne pas ouvrir la dropdown immédiatement
-                  nextInp._autoFocused = true;
-                  nextInp.focus();
-                  setTimeout(() => { nextInp._autoFocused = false; }, 300);
-                }
-              }
-            }, 50);
-          });
+          // Approche robuste : vérifier le focus plusieurs fois
+          let attempts = 0;
+          const tryFocus = () => {
+            const nextNomDisplay = nextTr.querySelector('.h-nom-display');
+            if (!nextNomDisplay) return;
+            const nextInp = nextNomDisplay.querySelector('.h-inp-nom');
+            if (!nextInp) return;
+            nextInp._autoFocused = true;
+            nextInp.focus();
+            nextInp.click(); // Simuler un clic pour forcer le curseur
+            attempts++;
+            if (attempts < 5 && document.activeElement !== nextInp) {
+              setTimeout(tryFocus, 80);
+            } else {
+              setTimeout(() => { nextInp._autoFocused = false; }, 400);
+            }
+          };
+          setTimeout(tryFocus, 80);
         }
       }
     });
