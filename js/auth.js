@@ -145,15 +145,14 @@ function showLoginError(msg) {
 function showApp() {
   const loginPage = document.getElementById('login-page');
   if (loginPage) loginPage.style.display = 'none';
+  // Afficher le role-screen (choix de station) pour les responsables
   const roleScreen = document.getElementById('role-screen');
-  if (roleScreen) roleScreen.hidden = true;
-  const appLayout = document.querySelector('.app-layout');
-  if (appLayout) { appLayout.hidden = false; appLayout.style.display = ''; }
-  // Afficher la toolbar (hamburger, thème, etc.)
-  if (typeof showToolbar === 'function') showToolbar(true);
+  if (roleScreen) roleScreen.hidden = false;
   // Afficher le bouton logout
   const logoutBtn = document.getElementById('topbar-logout');
   if (logoutBtn) logoutBtn.style.display = '';
+  // Afficher la toolbar
+  if (typeof showToolbar === 'function') showToolbar(true);
 }
 
 /* ── Afficher le portail chauffeur directement ────────────── */
