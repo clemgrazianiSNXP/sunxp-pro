@@ -23,7 +23,13 @@ async function checkAuth() {
 /* ── Attendre que Supabase soit initialisé ────────────────── */
 function waitForSupabase() {
   return new Promise(resolve => {
-    const check = () => { if (typeof sb === 'function' && sb()) resolve(); else setTimeout(check, 100); };
+    let attempts = 0;
+    const check = () => {
+      attempts++;
+      if (typeof sb === 'function' && sb()) { resolve(); return; }
+      if (attempts > 30) { console.warn('waitForSupabase: timeout'); resolve(); return; } // 3s max
+      setTimeout(check, 100);
+    };
     setTimeout(check, 600);
   });
 }
