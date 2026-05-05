@@ -340,7 +340,7 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
   const isSpecial = ['Astreinte','Chime','Safety'].includes(row.statut);
   const bgColor = (!isLocked && !isAbsent && !isSpecial) ? (vagueColors[row.heureVague] || '') : '';
   if (bgColor) tr.style.backgroundColor = bgColor;
-  if (isAbsent || isLocked) tr.style.opacity = isLocked ? '0.35' : '0.45';
+  if (isAbsent) tr.style.opacity = '0.45';
   if (row.statut === 'Astreinte') tr.style.backgroundColor = document.body.classList.contains('light-mode') ? '#f5f0d0' : '#3a3000';
   if (row.statut === 'Chime') tr.style.backgroundColor = document.body.classList.contains('light-mode') ? '#d8e4f8' : '#0a1a3a';
   if (row.statut === 'Safety') tr.style.backgroundColor = document.body.classList.contains('light-mode') ? '#d0eef8' : '#0a2a3a';
@@ -578,7 +578,7 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
   function refreshNomCell() {
     nomDisplay.innerHTML = '';
     const hasNomNow = !!(row.nom && row.nom.trim());
-    tr.style.opacity = hasNomNow ? '' : '0.35';
+    tr.style.opacity = '';
     tr.querySelectorAll('input:not(.h-inp-nom), input[type="checkbox"]').forEach(el => {
       el.disabled = !hasNomNow;
     });
@@ -590,7 +590,7 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
       // mais sans boucle infinie (refreshNomCell appelle buildNomCell qui appelle onSelect)
       // Donc on reconstruit manuellement ici
       const hasNomNow = !!(row.nom && row.nom.trim());
-      tr.style.opacity = hasNomNow ? '' : '0.35';
+      tr.style.opacity = '';
       tr.querySelectorAll('input:not(.h-inp-nom), input[type="checkbox"]').forEach(el => {
         el.disabled = !hasNomNow;
       });
