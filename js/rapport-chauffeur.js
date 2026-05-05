@@ -152,36 +152,42 @@ console.log('rapport-chauffeur.js chargé');
 
   /* ── State ──────────────────────────────────────────────── */
   let rapWeek = '';
+  let rapYear = new Date().getFullYear();
 
   /* ── Main build ─────────────────────────────────────────── */
   window.buildRapportChauffeur = function () {
     const wrap = document.createElement('div');
-    const allW = new Set([...concWeeks(), ...retardWeeks(), ...absenceWeeks()]);
-    if (!rapWeek) rapWeek = [...allW].sort().reverse()[0] || curWeek();
-    allW.add(rapWeek);
+    if (!rapWeek) rapWeek = curWeek();
 
-    // Toolbar semaine (pour ajouter retards/absences/concessions)
+    // Navigation par année ◀ 2026 ▶
     const tb = document.createElement('div');
-    tb.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;';
-    const label = document.createElement('span');
-    label.style.cssText = 'font-size:12px;color:var(--text-muted);';
-    label.textContent = 'Saisie semaine :';
-    tb.appendChild(label);
-    const sel = document.createElement('select'); sel.className = 'rep-input'; sel.style.cssText = 'width:180px;padding:6px;';
-    [...allW].sort().reverse().forEach(w => { const o = document.createElement('option'); o.value = w; o.textContent = w; if (w === rapWeek) o.selected = true; sel.appendChild(o); });
-    sel.onchange = () => { rapWeek = sel.value; renderStats(); };
-    tb.appendChild(sel);
-    const nwBtn = document.createElement('button'); nwBtn.className = 'h-btn'; nwBtn.textContent = '+ Nouvelle semaine';
-    nwBtn.onclick = () => { if (typeof showPromptModal === 'function') showPromptModal('Semaine (ex: 2026-S16)', 'ex: 2026-S16', curWeek(), (val) => { rapWeek = val; renderStats(); }); };
-    tb.appendChild(nwBtn);
+    tb.style.cssText = 'display:flex;align-items:center;gap:10px;margin-bottom:12px;';
+    const prevBtn = document.createElement('button');
+    prevBtn.className = 'h-btn h-nav'; prevBtn.textContent = '◀';
+    prevBtn.onclick = () => { rapYear--; renderStats(); };
+    const nextBtn = document.createElement('button');
+    nextBtn.className = 'h-btn h-nav'; nextBtn.textContent = '▶';
+    nextBtn.onclick = () => { rapYear++; renderStats(); };
+    const yearLabel = document.createElement('span');
+    yearLabel.style.cssText = 'font-size:15px;font-weight:700;color:var(--text-primary);min-width:60px;text-align:center;';
+    yearLabel.textContent = rapYear;
+    tb.appendChild(prevBtn);
+    tb.appendChild(yearLabel);
+    tb.appendChild(nextBtn);
     wrap.appendChild(tb);
 
-    // Data — vue année uniquement
+    // Data — vue année filtrée par rapYear
     const chauffeurs = getChauffeurs();
-    const allConcData = allConc();
-    const allRetData = allRetards();
-    const allAbsData = allAbsences();
-    const allMentorData = getAllMentorBad();
+    const filterYear = (arr) => arr.filter(x => {
+      const d = x.date || x.dateConcession || '';
+      if (d) return new Date(d).getFullYear() === rapYear;
+      const w = x._week || '';
+      return w.startsWith(String(rapYear));
+    });
+    const allConcData = filterYear(allConc());
+    const allRetData = filterYear(allRetards());
+    const allAbsData = filterYear(allAbsences());
+    const allMentorData = filterYear(getAllMentorBad());
 
     wrap.appendChild(buildTableAnnee(chauffeurs, allConcData, allRetData, allAbsData, allMentorData));
     return wrap;
