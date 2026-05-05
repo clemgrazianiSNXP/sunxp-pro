@@ -899,17 +899,56 @@ function buildMonthView(stationId, chauffeurs) {
   const tableDiv = document.createElement('div');
   wrap.appendChild(tableDiv);
 
+  // Calculer les lundis des semaines qui chevauchent ce mois
+  function getWeeksInMonth(year, month) {
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const mondays = [];
+    let monday = getMondayOf(firstDay);
+    while (monday <= lastDay) {
+      mondays.push(new Date(monday));
+      monday = new Date(monday);
+      monday.setDate(monday.getDate() + 7);
+    }
+    return mondays;
+  }
+
   function renderTable(query) {
     const q = (query||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
     const filtered = chauffeurs.filter(c => (c.prenom+' '+c.nom).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().includes(q));
+    const mondays = getWeeksInMonth(y, m);
+
+    // En-têtes semaines
+    const weekHeaders = mondays.map((mon, i) => {
+      const sun = new Date(mon); sun.setDate(sun.getDate() + 6);
+      const fmt = d => d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+      return `S${i + 1}`;
+    });
+
     let html = `<h2 style="margin-bottom:12px;font-size:1rem;color:var(--text-muted)">Mois de ${monthName}</h2>`;
-    html += '<table class="h-table"><thead><tr><th>Chauffeur</th><th>Total heures</th><th>Backups</th><th>Astreinte</th><th>Chime</th><th>Safety</th><th>Sup. 35h/sem</th><th>Jours travaillés</th><th>Abs.</th></tr></thead><tbody>';
+    html += '<table class="h-table"><thead><tr><th>Chauffeur</th>';
+    weekHeaders.forEach((wh, i) => { html += `<th title="${mondays[i].toLocaleDateString('fr-FR',{day:'numeric',month:'short'})}">${wh}</th>`; });
+    html += '<th>Total</th><th>Backups</th><th>Astreinte</th><th>Chime</th><th>Safety</th><th>Sup. 35h</th><th>Jours</th><th>Abs.</th></tr></thead><tbody>';
+
     filtered.forEach(c => {
       const ck = (c.prenom + ' ' + c.nom).trim();
       const { totalMin, joursTravailes, backupsMin, astreinteMin, chimeMin, safetyMin, absences } = calcMonthTotal(stationId, ck, y, m);
-      const weeksInMonth = Math.ceil(new Date(y, m + 1, 0).getDate() / 7);
-      const sup = Math.max(0, totalMin - weeksInMonth * 35 * 60);
-      html += `<tr><td>${c.nom} ${c.prenom}</td><td><b>${minToTime(totalMin)}</b></td><td style="color:#f97316">${backupsMin>0?minToTime(backupsMin):'—'}</td><td style="color:#fbbf24">${astreinteMin>0?minToTime(astreinteMin):'—'}</td><td style="color:#1e3a8a">${chimeMin>0?minToTime(chimeMin):'—'}</td><td style="color:#38bdf8">${safetyMin>0?minToTime(safetyMin):'—'}</td><td style="color:${sup>0?'#f97316':'var(--text-muted)'}">${sup > 0 ? '+' + minToTime(sup) : '—'}</td><td>${joursTravailes}</td><td style="color:${absences>0?'#f87171':'var(--text-muted)'}">${absences>0?absences:'—'}</td></tr>`;
+
+      // Calculer heures supp cumulées par semaine (chaque semaine > 35h)
+      let supCumul = 0;
+      const weekTotals = [];
+      mondays.forEach(mon => {
+        const { totalMin: wTotal } = calcWeekTotal(stationId, ck, mon);
+        weekTotals.push(wTotal);
+        const wSup = Math.max(0, wTotal - 35 * 60);
+        supCumul += wSup;
+      });
+
+      html += `<tr><td>${c.nom} ${c.prenom}</td>`;
+      weekTotals.forEach(wt => {
+        html += `<td style="font-size:11px;">${wt > 0 ? minToTime(wt) : '—'}</td>`;
+      });
+      html += `<td><b>${minToTime(totalMin)}</b></td><td style="color:#f97316">${backupsMin>0?minToTime(backupsMin):'—'}</td><td style="color:#fbbf24">${astreinteMin>0?minToTime(astreinteMin):'—'}</td><td style="color:#1e3a8a">${chimeMin>0?minToTime(chimeMin):'—'}</td><td style="color:#38bdf8">${safetyMin>0?minToTime(safetyMin):'—'}</td><td style="color:${supCumul>0?'#f97316':'var(--text-muted)'}">${supCumul > 0 ? '+' + minToTime(supCumul) : '—'}</td><td>${joursTravailes}</td><td style="color:${absences>0?'#f87171':'var(--text-muted)'}">${absences>0?absences:'—'}</td></tr>`;
     });
     html += '</tbody></table>';
     tableDiv.innerHTML = html;
