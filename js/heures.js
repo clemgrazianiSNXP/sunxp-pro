@@ -769,7 +769,7 @@ function buildNomCell(container, row, allRows, stationId, onSelect) {
           row.nom = name;
           if (!row.pause) row.pause = 45;
           dropdown.style.display = 'none';
-          dropdown.remove();
+          setTimeout(() => dropdown.remove(), 500);
           onSelect();
         });
         dropdown.appendChild(item);
@@ -814,7 +814,7 @@ function buildNomCell(container, row, allRows, stationId, onSelect) {
     });
 
     const obs = new MutationObserver(() => {
-      if (!document.body.contains(inp)) { dropdown.remove(); obs.disconnect(); }
+      if (!document.body.contains(inp)) { dropdown.style.display = 'none'; setTimeout(() => { dropdown.remove(); obs.disconnect(); }, 500); }
     });
     obs.observe(document.body, { childList: true, subtree: true });
   }
