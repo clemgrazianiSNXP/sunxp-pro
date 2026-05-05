@@ -417,6 +417,7 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
 
   // Listeners inputs (champs hors nom)
   tr.querySelectorAll('.h-inp:not(.h-inp-nom)').forEach(inp => {
+    let _lastVagueHandled = ''; // Anti-doublon pour la propagation vague
     const handler = () => {
       const prevValue = row[inp.dataset.f]; // Capturer l'ancienne valeur AVANT modification
       row[inp.dataset.f] = inp.value;
@@ -433,8 +434,11 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
       }
       // Auto-remplir la vague pour les lignes suivantes (uniquement celles avec un nom)
       if (inp.dataset.f === 'heureVague' && inp.value.trim()) {
-        const rowIdx = allRows.indexOf(row);
         const newVague = inp.value.trim();
+        // Anti-doublon : si on a déjà propagé cette même valeur, ne pas refaire
+        if (_lastVagueHandled === newVague) { saveDay(storageKey, allRows, stationId); return; }
+        _lastVagueHandled = newVague;
+        const rowIdx = allRows.indexOf(row);
         const oldVague = (prevValue || '').trim();
         let changed = false;
         for (let i = rowIdx + 1; i < allRows.length; i++) {
