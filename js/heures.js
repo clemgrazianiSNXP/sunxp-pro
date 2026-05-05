@@ -418,6 +418,7 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
   // Listeners inputs (champs hors nom)
   tr.querySelectorAll('.h-inp:not(.h-inp-nom)').forEach(inp => {
     const handler = () => {
+      const prevValue = row[inp.dataset.f]; // Capturer l'ancienne valeur AVANT modification
       row[inp.dataset.f] = inp.value;
       if (['heureVague','retourDepot','pause','heurePause'].includes(inp.dataset.f)) updateTravail();
       // Mettre à jour la couleur du mentor en temps réel
@@ -434,19 +435,18 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
       if (inp.dataset.f === 'heureVague' && inp.value.trim()) {
         const rowIdx = allRows.indexOf(row);
         const newVague = inp.value.trim();
-        // Trouver l'ancienne vague de cette ligne (avant modification) en regardant ce qu'avaient les lignes en dessous
-        const oldVague = row._prevVague || '';
+        const oldVague = (prevValue || '').trim(); // ancienne vague avant modification
         for (let i = rowIdx + 1; i < allRows.length; i++) {
           const r = allRows[i];
           const rVague = (r.heureVague || '').trim();
-          // Si la ligne a une vague qui n'est ni vide, ni l'ancienne, ni la nouvelle → c'est une vague saisie indépendamment, on s'arrête
-          if (r.nom && r.nom.trim() && rVague && rVague !== newVague && rVague !== oldVague) break;
-          // Propager si : vide, ou même vague que l'ancienne, ou ligne sans nom
+          // Propager si : vide, ou même vague que l'ancienne (propagée), ou ligne sans nom
           if (!rVague || rVague === oldVague || !r.nom || !r.nom.trim()) {
             r.heureVague = newVague;
+          } else {
+            // La ligne a une vague différente saisie indépendamment → stop
+            break;
           }
         }
-        row._prevVague = newVague; // Mémoriser pour la prochaine modification
         saveDay(storageKey, allRows, stationId);
         renderHeures();
         return;
@@ -473,7 +473,6 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
     // Re-render les couleurs quand on quitte le champ vague
     if (inp.dataset.f === 'heureVague') {
       const origVague = row.heureVague || '';
-      row._prevVague = origVague; // Mémoriser la vague initiale pour la propagation
       inp.addEventListener('blur', () => {
         if (inp.value !== origVague) {
           row.heureVague = inp.value;
