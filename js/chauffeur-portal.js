@@ -37,8 +37,7 @@ function renderPortal() {
     <div style="font-size:28px;margin-bottom:4px;">👋</div>
     <div style="font-size:20px;font-weight:700;margin-bottom:2px;">Bonjour ${escP(prenom)} !</div>
     <div style="font-size:13px;color:var(--text-muted);margin-bottom:2px;">${escP(nomComplet)}</div>
-    <div style="font-size:11px;color:var(--text-muted);opacity:0.7;">Station ${escP(portalStationId)} · ${escP(portalChauffeur.id_amazon)}</div>
-    <button id="portal-logout" style="margin-top:10px;background:transparent;border:1px solid var(--border);color:var(--text-muted);border-radius:6px;padding:6px 16px;font-size:12px;cursor:pointer;transition:all 0.18s;">← Déconnexion</button>`;
+    <div style="font-size:11px;color:var(--text-muted);opacity:0.7;">Station ${escP(portalStationId)} · ${escP(portalChauffeur.id_amazon)}</div>`;
   c.appendChild(header);
 
   // Onglets
@@ -75,14 +74,6 @@ function renderPortal() {
   else body.appendChild(portalProd());
   c.appendChild(body);
 
-  // Logout
-  c.querySelector('#portal-logout')?.addEventListener('click', () => {
-    portalChauffeur = null;
-    c.hidden = true;
-    if (typeof showToolbar === 'function') showToolbar(false);
-    if (typeof closeMenuPanel === 'function') closeMenuPanel();
-    document.getElementById('role-screen').hidden = false;
-  });
 }
 
 /* ── Helpers ───────────────────────────────────────────────── */

@@ -66,8 +66,10 @@ function redirectByRole() {
 
 /* ── Afficher la page de login ────────────────────────────── */
 function showLoginPage() {
-  // Cacher l'app
+  // Cacher l'app et le role-screen
   document.querySelector('.app-layout').style.display = 'none';
+  const roleScreen = document.getElementById('role-screen');
+  if (roleScreen) roleScreen.hidden = true;
 
   // Créer la page de login si elle n'existe pas
   let loginPage = document.getElementById('login-page');
@@ -141,6 +143,8 @@ function showLoginError(msg) {
 function showApp() {
   const loginPage = document.getElementById('login-page');
   if (loginPage) loginPage.style.display = 'none';
+  const roleScreen = document.getElementById('role-screen');
+  if (roleScreen) roleScreen.hidden = true;
   document.querySelector('.app-layout').style.display = '';
   // Afficher le bouton logout si connecté
   const logoutBtn = document.getElementById('topbar-logout');
