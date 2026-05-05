@@ -618,35 +618,24 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
       starCell.innerHTML = buildStarRating(row.trajet, '');
       bindStars();
       
-      // Supprimer toute dropdown résiduelle avant de focus la ligne suivante
-      document.querySelectorAll('div[style*="position:fixed"][style*="z-index:9999"]').forEach(d => {
-        if (d.style.display !== 'none' && d.querySelector && !d.classList.contains('h-alerte-popup') && !d.classList.contains('h-near35h-popup') && !d.classList.contains('h-statut-menu')) {
-          d.style.display = 'none';
-        }
-      });
-
-      // Focus la ligne suivante — délai plus long pour laisser le DOM se stabiliser
+      // Focus la ligne suivante — on focus le champ vague (pas le nom) pour éviter les conflits avec l'autocomplete
       if (hasNomNow) {
         const nextTr = tr.nextElementSibling;
         if (nextTr) {
-          // Approche robuste : vérifier le focus plusieurs fois
-          let attempts = 0;
-          const tryFocus = () => {
+          setTimeout(() => {
+            // Chercher l'input nom de la ligne suivante
             const nextNomDisplay = nextTr.querySelector('.h-nom-display');
-            if (!nextNomDisplay) return;
-            const nextInp = nextNomDisplay.querySelector('.h-inp-nom');
-            if (!nextInp) return;
-            nextInp._autoFocused = true;
-            nextInp.focus();
-            nextInp.click(); // Simuler un clic pour forcer le curseur
-            attempts++;
-            if (attempts < 5 && document.activeElement !== nextInp) {
-              setTimeout(tryFocus, 80);
-            } else {
-              setTimeout(() => { nextInp._autoFocused = false; }, 400);
+            const nextInp = nextNomDisplay ? nextNomDisplay.querySelector('.h-inp-nom') : null;
+            if (nextInp) {
+              nextInp._autoFocused = true;
+              nextInp.focus();
+              // Garder le focus avec un second appel
+              setTimeout(() => {
+                if (document.activeElement !== nextInp) nextInp.focus();
+                nextInp._autoFocused = false;
+              }, 200);
             }
-          };
-          setTimeout(tryFocus, 80);
+          }, 120);
         }
       }
     });
@@ -780,6 +769,7 @@ function buildNomCell(container, row, allRows, stationId, onSelect) {
     inp.addEventListener('keydown', e => {
       if (e.key === 'Enter') {
         e.preventDefault();
+        e.stopPropagation(); // Empêcher le handler global Enter de utils.js
         // Sélectionner le premier élément de la dropdown s'il y en a
         const firstItem = dropdown.querySelector('div');
         if (firstItem && dropdown.style.display !== 'none') {
@@ -788,7 +778,7 @@ function buildNomCell(container, row, allRows, stationId, onSelect) {
           row.nom = name;
           if (!row.pause) row.pause = 45;
           dropdown.style.display = 'none';
-          dropdown.remove();
+          setTimeout(() => dropdown.remove(), 500);
           onSelect();
           return;
         }
@@ -797,7 +787,7 @@ function buildNomCell(container, row, allRows, stationId, onSelect) {
           row.nom = inp.value.trim();
           if (!row.pause) row.pause = 45;
           dropdown.style.display = 'none';
-          dropdown.remove();
+          setTimeout(() => dropdown.remove(), 500);
           onSelect();
         }
       }
