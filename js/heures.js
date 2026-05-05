@@ -431,24 +431,26 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
           if (starCell) { starCell.innerHTML = buildStarRating(5, ''); bindStars(); }
         }
       }
-      // Auto-remplir la vague pour les lignes suivantes
+      // Auto-remplir la vague pour les lignes suivantes (uniquement celles avec un nom)
       if (inp.dataset.f === 'heureVague' && inp.value.trim()) {
         const rowIdx = allRows.indexOf(row);
         const newVague = inp.value.trim();
-        const oldVague = (prevValue || '').trim(); // ancienne vague avant modification
+        const oldVague = (prevValue || '').trim();
+        let changed = false;
         for (let i = rowIdx + 1; i < allRows.length; i++) {
           const r = allRows[i];
+          if (!r.nom || !r.nom.trim()) continue; // Ignorer les lignes vides
           const rVague = (r.heureVague || '').trim();
-          // Propager si : vide, ou même vague que l'ancienne (propagée), ou ligne sans nom
-          if (!rVague || rVague === oldVague || !r.nom || !r.nom.trim()) {
+          // Propager si : même vague que l'ancienne ou vide
+          if (!rVague || rVague === oldVague) {
             r.heureVague = newVague;
+            changed = true;
           } else {
-            // La ligne a une vague différente saisie indépendamment → stop
-            break;
+            break; // Vague différente saisie indépendamment → stop
           }
         }
         saveDay(storageKey, allRows, stationId);
-        renderHeures();
+        if (changed) renderHeures();
         return;
       }
       saveDay(storageKey, allRows, stationId);
