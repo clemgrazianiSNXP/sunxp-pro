@@ -620,15 +620,21 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
       if (hasNomNow) {
         const nextTr = tr.nextElementSibling;
         if (nextTr) {
-          setTimeout(() => {
-            const nextNomDisplay = nextTr.querySelector('.h-nom-display');
-            if (nextNomDisplay) {
-              const nextInp = nextNomDisplay.querySelector('.h-inp-nom');
-              if (nextInp) {
-                nextInp.focus();
+          // Utiliser requestAnimationFrame + setTimeout pour s'assurer que le DOM est stable
+          requestAnimationFrame(() => {
+            setTimeout(() => {
+              const nextNomDisplay = nextTr.querySelector('.h-nom-display');
+              if (nextNomDisplay) {
+                const nextInp = nextNomDisplay.querySelector('.h-inp-nom');
+                if (nextInp) {
+                  // Marquer comme auto-focus pour ne pas ouvrir la dropdown immédiatement
+                  nextInp._autoFocused = true;
+                  nextInp.focus();
+                  setTimeout(() => { nextInp._autoFocused = false; }, 300);
+                }
               }
-            }
-          }, 100);
+            }, 50);
+          });
         }
       }
     });
@@ -757,7 +763,7 @@ function buildNomCell(container, row, allRows, stationId, onSelect) {
     }
 
     inp.addEventListener('input',  () => showDropdown(inp.value));
-    inp.addEventListener('focus',  () => showDropdown(inp.value));
+    inp.addEventListener('focus',  () => { if (!inp._autoFocused) showDropdown(inp.value); });
     inp.addEventListener('blur',   () => { if (!nomSelected) setTimeout(hideDropdown, 160); });
     inp.addEventListener('keydown', e => {
       if (e.key === 'Enter') {
