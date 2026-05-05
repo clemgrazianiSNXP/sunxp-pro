@@ -82,30 +82,33 @@ function showRepertoireForm(container, chauffeur, onSave, onCancel) {
       prenom, nom, telephone: tel, id_amazon: amazon.toUpperCase(), matricule_tsm: matricule, email: email || ''
     };
 
-    // Créer le compte auth si email renseigné et nouvelle fiche
-    if (email && !isEdit && typeof sb === 'function' && sb()) {
-      const saveBtn = container.querySelector('#rf-save');
-      saveBtn.disabled = true; saveBtn.textContent = 'Création du compte...';
-      try {
-        const stationId = window.getActiveStationId ? window.getActiveStationId() : 'default';
-        const password = amazon.toUpperCase().slice(0, 4) + tel.slice(-4); // Mot de passe par défaut
-        const res = await fetch(sb().supabaseUrl + '/functions/v1/create-chauffeur-account', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + sb().supabaseKey },
-          body: JSON.stringify({ email, password, nom, prenom, station_id: stationId, chauffeur_id: amazon.toUpperCase() })
-        });
-        const result = await res.json();
-        if (result.error) {
-          setErr('#rf-err-email', result.error);
-          saveBtn.disabled = false; saveBtn.textContent = 'Enregistrer';
-          return;
+    // Créer le compte auth si email renseigné et pas encore de compte
+    if (email && typeof sb === 'function' && sb()) {
+      // Vérifier si un compte existe déjà pour cet email (ne pas recréer)
+      const existingEmail = chauffeur?.email || '';
+      if (email !== existingEmail) {
+        const saveBtn = container.querySelector('#rf-save');
+        saveBtn.disabled = true; saveBtn.textContent = 'Création du compte...';
+        try {
+          const stationId = window.getActiveStationId ? window.getActiveStationId() : 'default';
+          const password = amazon.toUpperCase().slice(0, 4) + tel.slice(-4);
+          const res = await fetch(sb().supabaseUrl + '/functions/v1/create-chauffeur-account', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + sb().supabaseKey },
+            body: JSON.stringify({ email, password, nom, prenom, station_id: stationId, chauffeur_id: amazon.toUpperCase() })
+          });
+          const result = await res.json();
+          if (result.error && !result.error.includes('already been registered')) {
+            setErr('#rf-err-email', result.error);
+            saveBtn.disabled = false; saveBtn.textContent = 'Enregistrer';
+            return;
+          }
+          console.log('✅ Compte chauffeur créé');
+        } catch (e) {
+          console.warn('Erreur création compte:', e.message);
         }
-        console.log('✅ Compte chauffeur créé:', result.user_id);
-      } catch (e) {
-        console.warn('Erreur création compte:', e.message);
-        // On continue quand même la sauvegarde de la fiche
+        saveBtn.disabled = false; saveBtn.textContent = 'Enregistrer';
       }
-      saveBtn.disabled = false; saveBtn.textContent = 'Enregistrer';
     }
 
     onSave(chauffeurData);
