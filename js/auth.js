@@ -6,16 +6,20 @@ let currentProfile = null;
 
 /* ── Vérifier la session au chargement ────────────────────── */
 async function checkAuth() {
-  // Attendre que Supabase soit prêt
   await waitForSupabase();
-  if (!sb()) { showApp(); return; } // Pas de Supabase → mode local (dev)
+  if (!sb()) { showLoginPage(); return; } // Pas de Supabase → login quand même
 
-  const { data: { session } } = await sb().auth.getSession();
-  if (session && session.user) {
-    currentUser = session.user;
-    await loadProfile();
-    redirectByRole();
-  } else {
+  try {
+    const { data: { session } } = await sb().auth.getSession();
+    if (session && session.user) {
+      currentUser = session.user;
+      await loadProfile();
+      redirectByRole();
+    } else {
+      showLoginPage();
+    }
+  } catch (e) {
+    console.warn('checkAuth error:', e.message);
     showLoginPage();
   }
 }
