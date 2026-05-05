@@ -43,115 +43,145 @@ function renderProblemes(canDelete) {
   function buildUI() {
     wrap.innerHTML = '<h3 style="font-size:14px;color:var(--accent);margin:0;">🚛 Problèmes Camions</h3>';
 
+    // Barre de recherche
+    const searchBar = document.createElement('div');
+    searchBar.style.cssText = 'display:flex;gap:8px;align-items:center;';
+    const searchInp = document.createElement('input');
+    searchInp.type = 'text';
+    searchInp.placeholder = '🔍 Rechercher un camion (plaque)...';
+    searchInp.className = 'rep-search';
+    searchInp.style.cssText = 'flex:1;max-width:280px;';
+    searchBar.appendChild(searchInp);
+
     // Bouton ajouter
     const addBtn = document.createElement('button');
     addBtn.className = 'rep-btn rep-btn-primary';
-    addBtn.style.cssText = 'font-size:12px;padding:6px 12px;align-self:flex-start;';
+    addBtn.style.cssText = 'font-size:12px;padding:6px 12px;';
     addBtn.textContent = '+ Signaler un problème';
     addBtn.onclick = () => showAddProblemeModal(problemes, () => { saveProblemes(problemes); buildUI(); });
-    wrap.appendChild(addBtn);
+    searchBar.appendChild(addBtn);
+    wrap.appendChild(searchBar);
 
-    // Liste des camions avec problèmes
-    const camions = getCamionsList();
-    const camionsAvecProblemes = new Map();
-    problemes.forEach(p => {
-      if (!camionsAvecProblemes.has(p.plaque)) camionsAvecProblemes.set(p.plaque, []);
-      camionsAvecProblemes.get(p.plaque).push(p);
-    });
+    // Container pour les cards
+    const cardsWrap = document.createElement('div');
+    cardsWrap.style.cssText = 'display:flex;flex-direction:column;gap:10px;margin-top:10px;';
+    wrap.appendChild(cardsWrap);
 
-    if (!camionsAvecProblemes.size) {
-      const empty = document.createElement('p');
-      empty.style.cssText = 'color:var(--text-muted);font-size:12px;text-align:center;margin-top:20px;';
-      empty.textContent = 'Aucun problème signalé. Tout roule ! 🎉';
-      wrap.appendChild(empty);
-      return;
-    }
+    function renderCards(query) {
+      cardsWrap.innerHTML = '';
+      const q = (query || '').toLowerCase();
 
-    // Cards par camion
-    camionsAvecProblemes.forEach((probs, plaque) => {
-      const card = document.createElement('div');
-      card.style.cssText = 'border:1px solid var(--border);border-radius:10px;background:var(--bg-sidebar);overflow:hidden;';
+      // Liste des camions avec problèmes
+      const camions = getCamionsList();
+      const camionsAvecProblemes = new Map();
+      problemes.forEach(p => {
+        if (!camionsAvecProblemes.has(p.plaque)) camionsAvecProblemes.set(p.plaque, []);
+        camionsAvecProblemes.get(p.plaque).push(p);
+      });
 
-      // Header
-      const header = document.createElement('div');
-      header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:12px 14px;cursor:pointer;';
-      const camion = camions.find(c => c.plaque === plaque);
-      const camionLabel = camion ? `${camion.plaque}` : plaque;
-      header.innerHTML = `
-        <div style="display:flex;align-items:center;gap:8px;">
-          <span style="font-size:18px;">🚛</span>
-          <span style="font-weight:700;font-size:13px;">${esc(camionLabel)}</span>
-          <span style="background:rgba(248,113,113,0.15);color:#f87171;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;">${probs.length} problème${probs.length > 1 ? 's' : ''}</span>
-        </div>
-        <span style="font-size:10px;color:var(--text-muted);">▼</span>`;
+      if (!camionsAvecProblemes.size) {
+        const empty = document.createElement('p');
+        empty.style.cssText = 'color:var(--text-muted);font-size:12px;text-align:center;margin-top:20px;';
+        empty.textContent = 'Aucun problème signalé. Tout roule ! 🎉';
+        cardsWrap.appendChild(empty);
+        return;
+      }
 
-      // Body
-      const body = document.createElement('div');
-      body.style.cssText = 'display:none;padding:0 14px 14px;';
+      let found = false;
+      camionsAvecProblemes.forEach((probs, plaque) => {
+        if (q && !plaque.toLowerCase().includes(q)) return;
+        found = true;
 
-      probs.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach((p, idx) => {
-        const row = document.createElement('div');
-        row.style.cssText = 'padding:10px 0;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:4px;';
+        const card = document.createElement('div');
+        card.style.cssText = 'border:1px solid var(--border);border-radius:10px;background:var(--bg-sidebar);overflow:hidden;';
 
-        const meta = document.createElement('div');
-        meta.style.cssText = 'display:flex;justify-content:space-between;align-items:center;';
-        const dateStr = p.date ? new Date(p.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
-        meta.innerHTML = `<span style="font-size:11px;color:var(--text-muted);">${dateStr} — <strong style="color:var(--text-primary);">${esc(p.auteur || 'Anonyme')}</strong></span>`;
+        const header = document.createElement('div');
+        header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:12px 14px;cursor:pointer;';
+        const camion = camions.find(c => c.plaque === plaque);
+        const camionLabel = camion ? `${camion.plaque}` : plaque;
+        header.innerHTML = `
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:18px;">🚛</span>
+            <span style="font-weight:700;font-size:13px;">${esc(camionLabel)}</span>
+            <span style="background:rgba(248,113,113,0.15);color:#f87171;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;">${probs.length} problème${probs.length > 1 ? 's' : ''}</span>
+          </div>
+          <span style="font-size:10px;color:var(--text-muted);">▼</span>`;
 
-        if (canDelete) {
-          const delBtn = document.createElement('button');
-          delBtn.className = 'h-btn';
-          delBtn.style.cssText = 'font-size:9px;padding:2px 6px;color:#f87171;border-color:#f87171;';
-          delBtn.textContent = '🗑';
-          delBtn.onclick = () => {
-            if (typeof showConfirmModal === 'function') {
-              showConfirmModal('Supprimer ce signalement ?', () => {
-                const globalIdx = problemes.indexOf(p);
-                if (globalIdx >= 0) problemes.splice(globalIdx, 1);
+        const body = document.createElement('div');
+        body.style.cssText = 'display:none;padding:0 14px 14px;';
+
+        probs.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach((p) => {
+          const row = document.createElement('div');
+          row.style.cssText = 'padding:10px 0;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:4px;';
+
+          const meta = document.createElement('div');
+          meta.style.cssText = 'display:flex;justify-content:space-between;align-items:center;';
+          const dateStr = p.date ? new Date(p.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+          meta.innerHTML = `<span style="font-size:11px;color:var(--text-muted);">${dateStr} — <strong style="color:var(--text-primary);">${esc(p.auteur || 'Anonyme')}</strong></span>`;
+
+          if (canDelete) {
+            const delBtn = document.createElement('button');
+            delBtn.className = 'h-btn';
+            delBtn.style.cssText = 'font-size:9px;padding:2px 6px;color:#f87171;border-color:#f87171;';
+            delBtn.textContent = '🗑';
+            delBtn.onclick = () => {
+              if (typeof showConfirmModal === 'function') {
+                showConfirmModal('Supprimer ce signalement ?', () => {
+                  const globalIdx = problemes.indexOf(p);
+                  if (globalIdx >= 0) problemes.splice(globalIdx, 1);
+                  saveProblemes(problemes);
+                  buildUI();
+                });
+              }
+            };
+            meta.appendChild(delBtn);
+          }
+          row.appendChild(meta);
+
+          const note = document.createElement('div');
+          note.style.cssText = 'font-size:12px;color:var(--text-primary);white-space:pre-wrap;line-height:1.5;';
+          note.textContent = p.note || '';
+          row.appendChild(note);
+
+          const editBtn = document.createElement('button');
+          editBtn.className = 'h-btn';
+          editBtn.style.cssText = 'font-size:10px;padding:2px 8px;align-self:flex-start;margin-top:4px;';
+          editBtn.textContent = '✏️ Modifier';
+          editBtn.onclick = () => {
+            if (typeof showPromptModal === 'function') {
+              showPromptModal('Modifier le signalement', 'Décrivez le problème...', p.note, (val) => {
+                p.note = val;
+                p.date = new Date().toISOString();
                 saveProblemes(problemes);
                 buildUI();
               });
             }
           };
-          meta.appendChild(delBtn);
-        }
-        row.appendChild(meta);
+          row.appendChild(editBtn);
+          body.appendChild(row);
+        });
 
-        const note = document.createElement('div');
-        note.style.cssText = 'font-size:12px;color:var(--text-primary);white-space:pre-wrap;line-height:1.5;';
-        note.textContent = p.note || '';
-        row.appendChild(note);
-
-        // Bouton modifier
-        const editBtn = document.createElement('button');
-        editBtn.className = 'h-btn';
-        editBtn.style.cssText = 'font-size:10px;padding:2px 8px;align-self:flex-start;margin-top:4px;';
-        editBtn.textContent = '✏️ Modifier';
-        editBtn.onclick = () => {
-          if (typeof showPromptModal === 'function') {
-            showPromptModal('Modifier le signalement', 'Décrivez le problème...', p.note, (val) => {
-              p.note = val;
-              p.date = new Date().toISOString();
-              saveProblemes(problemes);
-              buildUI();
-            });
-          }
+        header.onclick = () => {
+          const open = body.style.display !== 'none';
+          body.style.display = open ? 'none' : 'block';
+          header.querySelector('span:last-child').textContent = open ? '▼' : '▲';
         };
-        row.appendChild(editBtn);
 
-        body.appendChild(row);
+        card.appendChild(header);
+        card.appendChild(body);
+        cardsWrap.appendChild(card);
       });
 
-      header.onclick = () => {
-        const open = body.style.display !== 'none';
-        body.style.display = open ? 'none' : 'block';
-        header.querySelector('span:last-child').textContent = open ? '▼' : '▲';
-      };
+      if (!found) {
+        const noResult = document.createElement('p');
+        noResult.style.cssText = 'color:var(--text-muted);font-size:12px;text-align:center;margin-top:20px;';
+        noResult.textContent = 'Aucun camion trouvé.';
+        cardsWrap.appendChild(noResult);
+      }
+    }
 
-      card.appendChild(header);
-      card.appendChild(body);
-      wrap.appendChild(card);
-    });
+    searchInp.oninput = () => renderCards(searchInp.value);
+    renderCards('');
   }
 
   // Refresh depuis Supabase puis afficher
