@@ -149,9 +149,11 @@ function showApp() {
   if (roleScreen) roleScreen.hidden = true;
   const appLayout = document.querySelector('.app-layout');
   if (appLayout) { appLayout.hidden = false; appLayout.style.display = ''; }
-  // Afficher le bouton logout si connecté
+  // Afficher la toolbar (hamburger, thème, etc.)
+  if (typeof showToolbar === 'function') showToolbar(true);
+  // Afficher le bouton logout
   const logoutBtn = document.getElementById('topbar-logout');
-  if (logoutBtn && currentUser) logoutBtn.style.display = '';
+  if (logoutBtn) logoutBtn.style.display = '';
 }
 
 /* ── Afficher le portail chauffeur directement ────────────── */
