@@ -40,13 +40,14 @@ function initNavigation() {
     });
   });
 
-  showModule('heures');
-  dispatchModuleInit('heures');
+  showModule('accueil');
+  dispatchModuleInit('accueil');
 }
 
 /** Appelle la fonction d'init du module correspondant */
 function dispatchModuleInit(moduleId) {
   const fns = {
+    accueil:    () => typeof initAccueil    === 'function' && initAccueil(),
     heures:     () => typeof initHeures     === 'function' && initHeures(),
     repertoire: () => typeof initRepertoire === 'function' && initRepertoire(),
     primes:     () => typeof initPrimes     === 'function' && initPrimes(),
