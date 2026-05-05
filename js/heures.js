@@ -169,34 +169,36 @@ function buildToolbar(stationId) {
   bar.querySelector('#h-view-semaine').onclick = () => { heuresFirstRender = true; heuresView = 'semaine'; renderHeures(); };
   bar.querySelector('#h-view-mois').onclick = () => { heuresFirstRender = true; heuresView = 'mois'; renderHeures(); };
 
-  // Bulle d'alerte heures supplémentaires semaine précédente
-  const overtimeData = getOvertimeData(stationId, heuresCurrentDate);
-  const btn = document.createElement('button');
-  btn.className = 'h-btn';
-  btn.textContent = 'Alerte H.S week -1';
-  if (overtimeData.length > 0) {
-    btn.textContent = `⚠ ${overtimeData.length} H.S WEEK -1`;
-    btn.style.cssText += 'background:rgba(248,113,113,0.15);border-color:#f87171;color:#f87171;font-size:11px;';
-  } else {
-    btn.style.cssText += 'font-size:11px;opacity:0.4;';
-    btn.textContent = '✓ H.S WEEK -1';
-  }
-  btn.addEventListener('click', () => showOvertimePopup(btn, overtimeData));
-  bar.querySelector('.h-toolbar-right').appendChild(btn);
+  // Bulle d'alerte heures supplémentaires semaine précédente (jour et semaine uniquement)
+  if (heuresView !== 'mois') {
+    const overtimeData = getOvertimeData(stationId, heuresCurrentDate);
+    const btn = document.createElement('button');
+    btn.className = 'h-btn';
+    btn.textContent = 'Alerte H.S week -1';
+    if (overtimeData.length > 0) {
+      btn.textContent = `⚠ ${overtimeData.length} H.S WEEK -1`;
+      btn.style.cssText += 'background:rgba(248,113,113,0.15);border-color:#f87171;color:#f87171;font-size:11px;';
+    } else {
+      btn.style.cssText += 'font-size:11px;opacity:0.4;';
+      btn.textContent = '✓ H.S WEEK -1';
+    }
+    btn.addEventListener('click', () => showOvertimePopup(btn, overtimeData));
+    bar.querySelector('.h-toolbar-right').appendChild(btn);
 
-  // Bulle alerte proche 35h (jaune)
-  const near35h = getNear35hData(stationId, heuresCurrentDate);
-  const btn35 = document.createElement('button');
-  btn35.className = 'h-btn';
-  btn35.textContent = `⚠ ${near35h.length} proche 35h`;
-  if (near35h.length > 0) {
-    btn35.style.cssText += 'background:rgba(251,191,36,0.15);border-color:#fbbf24;color:#fbbf24;font-size:11px;';
-  } else {
-    btn35.style.cssText += 'font-size:11px;opacity:0.4;';
-    btn35.textContent = '✓ 35h OK';
+    // Bulle alerte proche 35h (jaune)
+    const near35h = getNear35hData(stationId, heuresCurrentDate);
+    const btn35 = document.createElement('button');
+    btn35.className = 'h-btn';
+    btn35.textContent = `⚠ ${near35h.length} proche 35h`;
+    if (near35h.length > 0) {
+      btn35.style.cssText += 'background:rgba(251,191,36,0.15);border-color:#fbbf24;color:#fbbf24;font-size:11px;';
+    } else {
+      btn35.style.cssText += 'font-size:11px;opacity:0.4;';
+      btn35.textContent = '✓ 35h OK';
+    }
+    btn35.addEventListener('click', () => showNear35hPopup(btn35, near35h));
+    bar.querySelector('.h-toolbar-right').appendChild(btn35);
   }
-  btn35.addEventListener('click', () => showNear35hPopup(btn35, near35h));
-  bar.querySelector('.h-toolbar-right').appendChild(btn35);
 
   return bar;
 }
