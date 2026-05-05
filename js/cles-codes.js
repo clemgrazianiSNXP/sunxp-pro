@@ -38,6 +38,17 @@ function renderClesCodes(canDelete) {
   function buildUI() {
     wrap.innerHTML = '<h3 style="font-size:14px;color:var(--accent);margin:0;">🔑 Clés & Codes</h3>';
 
+    // Barre de recherche intelligente
+    const searchBar = document.createElement('div');
+    searchBar.style.cssText = 'display:flex;gap:8px;align-items:center;';
+    const searchInp = document.createElement('input');
+    searchInp.type = 'text';
+    searchInp.placeholder = '🔍 Rechercher un secteur ou une résidence...';
+    searchInp.className = 'rep-search';
+    searchInp.style.cssText = 'flex:1;max-width:300px;';
+    searchBar.appendChild(searchInp);
+    wrap.appendChild(searchBar);
+
     // Sous-onglets
     const nav = document.createElement('div');
     nav.style.cssText = 'display:flex;gap:6px;';
@@ -60,10 +71,12 @@ function renderClesCodes(canDelete) {
 
     function renderContent() {
       content.innerHTML = '';
-      if (subTab === 'cles') content.appendChild(renderClesSection(data, canDelete));
-      else content.appendChild(renderCodesSection(data, canDelete));
+      const q = (searchInp.value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+      if (subTab === 'cles') content.appendChild(renderClesSection(data, canDelete, q));
+      else content.appendChild(renderCodesSection(data, canDelete, q));
     }
 
+    searchInp.oninput = () => renderContent();
     renderNav();
     renderContent();
   }
@@ -80,7 +93,7 @@ function renderClesCodes(canDelete) {
 }
 
 /* ── Section Clés par secteur ─────────────────────────────── */
-function renderClesSection(data, canDelete) {
+function renderClesSection(data, canDelete, query) {
   const wrap = document.createElement('div');
   wrap.style.cssText = 'display:flex;flex-direction:column;gap:8px;';
 
@@ -107,11 +120,17 @@ function renderClesSection(data, canDelete) {
 
   function renderClesContent() {
     listWrap.innerHTML = '';
-    if (!data.cles.length) {
-      listWrap.innerHTML = '<p style="color:var(--text-muted);font-size:12px;">Aucun secteur ajouté.</p>';
+    const filtered = data.cles.filter(item => {
+      if (!query) return true;
+      return item.secteur.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes(query)
+        || (item.note || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes(query);
+    });
+    if (!filtered.length) {
+      listWrap.innerHTML = '<p style="color:var(--text-muted);font-size:12px;">Aucun secteur trouvé.</p>';
       return;
     }
-    data.cles.forEach((item, idx) => {
+    filtered.forEach((item) => {
+      const idx = data.cles.indexOf(item);
       const card = document.createElement('div');
       card.style.cssText = 'border:1px solid var(--border);border-radius:8px;background:var(--bg-sidebar);overflow:hidden;';
 
@@ -153,7 +172,7 @@ function renderClesSection(data, canDelete) {
 }
 
 /* ── Section Codes résidences ─────────────────────────────── */
-function renderCodesSection(data, canDelete) {
+function renderCodesSection(data, canDelete, query) {
   const wrap = document.createElement('div');
   wrap.style.cssText = 'display:flex;flex-direction:column;gap:8px;';
 
@@ -180,11 +199,18 @@ function renderCodesSection(data, canDelete) {
 
   function renderCodesContent() {
     listWrap.innerHTML = '';
-    if (!data.codes.length) {
-      listWrap.innerHTML = '<p style="color:var(--text-muted);font-size:12px;">Aucun secteur ajouté.</p>';
+    const filtered = data.codes.filter(sect => {
+      if (!query) return true;
+      if (sect.secteur.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes(query)) return true;
+      return sect.residences.some(r => r.nom.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes(query)
+        || (r.code || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes(query));
+    });
+    if (!filtered.length) {
+      listWrap.innerHTML = '<p style="color:var(--text-muted);font-size:12px;">Aucun résultat trouvé.</p>';
       return;
     }
-    data.codes.forEach((sect, sIdx) => {
+    filtered.forEach((sect) => {
+      const sIdx = data.codes.indexOf(sect);
       const card = document.createElement('div');
       card.style.cssText = 'border:1px solid var(--border);border-radius:8px;background:var(--bg-sidebar);overflow:hidden;';
 
