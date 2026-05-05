@@ -178,8 +178,12 @@ function showChauffeurDirect() {
         repertoire = (() => { try { return JSON.parse(localStorage.getItem(sid + '-repertoire')) || []; } catch(_) { return []; } })();
       }
 
+      console.log('tryOpenPortal attempt', attempts, '- répertoire:', repertoire.length, 'chauffeurs, cherche:', currentProfile.chauffeur_id);
+      if (repertoire.length && attempts === 0) console.log('IDs disponibles:', repertoire.map(c => c.id_amazon));
+
       const chauffeur = repertoire.find(c => c.id_amazon === currentProfile.chauffeur_id);
       if (chauffeur && typeof window.openChauffeurPortal === 'function') {
+        console.log('✅ Chauffeur trouvé, ouverture portail');
         window.openChauffeurPortal(chauffeur, sid);
       } else {
         setTimeout(() => tryOpenPortal(attempts + 1), 500);
