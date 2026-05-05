@@ -216,3 +216,17 @@ CREATE TABLE IF NOT EXISTS problemes_camions (
 );
 ALTER TABLE problemes_camions ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "allow_all" ON problemes_camions FOR ALL USING (true) WITH CHECK (true);
+
+-- 18. Table Profils Utilisateurs (auth)
+CREATE TABLE IF NOT EXISTS user_profiles (
+  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  role TEXT NOT NULL DEFAULT 'chauffeur' CHECK (role IN ('responsable', 'chauffeur')),
+  station_id TEXT REFERENCES stations(id) ON DELETE SET NULL,
+  chauffeur_id TEXT DEFAULT '',
+  nom TEXT DEFAULT '',
+  prenom TEXT DEFAULT '',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "users_read_own" ON user_profiles FOR SELECT USING (auth.uid() = id);
+CREATE POLICY "allow_all_anon" ON user_profiles FOR ALL USING (true) WITH CHECK (true);

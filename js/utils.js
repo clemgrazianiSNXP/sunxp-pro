@@ -152,6 +152,15 @@ document.addEventListener('DOMContentLoaded', initNavigation);
   legalLink.onmouseleave = () => legalLink.style.opacity = '0.4';
   right.appendChild(legalLink);
 
+  // Bouton déconnexion
+  const logoutBtn = document.createElement('button');
+  logoutBtn.id = 'topbar-logout';
+  logoutBtn.style.cssText = 'background:transparent;border:1px solid var(--border);border-radius:5px;padding:2px 8px;font-size:11px;cursor:pointer;color:var(--text-muted);transition:border-color 0.18s;display:none;';
+  logoutBtn.textContent = '🚪';
+  logoutBtn.title = 'Déconnexion';
+  logoutBtn.onclick = () => { if (typeof logout === 'function') logout(); };
+  right.appendChild(logoutBtn);
+
   topbar.appendChild(left); topbar.appendChild(right);
   document.body.prepend(topbar);
 
