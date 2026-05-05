@@ -153,26 +153,32 @@ function showChauffeurDirect() {
   if (loginPage) loginPage.style.display = 'none';
   document.querySelector('.app-layout').style.display = '';
 
-  // Simuler la connexion chauffeur avec les infos du profil
-  if (currentProfile && currentProfile.station_id) {
-    // Stocker la station et lancer le portail
-    localStorage.setItem('stationActive', currentProfile.station_id);
-    sessionStorage.setItem('stationActive', currentProfile.station_id);
+  // Cacher la sidebar (le chauffeur n'en a pas besoin)
+  const sidebar = document.querySelector('.sidebar');
+  if (sidebar) sidebar.style.display = 'none';
 
-    // Attendre que l'app soit initialisée puis ouvrir le portail
-    setTimeout(() => {
-      if (typeof window.openChauffeurPortal === 'function') {
-        // Trouver le chauffeur dans le répertoire
-        const sid = currentProfile.station_id;
-        try {
-          const repertoire = JSON.parse(localStorage.getItem(sid + '-repertoire')) || [];
-          const chauffeur = repertoire.find(c => c.id_amazon === currentProfile.chauffeur_id);
-          if (chauffeur) {
-            window.openChauffeurPortal(chauffeur, sid);
-          }
-        } catch (_) {}
+  // Afficher le bouton logout
+  const logoutBtn = document.getElementById('topbar-logout');
+  if (logoutBtn) logoutBtn.style.display = '';
+
+  // Attendre que les données soient chargées puis ouvrir le portail
+  if (currentProfile && currentProfile.station_id) {
+    const sid = currentProfile.station_id;
+    localStorage.setItem('stationActive', sid);
+    sessionStorage.setItem('stationActive', sid);
+
+    // Attendre le preload puis ouvrir le portail
+    const tryOpenPortal = (attempts) => {
+      if (attempts > 20) { console.warn('showChauffeurDirect: chauffeur non trouvé dans répertoire'); return; }
+      const repertoire = (() => { try { return JSON.parse(localStorage.getItem(sid + '-repertoire')) || []; } catch(_) { return []; } })();
+      const chauffeur = repertoire.find(c => c.id_amazon === currentProfile.chauffeur_id);
+      if (chauffeur && typeof window.openChauffeurPortal === 'function') {
+        window.openChauffeurPortal(chauffeur, sid);
+      } else {
+        setTimeout(() => tryOpenPortal(attempts + 1), 500);
       }
-    }, 800);
+    };
+    setTimeout(() => tryOpenPortal(0), 500);
   }
 }
 
