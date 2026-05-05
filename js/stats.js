@@ -193,8 +193,28 @@ function buildStatsToolbar(importBtn, type, currentWeek, weeks, setWeek) {
   bar.style.cssText = 'display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;';
   if (importBtn && importBtn.nodeType === Node.ELEMENT_NODE) bar.appendChild(importBtn);
   if (weeks && weeks.length) {
-    const sel = weekSelector(currentWeek, weeks, w => { setWeek(w); renderStats(); });
-    if (sel && sel.nodeType === Node.ELEMENT_NODE) bar.appendChild(sel);
+    // Navigation ◀ ▶ par semaine
+    const navWrap = document.createElement('div');
+    navWrap.style.cssText = 'display:flex;align-items:center;gap:6px;';
+    const prevBtn = document.createElement('button');
+    prevBtn.className = 'h-btn h-nav'; prevBtn.textContent = '◀';
+    prevBtn.onclick = () => {
+      const idx = weeks.indexOf(currentWeek);
+      if (idx < weeks.length - 1) { setWeek(weeks[idx + 1]); renderStats(); }
+    };
+    const nextBtn = document.createElement('button');
+    nextBtn.className = 'h-btn h-nav'; nextBtn.textContent = '▶';
+    nextBtn.onclick = () => {
+      const idx = weeks.indexOf(currentWeek);
+      if (idx > 0) { setWeek(weeks[idx - 1]); renderStats(); }
+    };
+    const weekLabel = document.createElement('span');
+    weekLabel.style.cssText = 'font-size:13px;font-weight:600;color:var(--text-primary);min-width:100px;text-align:center;';
+    weekLabel.textContent = currentWeek ? 'Semaine ' + currentWeek : '—';
+    navWrap.appendChild(prevBtn);
+    navWrap.appendChild(weekLabel);
+    navWrap.appendChild(nextBtn);
+    bar.appendChild(navWrap);
   }
   if (currentWeek) {
     const del = deleteWeekBtn(type, currentWeek, () => setWeek(''));
@@ -315,8 +335,30 @@ function buildDWC() {
   const toolbarWrap = document.createElement('div');
   toolbarWrap.style.cssText = 'display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;';
   toolbarWrap.appendChild(importHtmlBtn);
-  const sel = weekSelector(statsWeekDWC, weeks, w => { statsWeekDWC = w; renderStats(); });
-  if (sel && sel.nodeType === Node.ELEMENT_NODE) toolbarWrap.appendChild(sel);
+  // Navigation ◀ ▶ par semaine
+  if (weeks.length) {
+    const navWrap = document.createElement('div');
+    navWrap.style.cssText = 'display:flex;align-items:center;gap:6px;';
+    const prevBtn = document.createElement('button');
+    prevBtn.className = 'h-btn h-nav'; prevBtn.textContent = '◀';
+    prevBtn.onclick = () => {
+      const idx = weeks.indexOf(statsWeekDWC);
+      if (idx < weeks.length - 1) { statsWeekDWC = weeks[idx + 1]; renderStats(); }
+    };
+    const nextBtn = document.createElement('button');
+    nextBtn.className = 'h-btn h-nav'; nextBtn.textContent = '▶';
+    nextBtn.onclick = () => {
+      const idx = weeks.indexOf(statsWeekDWC);
+      if (idx > 0) { statsWeekDWC = weeks[idx - 1]; renderStats(); }
+    };
+    const weekLabel = document.createElement('span');
+    weekLabel.style.cssText = 'font-size:13px;font-weight:600;color:var(--text-primary);min-width:100px;text-align:center;';
+    weekLabel.textContent = statsWeekDWC ? 'Semaine ' + statsWeekDWC : '—';
+    navWrap.appendChild(prevBtn);
+    navWrap.appendChild(weekLabel);
+    navWrap.appendChild(nextBtn);
+    toolbarWrap.appendChild(navWrap);
+  }
   if (statsWeekDWC) { const del = deleteWeekBtn('dwc', statsWeekDWC, () => { statsWeekDWC = ''; }); if (del && del.nodeType === Node.ELEMENT_NODE) toolbarWrap.appendChild(del); }
   wrap.appendChild(toolbarWrap);
 
@@ -441,9 +483,30 @@ function buildEnvoi() {
   sendAllBtn.className = 'rep-btn rep-btn-primary';
   sendAllBtn.textContent = '📤 Envoyer à tous';
 
-  const sel = weekSelector(statsWeekEnvoi, allWeeks, w => { statsWeekEnvoi = w; renderStats(); });
+  // Navigation ◀ ▶ par semaine
+  const navWrap = document.createElement('div');
+  navWrap.style.cssText = 'display:flex;align-items:center;gap:6px;';
+  const prevBtn = document.createElement('button');
+  prevBtn.className = 'h-btn h-nav'; prevBtn.textContent = '◀';
+  prevBtn.onclick = () => {
+    const idx = allWeeks.indexOf(statsWeekEnvoi);
+    if (idx < allWeeks.length - 1) { statsWeekEnvoi = allWeeks[idx + 1]; renderStats(); }
+  };
+  const nextBtn = document.createElement('button');
+  nextBtn.className = 'h-btn h-nav'; nextBtn.textContent = '▶';
+  nextBtn.onclick = () => {
+    const idx = allWeeks.indexOf(statsWeekEnvoi);
+    if (idx > 0) { statsWeekEnvoi = allWeeks[idx - 1]; renderStats(); }
+  };
+  const weekLabel = document.createElement('span');
+  weekLabel.style.cssText = 'font-size:13px;font-weight:600;color:var(--text-primary);min-width:100px;text-align:center;';
+  weekLabel.textContent = statsWeekEnvoi ? 'Semaine ' + statsWeekEnvoi : '—';
+  navWrap.appendChild(prevBtn);
+  navWrap.appendChild(weekLabel);
+  navWrap.appendChild(nextBtn);
+
   toolbar.appendChild(sendAllBtn);
-  if (sel && sel.nodeType === Node.ELEMENT_NODE) toolbar.appendChild(sel);
+  toolbar.appendChild(navWrap);
   wrap.appendChild(toolbar);
 
   if (!statsWeekEnvoi) {

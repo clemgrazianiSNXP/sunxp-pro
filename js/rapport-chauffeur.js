@@ -152,7 +152,6 @@ console.log('rapport-chauffeur.js chargé');
 
   /* ── State ──────────────────────────────────────────────── */
   let rapWeek = '';
-  let rapTab = 'semaine'; // 'semaine' or 'annee'
 
   /* ── Main build ─────────────────────────────────────────── */
   window.buildRapportChauffeur = function () {
@@ -161,50 +160,30 @@ console.log('rapport-chauffeur.js chargé');
     if (!rapWeek) rapWeek = [...allW].sort().reverse()[0] || curWeek();
     allW.add(rapWeek);
 
-    // Tabs
-    const tabs = document.createElement('div');
-    tabs.style.cssText = 'display:flex;gap:0;margin-bottom:12px;border-bottom:2px solid var(--border);';
-    ['semaine', 'annee'].forEach(id => {
-      const btn = document.createElement('button');
-      btn.textContent = id === 'semaine' ? '📅 Semaine' : '📊 Année';
-      btn.style.cssText = 'padding:8px 18px;border:none;background:transparent;font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;color:var(--text-muted);';
-      if (rapTab === id) btn.style.cssText += 'color:var(--accent);border-bottom-color:var(--accent);';
-      btn.onclick = () => { rapTab = id; renderStats(); };
-      tabs.appendChild(btn);
-    });
-    wrap.appendChild(tabs);
+    // Toolbar semaine (pour ajouter retards/absences/concessions)
+    const tb = document.createElement('div');
+    tb.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;';
+    const label = document.createElement('span');
+    label.style.cssText = 'font-size:12px;color:var(--text-muted);';
+    label.textContent = 'Saisie semaine :';
+    tb.appendChild(label);
+    const sel = document.createElement('select'); sel.className = 'rep-input'; sel.style.cssText = 'width:180px;padding:6px;';
+    [...allW].sort().reverse().forEach(w => { const o = document.createElement('option'); o.value = w; o.textContent = w; if (w === rapWeek) o.selected = true; sel.appendChild(o); });
+    sel.onchange = () => { rapWeek = sel.value; renderStats(); };
+    tb.appendChild(sel);
+    const nwBtn = document.createElement('button'); nwBtn.className = 'h-btn'; nwBtn.textContent = '+ Nouvelle semaine';
+    nwBtn.onclick = () => { if (typeof showPromptModal === 'function') showPromptModal('Semaine (ex: 2026-S16)', 'ex: 2026-S16', curWeek(), (val) => { rapWeek = val; renderStats(); }); };
+    tb.appendChild(nwBtn);
+    wrap.appendChild(tb);
 
-    // Toolbar (semaine selector — only for semaine tab)
-    if (rapTab === 'semaine') {
-      const tb = document.createElement('div');
-      tb.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;';
-      const sel = document.createElement('select'); sel.className = 'rep-input'; sel.style.cssText = 'width:180px;padding:6px;';
-      [...allW].sort().reverse().forEach(w => { const o = document.createElement('option'); o.value = w; o.textContent = w; if (w === rapWeek) o.selected = true; sel.appendChild(o); });
-      sel.onchange = () => { rapWeek = sel.value; renderStats(); };
-      tb.appendChild(sel);
-      const nwBtn = document.createElement('button'); nwBtn.className = 'h-btn'; nwBtn.textContent = '+ Nouvelle semaine';
-      nwBtn.onclick = () => { const l = prompt('Semaine (ex: 2026-S16)', curWeek()); if (!l || !l.trim()) return; rapWeek = l.trim(); renderStats(); };
-      tb.appendChild(nwBtn);
-      wrap.appendChild(tb);
-    }
-
-    // Data
+    // Data — vue année uniquement
     const chauffeurs = getChauffeurs();
-    const concData = loadConc(rapWeek);
-    const retData = loadRetards(rapWeek);
-    const absData = loadAbsences(rapWeek);
-    const mentorData = getMentorBadForWeek(rapWeek);
     const allConcData = allConc();
     const allRetData = allRetards();
     const allAbsData = allAbsences();
     const allMentorData = getAllMentorBad();
 
-    // Build table based on active tab
-    if (rapTab === 'semaine') {
-      wrap.appendChild(buildTableSemaine(chauffeurs, concData, retData, absData, mentorData));
-    } else {
-      wrap.appendChild(buildTableAnnee(chauffeurs, allConcData, allRetData, allAbsData, allMentorData));
-    }
+    wrap.appendChild(buildTableAnnee(chauffeurs, allConcData, allRetData, allAbsData, allMentorData));
     return wrap;
   };
 
@@ -306,7 +285,7 @@ console.log('rapport-chauffeur.js chargé');
       <th style="text-align:center;padding:8px;width:70px;" title="Absences injustifiées année">🚫</th>
       <th style="text-align:center;padding:8px;width:70px;" title="Mentor année">🛞</th>
       <th style="text-align:center;padding:8px;width:70px;" title="Concessions année">📦</th>
-      <th style="text-align:center;padding:8px;width:80px;">Détail</th>
+      <th style="text-align:center;padding:8px;width:160px;">Actions</th>
     </tr></thead>`;
     const tbody = document.createElement('tbody');
 
@@ -333,12 +312,34 @@ console.log('rapport-chauffeur.js chargé');
         <td style="text-align:center;padding:8px;${cs(cY.length,'#f59e0b')}">${cY.length}</td>
         <td style="text-align:center;padding:8px;"></td>`;
       const actCell = tr.lastElementChild;
+      const bw = document.createElement('div'); bw.style.cssText = 'display:flex;gap:3px;justify-content:center;flex-wrap:wrap;';
+
+      // Retard add
+      const retBtn = document.createElement('button'); retBtn.className = 'h-btn'; retBtn.textContent = '⏰+';
+      retBtn.style.cssText = 'font-size:11px;padding:2px 6px;'; retBtn.title = 'Ajouter un retard';
+      retBtn.onclick = () => showRetardModal(nom);
+      bw.appendChild(retBtn);
+
+      // Absence add
+      const absBtn = document.createElement('button'); absBtn.className = 'h-btn'; absBtn.textContent = '🚫+';
+      absBtn.style.cssText = 'font-size:11px;padding:2px 6px;'; absBtn.title = 'Ajouter une absence injustifiée';
+      absBtn.onclick = () => showAbsenceModal(nom);
+      bw.appendChild(absBtn);
+
+      // Concession add
+      const concBtn = document.createElement('button'); concBtn.className = 'h-btn'; concBtn.textContent = '📦+';
+      concBtn.style.cssText = 'font-size:11px;padding:2px 6px;'; concBtn.title = 'Ajouter des concessions';
+      concBtn.onclick = () => showConcModal(nom);
+      bw.appendChild(concBtn);
+
+      // Detail button
       if (rY.length + aY.length + mY.length + cY.length > 0) {
         const detBtn = document.createElement('button'); detBtn.className = 'h-btn'; detBtn.textContent = '👁';
         detBtn.style.cssText = 'font-size:11px;padding:2px 6px;'; detBtn.title = 'Voir le détail année';
         detBtn.onclick = () => showFullDetail(nom, [], rY, [], aY, [], mY, [], cY);
-        actCell.appendChild(detBtn);
+        bw.appendChild(detBtn);
       }
+      actCell.appendChild(bw);
       tbody.appendChild(tr);
     });
 

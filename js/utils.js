@@ -229,3 +229,49 @@ window.showPromptModal = function (title, placeholder, defaultValue, onSubmit) {
   modal.querySelector('#gprompt-ok').onclick = () => { const val = inp.value.trim(); overlay.remove(); if (val) onSubmit(val); };
   inp.onkeydown = e => { if (e.key === 'Enter') { const val = inp.value.trim(); overlay.remove(); if (val) onSubmit(val); } };
 };
+
+/* ── Navigation globale par touche Entrée ─────────────────── */
+(function initGlobalEnterNavigation() {
+  document.addEventListener('keydown', function(e) {
+    if (e.key !== 'Enter') return;
+    const el = e.target;
+    if (!el || !el.matches) return;
+
+    // Textarea : Entrée = saut de ligne normal, Shift+Entrée = champ suivant
+    if (el.matches('textarea')) {
+      if (!e.shiftKey) return; // laisser le saut de ligne normal
+      // Shift+Enter → passer au champ suivant
+    } else if (el.matches('input[type="text"], input[type="number"], input[type="tel"], input[type="email"], input[type="password"], input:not([type])')) {
+      // Input classique : Entrée = champ suivant
+    } else {
+      return; // ne rien faire pour les autres éléments
+    }
+
+    // Ne pas interférer avec les dropdowns autocomplete ouverts (heures.js gère déjà)
+    if (el.classList.contains('h-inp-nom')) return;
+    // Ne pas interférer si un dropdown camion est ouvert
+    if (el.dataset.f === 'camion') return;
+
+    e.preventDefault();
+
+    // Trouver le conteneur logique (modale, formulaire, ou le body)
+    const container = el.closest('.modal, [role="dialog"], form, .menu-panel-content, #menu-panel-content, .module-view.active, body');
+    if (!container) return;
+
+    // Récupérer tous les champs focusables dans le conteneur
+    const inputs = Array.from(container.querySelectorAll('input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not(:disabled), textarea:not(:disabled)'));
+    const idx = inputs.indexOf(el);
+    if (idx === -1) return;
+
+    if (idx < inputs.length - 1) {
+      // Passer au champ suivant
+      const next = inputs[idx + 1];
+      setTimeout(() => { next.focus(); if (next.select) next.select(); }, 30);
+    } else {
+      // Dernier champ : valider (cliquer sur le bouton OK/Valider de la modale)
+      const submitBtn = container.querySelector('#gprompt-ok, #gconfirm-ok, button[type="submit"], .rep-btn-primary');
+      if (submitBtn) submitBtn.click();
+      else el.blur();
+    }
+  });
+})();
