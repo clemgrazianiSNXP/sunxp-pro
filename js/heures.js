@@ -488,8 +488,13 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
       });
     }
     inp.addEventListener('input', () => {
-      if (['heureVague','retourDepot','pause'].includes(inp.dataset.f)) {
+      if (['retourDepot','pause'].includes(inp.dataset.f)) {
         row[inp.dataset.f] = inp.value;
+        updateTravail();
+      }
+      // Pour heureVague, ne PAS mettre à jour row ici — laisser le handler/change le faire
+      // pour que prevValue soit correct lors de la propagation
+      if (inp.dataset.f === 'heureVague') {
         updateTravail();
       }
     });
