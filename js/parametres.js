@@ -202,7 +202,7 @@ function renderParametres() {
     const pwBtn = document.createElement('button');
     pwBtn.className = 'rep-btn rep-btn-primary';
     pwBtn.style.cssText = 'font-size:12px;padding:8px 14px;';
-    pwBtn.textContent = '🔑 Modifier mon mot de passe';
+    pwBtn.textContent = '🔒 Modifier mon mot de passe';
     pwBtn.onclick = () => showChangePasswordModal();
     pwSection.appendChild(pwBtn);
     wrap.appendChild(pwSection);
@@ -218,7 +218,7 @@ function showChangePasswordModal() {
   const modal = document.createElement('div');
   modal.style.cssText = 'background:var(--bg-card,var(--bg-sidebar));border-radius:12px;padding:24px;max-width:380px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.4);';
   modal.innerHTML = `
-    <div style="font-size:15px;font-weight:700;margin-bottom:14px;color:var(--text-primary);">🔑 Modifier le mot de passe</div>
+    <div style="font-size:15px;font-weight:700;margin-bottom:14px;color:var(--text-primary);">🔒 Modifier le mot de passe</div>
     <div id="pw-error" style="display:none;background:rgba(248,113,113,0.1);border:1px solid #f87171;border-radius:8px;padding:8px;margin-bottom:10px;font-size:12px;color:#f87171;"></div>
     <div id="pw-success" style="display:none;background:rgba(74,222,128,0.1);border:1px solid #4ade80;border-radius:8px;padding:8px;margin-bottom:10px;font-size:12px;color:#4ade80;"></div>
     <div style="display:flex;flex-direction:column;gap:10px;">
