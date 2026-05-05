@@ -167,10 +167,17 @@ function showChauffeurDirect() {
     localStorage.setItem('stationActive', sid);
     sessionStorage.setItem('stationActive', sid);
 
-    // Attendre le preload puis ouvrir le portail
-    const tryOpenPortal = (attempts) => {
-      if (attempts > 20) { console.warn('showChauffeurDirect: chauffeur non trouvé dans répertoire'); return; }
-      const repertoire = (() => { try { return JSON.parse(localStorage.getItem(sid + '-repertoire')) || []; } catch(_) { return []; } })();
+    // Forcer le preload des données de la station puis ouvrir le portail
+    const tryOpenPortal = async (attempts) => {
+      if (attempts > 20) { console.warn('showChauffeurDirect: chauffeur non trouvé après 20 tentatives'); return; }
+      
+      // Forcer le preload si le répertoire n'est pas encore chargé
+      let repertoire = (() => { try { return JSON.parse(localStorage.getItem(sid + '-repertoire')) || []; } catch(_) { return []; } })();
+      if (!repertoire.length && typeof preloadStationData === 'function' && attempts === 0) {
+        await preloadStationData(sid);
+        repertoire = (() => { try { return JSON.parse(localStorage.getItem(sid + '-repertoire')) || []; } catch(_) { return []; } })();
+      }
+
       const chauffeur = repertoire.find(c => c.id_amazon === currentProfile.chauffeur_id);
       if (chauffeur && typeof window.openChauffeurPortal === 'function') {
         window.openChauffeurPortal(chauffeur, sid);
