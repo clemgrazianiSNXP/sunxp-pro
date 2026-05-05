@@ -212,7 +212,8 @@ window.logout = async function () {
   if (sb()) await sb().auth.signOut();
   currentUser = null;
   currentProfile = null;
-  showLoginPage();
+  // Recharger la page pour un état propre
+  window.location.reload();
 };
 
 /* ── Init ─────────────────────────────────────────────────── */
