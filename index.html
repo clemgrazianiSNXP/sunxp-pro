@@ -6,6 +6,8 @@
   <title>SunXP Pro</title>
   <link rel="icon" type="image/png" href="img/matting_2026-4-21_fa553fc4-3d99-11f1-9b2d-16737e16766a.png">
   <link rel="apple-touch-icon" href="img/matting_2026-4-21_fa553fc4-3d99-11f1-9b2d-16737e16766a.png">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f0f1a">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/stations.css">
   <link rel="stylesheet" href="css/heures.css">
@@ -230,6 +232,16 @@
         });
       })
       .catch(() => { window._chauffeurs = {}; });
+  </script>
+  <script>
+    // Enregistrement du Service Worker (PWA hors-ligne)
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').then(reg => {
+          console.log('✅ Service Worker enregistré');
+        }).catch(err => console.warn('SW registration failed:', err));
+      });
+    }
   </script>
 </body>
 </html>
