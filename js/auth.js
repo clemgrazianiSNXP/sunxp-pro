@@ -182,13 +182,13 @@ function showChauffeurDirect() {
 
       const searchId = (currentProfile.chauffeur_id || '').trim().toUpperCase();
       const chauffeur = repertoire.find(c => c.id_amazon && c.id_amazon.trim().toUpperCase() === searchId);
-      console.log('tryOpenPortal: searchId =', searchId, '| trouvé =', !!chauffeur, '| openChauffeurPortal =', typeof window.openChauffeurPortal);
-      if (chauffeur && typeof window.openChauffeurPortal === 'function') {
+      console.log('tryOpenPortal: searchId =', searchId, '| trouvé =', !!chauffeur, '| initChauffeurPortal =', typeof initChauffeurPortal);
+      if (chauffeur && typeof initChauffeurPortal === 'function') {
         console.log('✅ Chauffeur trouvé, ouverture portail');
         // Cacher la sidebar pour le chauffeur
         const sidebar = document.querySelector('.sidebar');
         if (sidebar) sidebar.style.display = 'none';
-        window.openChauffeurPortal(chauffeur, sid);
+        initChauffeurPortal(chauffeur, sid);
       } else {
         setTimeout(() => tryOpenPortal(attempts + 1), 500);
       }
