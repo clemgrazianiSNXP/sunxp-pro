@@ -180,7 +180,7 @@ function showChauffeurDirect() {
       console.log('tryOpenPortal attempt', attempts, '- répertoire:', repertoire.length, 'chauffeurs, cherche:', currentProfile.chauffeur_id);
       if (repertoire.length && attempts === 0) console.log('IDs disponibles:', repertoire.map(c => c.id_amazon));
 
-      const chauffeur = repertoire.find(c => c.id_amazon === currentProfile.chauffeur_id);
+      const chauffeur = repertoire.find(c => c.id_amazon && c.id_amazon.trim() === currentProfile.chauffeur_id.trim());
       if (chauffeur && typeof window.openChauffeurPortal === 'function') {
         console.log('✅ Chauffeur trouvé, ouverture portail');
         // Cacher la sidebar pour le chauffeur
