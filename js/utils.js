@@ -253,6 +253,8 @@ window.showPromptModal = function (title, placeholder, defaultValue, onSubmit) {
     if (el.classList.contains('h-inp-nom')) return;
     // Ne pas interférer si un dropdown camion est ouvert
     if (el.dataset.f === 'camion') return;
+    // Ne pas interférer avec les champs heures qui ont leur propre logique Enter (vague, retour, etc.)
+    if (el.classList.contains('h-calc') || el.classList.contains('h-inp-faute')) return;
 
     e.preventDefault();
 
