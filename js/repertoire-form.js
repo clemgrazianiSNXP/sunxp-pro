@@ -35,6 +35,11 @@ function showRepertoireForm(container, chauffeur, onSave, onCancel) {
           <span class="rep-error" id="rf-err-amazon"></span>
         </div>
         <div class="rep-field">
+          <label>Email <small>(pour accès espace chauffeur)</small></label>
+          <input id="rf-email" type="email" class="rep-input" value="${esc(chauffeur?.email || '')}" placeholder="chauffeur@email.com">
+          <span class="rep-error" id="rf-err-email"></span>
+        </div>
+        <div class="rep-field">
           <label>Matricule TSM</label>
           <input id="rf-matricule" class="rep-input" value="${esc(chauffeur?.matricule_tsm || '')}" placeholder="Matricule TSM">
         </div>
@@ -48,11 +53,12 @@ function showRepertoireForm(container, chauffeur, onSave, onCancel) {
   `;
 
   container.querySelector('#rf-cancel').addEventListener('click', onCancel);
-  container.querySelector('#rf-save').addEventListener('click', () => {
+  container.querySelector('#rf-save').addEventListener('click', async () => {
     const prenom  = container.querySelector('#rf-prenom').value.trim();
     const nom     = container.querySelector('#rf-nom').value.trim();
     const tel     = container.querySelector('#rf-tel').value.trim();
     const amazon  = container.querySelector('#rf-amazon').value.trim();
+    const email   = container.querySelector('#rf-email').value.trim();
     const matricule = container.querySelector('#rf-matricule').value.trim();
     let valid = true;
 
@@ -71,10 +77,38 @@ function showRepertoireForm(container, chauffeur, onSave, onCancel) {
 
     if (!valid) return;
 
-    onSave({
+    const chauffeurData = {
       id: chauffeur?.id || ('c_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7)),
-      prenom, nom, telephone: tel, id_amazon: amazon.toUpperCase(), matricule_tsm: matricule
-    });
+      prenom, nom, telephone: tel, id_amazon: amazon.toUpperCase(), matricule_tsm: matricule, email: email || ''
+    };
+
+    // Créer le compte auth si email renseigné et nouvelle fiche
+    if (email && !isEdit && typeof sb === 'function' && sb()) {
+      const saveBtn = container.querySelector('#rf-save');
+      saveBtn.disabled = true; saveBtn.textContent = 'Création du compte...';
+      try {
+        const stationId = window.getActiveStationId ? window.getActiveStationId() : 'default';
+        const password = amazon.toUpperCase().slice(0, 4) + tel.slice(-4); // Mot de passe par défaut
+        const res = await fetch(sb().supabaseUrl + '/functions/v1/create-chauffeur-account', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + sb().supabaseKey },
+          body: JSON.stringify({ email, password, nom, prenom, station_id: stationId, chauffeur_id: amazon.toUpperCase() })
+        });
+        const result = await res.json();
+        if (result.error) {
+          setErr('#rf-err-email', result.error);
+          saveBtn.disabled = false; saveBtn.textContent = 'Enregistrer';
+          return;
+        }
+        console.log('✅ Compte chauffeur créé:', result.user_id);
+      } catch (e) {
+        console.warn('Erreur création compte:', e.message);
+        // On continue quand même la sauvegarde de la fiche
+      }
+      saveBtn.disabled = false; saveBtn.textContent = 'Enregistrer';
+    }
+
+    onSave(chauffeurData);
   });
 }
 

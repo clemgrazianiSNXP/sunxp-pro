@@ -195,7 +195,65 @@ function renderParametres() {
     wrap.appendChild(compactSection);
   }
 
+  // ── Modifier mot de passe (chauffeur + responsable) ──
+  if (typeof sb === 'function' && sb()) {
+    const pwSection = document.createElement('div');
+    pwSection.innerHTML = '<h3 style="font-size:14px;margin-bottom:10px;color:var(--accent);">🔒 Mot de passe</h3>';
+    const pwBtn = document.createElement('button');
+    pwBtn.className = 'rep-btn rep-btn-primary';
+    pwBtn.style.cssText = 'font-size:12px;padding:8px 14px;';
+    pwBtn.textContent = '🔑 Modifier mon mot de passe';
+    pwBtn.onclick = () => showChangePasswordModal();
+    pwSection.appendChild(pwBtn);
+    wrap.appendChild(pwSection);
+  }
+
   return wrap;
+}
+
+/* ── Modal changement de mot de passe ─────────────────────── */
+function showChangePasswordModal() {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99999;display:flex;align-items:center;justify-content:center;';
+  const modal = document.createElement('div');
+  modal.style.cssText = 'background:var(--bg-card,var(--bg-sidebar));border-radius:12px;padding:24px;max-width:380px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.4);';
+  modal.innerHTML = `
+    <div style="font-size:15px;font-weight:700;margin-bottom:14px;color:var(--text-primary);">🔑 Modifier le mot de passe</div>
+    <div id="pw-error" style="display:none;background:rgba(248,113,113,0.1);border:1px solid #f87171;border-radius:8px;padding:8px;margin-bottom:10px;font-size:12px;color:#f87171;"></div>
+    <div id="pw-success" style="display:none;background:rgba(74,222,128,0.1);border:1px solid #4ade80;border-radius:8px;padding:8px;margin-bottom:10px;font-size:12px;color:#4ade80;"></div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <input type="password" id="pw-new" class="rep-input" placeholder="Nouveau mot de passe" style="padding:10px;font-size:13px;">
+      <input type="password" id="pw-confirm" class="rep-input" placeholder="Confirmer le mot de passe" style="padding:10px;font-size:13px;">
+    </div>
+    <div style="display:flex;gap:10px;margin-top:14px;justify-content:flex-end;">
+      <button class="h-btn" id="pw-cancel" style="padding:8px 16px;">Annuler</button>
+      <button class="h-btn" id="pw-save" style="padding:8px 16px;background:var(--accent);color:#fff;border-color:var(--accent);">Enregistrer</button>
+    </div>`;
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+  overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
+  modal.querySelector('#pw-cancel').onclick = () => overlay.remove();
+  modal.querySelector('#pw-save').onclick = async () => {
+    const newPw = modal.querySelector('#pw-new').value;
+    const confirm = modal.querySelector('#pw-confirm').value;
+    const errEl = modal.querySelector('#pw-error');
+    const succEl = modal.querySelector('#pw-success');
+    errEl.style.display = 'none'; succEl.style.display = 'none';
+
+    if (!newPw || newPw.length < 6) { errEl.textContent = 'Le mot de passe doit faire au moins 6 caractères.'; errEl.style.display = 'block'; return; }
+    if (newPw !== confirm) { errEl.textContent = 'Les mots de passe ne correspondent pas.'; errEl.style.display = 'block'; return; }
+
+    try {
+      const { error } = await sb().auth.updateUser({ password: newPw });
+      if (error) throw error;
+      succEl.textContent = '✅ Mot de passe modifié avec succès !';
+      succEl.style.display = 'block';
+      setTimeout(() => overlay.remove(), 1500);
+    } catch (e) {
+      errEl.textContent = e.message || 'Erreur lors de la modification.';
+      errEl.style.display = 'block';
+    }
+  };
 }
 
 function applyAccentColor(color) {
