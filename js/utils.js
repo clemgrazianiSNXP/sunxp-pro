@@ -141,6 +141,16 @@ document.addEventListener('DOMContentLoaded', initNavigation);
   };
   right.appendChild(themeBtn);
 
+  // Lien CGU discret
+  const legalLink = document.createElement('a');
+  legalLink.href = 'legal.html';
+  legalLink.target = '_blank';
+  legalLink.textContent = 'CGU';
+  legalLink.style.cssText = 'font-size:9px;color:var(--text-muted);opacity:0.4;text-decoration:none;cursor:pointer;';
+  legalLink.onmouseenter = () => legalLink.style.opacity = '0.8';
+  legalLink.onmouseleave = () => legalLink.style.opacity = '0.4';
+  right.appendChild(legalLink);
+
   topbar.appendChild(left); topbar.appendChild(right);
   document.body.prepend(topbar);
 
