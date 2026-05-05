@@ -30,23 +30,26 @@ function waitForSupabase() {
 
 /* ── Charger le profil utilisateur ────────────────────────── */
 async function loadProfile() {
-  if (!sb() || !currentUser) return;
+  if (!sb() || !currentUser) { console.warn('loadProfile: sb ou currentUser manquant'); return; }
   try {
+    console.log('loadProfile: chargement pour user', currentUser.id);
     const { data, error } = await sb().from('user_profiles').select('*').eq('id', currentUser.id).single();
-    if (error) { console.warn('loadProfile error:', error.message); return; }
+    if (error) { console.warn('loadProfile error:', error.message, error); return; }
+    console.log('loadProfile: profil trouvé', data);
     if (data) currentProfile = data;
-  } catch (e) { console.warn('loadProfile error:', e.message); }
+  } catch (e) { console.warn('loadProfile catch:', e.message); }
 }
 
 /* ── Redirection selon le rôle ────────────────────────────── */
 function redirectByRole() {
-  if (!currentProfile) { showApp(); return; }
+  console.log('redirectByRole: currentProfile =', currentProfile);
+  if (!currentProfile) { console.warn('redirectByRole: pas de profil, showApp par défaut'); showApp(); return; }
 
   if (currentProfile.role === 'chauffeur') {
-    // Chauffeur → portail direct
+    console.log('redirectByRole: rôle chauffeur détecté');
     showChauffeurDirect();
   } else {
-    // Responsable → interface complète
+    console.log('redirectByRole: rôle responsable');
     showApp();
   }
 }
