@@ -572,7 +572,9 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
       saveDay(storageKey, allRows, stationId);
       updateTravail();
       
-      // Mettre à jour visuellement SANS reconstruire le DOM
+      // Reconstruire proprement la cellule nom via refreshNomCell
+      // mais sans boucle infinie (refreshNomCell appelle buildNomCell qui appelle onSelect)
+      // Donc on reconstruit manuellement ici
       const hasNomNow = !!(row.nom && row.nom.trim());
       tr.style.opacity = hasNomNow ? '' : '0.35';
       tr.querySelectorAll('input:not(.h-inp-nom), input[type="checkbox"]').forEach(el => {
@@ -606,18 +608,28 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
         wrap.appendChild(txt);
         wrap.appendChild(clr);
         nomDisplay.appendChild(wrap);
+      } else {
+        // Si le nom a été effacé, reconstruire l'input
+        refreshNomCell();
       }
       
       starCell.innerHTML = buildStarRating(row.trajet, '');
       bindStars();
       
-      // Focus la ligne suivante
-      const nextTr = tr.nextElementSibling;
-      if (nextTr) {
-        setTimeout(() => {
-          const nextInp = nextTr.querySelector('.h-inp-nom');
-          if (nextInp) nextInp.focus();
-        }, 50);
+      // Focus la ligne suivante — délai plus long pour laisser le DOM se stabiliser
+      if (hasNomNow) {
+        const nextTr = tr.nextElementSibling;
+        if (nextTr) {
+          setTimeout(() => {
+            const nextNomDisplay = nextTr.querySelector('.h-nom-display');
+            if (nextNomDisplay) {
+              const nextInp = nextNomDisplay.querySelector('.h-inp-nom');
+              if (nextInp) {
+                nextInp.focus();
+              }
+            }
+          }, 100);
+        }
       }
     });
   }
@@ -689,13 +701,16 @@ function buildNomCell(container, row, allRows, stationId, onSelect) {
 
     let nomSelected = false;
     const normalize = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-    const usedNoms = new Set(allRows.filter(r => r !== row && r.nom).map(r => r.nom.trim()));
 
     function getRepertoire() {
       try {
         const raw = localStorage.getItem(stationId + '-repertoire');
         return raw ? JSON.parse(raw) : [];
       } catch (_) { return []; }
+    }
+
+    function getUsedNoms() {
+      return new Set(allRows.filter(r => r !== row && r.nom).map(r => r.nom.trim()));
     }
 
     function positionDropdown() {
@@ -707,6 +722,7 @@ function buildNomCell(container, row, allRows, stationId, onSelect) {
 
     function showDropdown(query) {
       const repertoire = getRepertoire();
+      const usedNoms = getUsedNoms();
       const q = normalize(query);
       const matches = repertoire
         .map(c => (c.prenom + ' ' + c.nom).trim())
