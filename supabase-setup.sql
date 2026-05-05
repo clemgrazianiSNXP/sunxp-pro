@@ -205,3 +205,14 @@ CREATE TABLE IF NOT EXISTS cles_codes (
 );
 ALTER TABLE cles_codes ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "allow_all" ON cles_codes FOR ALL USING (true) WITH CHECK (true);
+
+-- 17. Table Problèmes Camions (signalements partagés)
+CREATE TABLE IF NOT EXISTS problemes_camions (
+  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  station_id TEXT NOT NULL REFERENCES stations(id) ON DELETE CASCADE,
+  data JSONB NOT NULL DEFAULT '[]',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(station_id)
+);
+ALTER TABLE problemes_camions ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "allow_all" ON problemes_camions FOR ALL USING (true) WITH CHECK (true);

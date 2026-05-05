@@ -1,7 +1,7 @@
 /* js/flotte.js — Module Flotte (SunXP Pro) */
 console.log('flotte.js chargé');
 
-let flotteTab = 'camions'; // 'camions' | 'degats'
+let flotteTab = 'camions'; // 'camions' | 'degats' | 'problemes'
 
 function initFlotte() { flotteTab = 'camions'; renderFlotte(); }
 
@@ -16,6 +16,7 @@ function renderFlotte() {
   toolbar.innerHTML = `<div class="h-toolbar-left">
     <button class="h-btn rh-tab-btn ${flotteTab==='camions'?'rh-tab-active':''}" data-ft="camions">🚛 Répertoire Camions</button>
     <button class="h-btn rh-tab-btn ${flotteTab==='degats'?'rh-tab-active':''}" data-ft="degats">🔧 Dégâts</button>
+    <button class="h-btn rh-tab-btn ${flotteTab==='problemes'?'rh-tab-active':''}" data-ft="problemes">⚠️ Problèmes</button>
   </div><div class="h-toolbar-center"></div><div class="h-toolbar-right"></div>`;
   toolbar.querySelectorAll('.rh-tab-btn').forEach(b => { b.onclick = () => { flotteTab = b.dataset.ft; renderFlotte(); }; });
   container.appendChild(toolbar);
@@ -23,6 +24,7 @@ function renderFlotte() {
   const content = document.createElement('div');
   content.style.cssText = 'flex:1;overflow:auto;padding:16px;';
   if (flotteTab === 'camions') content.appendChild(typeof renderCamions === 'function' ? renderCamions() : document.createElement('div'));
-  else content.appendChild(typeof renderDegats === 'function' ? renderDegats() : document.createElement('div'));
+  else if (flotteTab === 'degats') content.appendChild(typeof renderDegats === 'function' ? renderDegats() : document.createElement('div'));
+  else content.appendChild(typeof renderProblemesResponsable === 'function' ? renderProblemesResponsable() : document.createElement('div'));
   container.appendChild(content);
 }

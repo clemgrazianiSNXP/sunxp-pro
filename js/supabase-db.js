@@ -550,6 +550,13 @@ window.preloadStationData = async function (stationId) {
       console.log('  Clés & Codes: chargés');
     }
 
+    // Problèmes Camions
+    const { data: probData } = await sb().from('problemes_camions').select('data').eq('station_id', stationId).maybeSingle();
+    if (probData && probData.data) {
+      localStorage.setItem(stationId + '-problemes-camions', JSON.stringify(probData.data));
+      console.log('  Problèmes Camions: chargés');
+    }
+
     console.log('✅ Préchargement terminé');
   } catch (e) {
     console.warn('Préchargement partiel:', e.message);
