@@ -153,9 +153,8 @@ function showChauffeurDirect() {
   if (loginPage) loginPage.style.display = 'none';
   document.querySelector('.app-layout').style.display = '';
 
-  // Cacher la sidebar (le chauffeur n'en a pas besoin)
-  const sidebar = document.querySelector('.sidebar');
-  if (sidebar) sidebar.style.display = 'none';
+  // Ne cacher la sidebar que si le portail s'ouvre effectivement
+  // (on la cachera dans tryOpenPortal quand le chauffeur est trouvé)
 
   // Afficher le bouton logout
   const logoutBtn = document.getElementById('topbar-logout');
@@ -184,6 +183,9 @@ function showChauffeurDirect() {
       const chauffeur = repertoire.find(c => c.id_amazon === currentProfile.chauffeur_id);
       if (chauffeur && typeof window.openChauffeurPortal === 'function') {
         console.log('✅ Chauffeur trouvé, ouverture portail');
+        // Cacher la sidebar pour le chauffeur
+        const sidebar = document.querySelector('.sidebar');
+        if (sidebar) sidebar.style.display = 'none';
         window.openChauffeurPortal(chauffeur, sid);
       } else {
         setTimeout(() => tryOpenPortal(attempts + 1), 500);
