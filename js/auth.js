@@ -160,15 +160,7 @@ function showApp() {
 function showChauffeurDirect() {
   const loginPage = document.getElementById('login-page');
   if (loginPage) loginPage.style.display = 'none';
-  const appLayout = document.querySelector('.app-layout');
-  if (appLayout) { appLayout.hidden = false; appLayout.style.display = ''; }
-
-  // Ne cacher la sidebar que si le portail s'ouvre effectivement
-  // (on la cachera dans tryOpenPortal quand le chauffeur est trouvé)
-
-  // Afficher le bouton logout
-  const logoutBtn = document.getElementById('topbar-logout');
-  if (logoutBtn) logoutBtn.style.display = '';
+  // Ne PAS afficher app-layout tout de suite — on attend que le portail soit prêt
 
   // Attendre que les données soient chargées puis ouvrir le portail
   if (currentProfile && currentProfile.station_id) {
@@ -195,12 +187,17 @@ function showChauffeurDirect() {
       console.log('tryOpenPortal: searchId =', searchId, '| trouvé =', !!chauffeur, '| initChauffeurPortal =', typeof initChauffeurPortal);
       if (chauffeur && typeof initChauffeurPortal === 'function') {
         console.log('✅ Chauffeur trouvé, ouverture portail');
-        // Cacher la sidebar et les modules responsable
+        // Cacher la sidebar et les modules responsable, afficher l'app
+        const appLayout = document.querySelector('.app-layout');
+        if (appLayout) { appLayout.hidden = false; appLayout.style.display = ''; }
         const sidebar = document.querySelector('.sidebar');
         if (sidebar) sidebar.style.display = 'none';
         document.querySelectorAll('.module-view').forEach(m => { m.classList.remove('active'); m.removeAttribute('style'); });
         const portal = document.getElementById('chauffeur-portal');
         if (portal) portal.hidden = false;
+        if (typeof showToolbar === 'function') showToolbar(true);
+        const logoutBtn = document.getElementById('topbar-logout');
+        if (logoutBtn) logoutBtn.style.display = '';
         initChauffeurPortal(chauffeur, sid);
       } else {
         setTimeout(() => tryOpenPortal(attempts + 1), 500);
