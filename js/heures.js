@@ -482,7 +482,10 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
         if (inp.value !== origVague) {
           row.heureVague = inp.value;
           saveDay(storageKey, allRows, stationId);
-          renderHeures();
+          // Mettre à jour la couleur de fond de la ligne sans re-render complet
+          const newColors = assignVagueColors(allRows);
+          const color = newColors[row.heureVague] || '';
+          tr.style.backgroundColor = color;
         }
       });
     }
