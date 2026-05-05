@@ -32,7 +32,8 @@ function waitForSupabase() {
 async function loadProfile() {
   if (!sb() || !currentUser) return;
   try {
-    const { data, error } = await sb().from('user_profiles').select('*').eq('id', currentUser.id).maybeSingle();
+    const { data, error } = await sb().from('user_profiles').select('*').eq('id', currentUser.id).single();
+    if (error) { console.warn('loadProfile error:', error.message); return; }
     if (data) currentProfile = data;
   } catch (e) { console.warn('loadProfile error:', e.message); }
 }
