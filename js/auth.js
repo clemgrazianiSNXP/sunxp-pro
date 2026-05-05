@@ -147,7 +147,8 @@ function showApp() {
   if (loginPage) loginPage.style.display = 'none';
   const roleScreen = document.getElementById('role-screen');
   if (roleScreen) roleScreen.hidden = true;
-  document.querySelector('.app-layout').style.display = '';
+  const appLayout = document.querySelector('.app-layout');
+  if (appLayout) { appLayout.hidden = false; appLayout.style.display = ''; }
   // Afficher le bouton logout si connecté
   const logoutBtn = document.getElementById('topbar-logout');
   if (logoutBtn && currentUser) logoutBtn.style.display = '';
@@ -157,7 +158,8 @@ function showApp() {
 function showChauffeurDirect() {
   const loginPage = document.getElementById('login-page');
   if (loginPage) loginPage.style.display = 'none';
-  document.querySelector('.app-layout').style.display = '';
+  const appLayout = document.querySelector('.app-layout');
+  if (appLayout) { appLayout.hidden = false; appLayout.style.display = ''; }
 
   // Ne cacher la sidebar que si le portail s'ouvre effectivement
   // (on la cachera dans tryOpenPortal quand le chauffeur est trouvé)
