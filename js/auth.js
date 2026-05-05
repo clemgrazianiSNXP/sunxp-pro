@@ -66,8 +66,7 @@ function redirectByRole() {
 
 /* ── Afficher la page de login ────────────────────────────── */
 function showLoginPage() {
-  // Cacher l'app et le role-screen
-  document.querySelector('.app-layout').style.display = 'none';
+  // Cacher le role-screen s'il existe
   const roleScreen = document.getElementById('role-screen');
   if (roleScreen) roleScreen.hidden = true;
 
@@ -101,6 +100,9 @@ function showLoginPage() {
     document.getElementById('login-password').addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
   }
   loginPage.style.display = 'flex';
+  // Cacher l'app derrière le login
+  const appLayout = document.querySelector('.app-layout');
+  if (appLayout) appLayout.style.display = 'none';
 }
 
 /* ── Handler de connexion ─────────────────────────────────── */
