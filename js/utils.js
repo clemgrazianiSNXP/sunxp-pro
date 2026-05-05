@@ -137,8 +137,14 @@ document.addEventListener('DOMContentLoaded', initNavigation);
     if (savedAccent && typeof applyAccentColor === 'function') applyAccentColor(savedAccent);
     const savedBg = localStorage.getItem('sunxp-bg');
     if (savedBg && typeof applyBgColor === 'function') applyBgColor(savedBg);
-    // Re-render heures pour mettre à jour les couleurs de vagues
-    if (typeof renderHeures === 'function') { heuresFirstRender = true; renderHeures(); }
+    // Re-render heures pour mettre à jour les couleurs de vagues (seulement si on est sur l'onglet heures)
+    if (typeof renderHeures === 'function') {
+      const heuresModule = document.getElementById('module-heures');
+      if (heuresModule && heuresModule.classList.contains('active')) {
+        heuresFirstRender = true;
+        renderHeures();
+      }
+    }
   };
   right.appendChild(themeBtn);
 
