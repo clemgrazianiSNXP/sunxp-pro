@@ -26,9 +26,30 @@ const PLANNING_SUMMARY_ROWS = [
 let planningCurrentDate = new Date();
 
 /* ── Point d'entrée ───────────────────────────────────────── */
-function initPlanning() {
+async function initPlanning() {
   planningCurrentDate = new Date();
+  // Charger depuis Supabase si disponible
+  const stationId = window.getActiveStationId ? window.getActiveStationId() : 'default';
+  const year = planningCurrentDate.getFullYear();
+  const month = planningCurrentDate.getMonth();
+  await loadPlanningFromSupabase(stationId, year, month);
   renderPlanning();
+}
+
+/* ── Chargement Supabase → localStorage ───────────────────── */
+async function loadPlanningFromSupabase(stationId, year, month) {
+  if (typeof sb !== 'function' || !sb()) return;
+  try {
+    const key = year + '-' + String(month + 1).padStart(2, '0');
+    const { data, error } = await sb().from('planning').select('data').eq('station_id', stationId).eq('mois_key', key).maybeSingle();
+    if (!error && data && data.data) {
+      localStorage.setItem(planningKey(stationId, year, month), JSON.stringify(data.data));
+    }
+    const { data: metaData, error: metaErr } = await sb().from('planning_meta').select('data').eq('station_id', stationId).eq('mois_key', key).maybeSingle();
+    if (!metaErr && metaData && metaData.data) {
+      localStorage.setItem(planningMetaKey(stationId, year, month), JSON.stringify(metaData.data));
+    }
+  } catch (e) { console.warn('loadPlanningFromSupabase:', e.message); }
 }
 
 /* ── Persistance ──────────────────────────────────────────── */
@@ -128,9 +149,9 @@ function buildPlanningToolbar(year, month) {
     </div>
     <div class="h-toolbar-right"></div>
   `;
-  bar.querySelector('#pl-prev').onclick = () => { planningCurrentDate.setMonth(planningCurrentDate.getMonth() - 1); renderPlanning(); };
-  bar.querySelector('#pl-next').onclick = () => { planningCurrentDate.setMonth(planningCurrentDate.getMonth() + 1); renderPlanning(); };
-  bar.querySelector('#pl-today').onclick = () => { planningCurrentDate = new Date(); renderPlanning(); };
+  bar.querySelector('#pl-prev').onclick = async () => { planningCurrentDate.setMonth(planningCurrentDate.getMonth() - 1); const sid = window.getActiveStationId ? window.getActiveStationId() : 'default'; await loadPlanningFromSupabase(sid, planningCurrentDate.getFullYear(), planningCurrentDate.getMonth()); renderPlanning(); };
+  bar.querySelector('#pl-next').onclick = async () => { planningCurrentDate.setMonth(planningCurrentDate.getMonth() + 1); const sid = window.getActiveStationId ? window.getActiveStationId() : 'default'; await loadPlanningFromSupabase(sid, planningCurrentDate.getFullYear(), planningCurrentDate.getMonth()); renderPlanning(); };
+  bar.querySelector('#pl-today').onclick = async () => { planningCurrentDate = new Date(); const sid = window.getActiveStationId ? window.getActiveStationId() : 'default'; await loadPlanningFromSupabase(sid, planningCurrentDate.getFullYear(), planningCurrentDate.getMonth()); renderPlanning(); };
 
   // Bouton Générer (depuis planning-generator.js)
   if (typeof addGenerateButton === 'function') {
