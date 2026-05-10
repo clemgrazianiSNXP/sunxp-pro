@@ -47,6 +47,7 @@ function renderAccueil() {
   colDsp.appendChild(dspTitle);
   colDsp.appendChild(buildHSCard(sid));
   colDsp.appendChild(buildNear35hCard(sid));
+  colDsp.appendChild(buildASTCard(sid));
   grid.appendChild(colDsp);
 
   // Colonne RH
@@ -98,8 +99,7 @@ function buildDemandesCard(sid) {
       </div>`;
   }
 
-  card.style.cursor = 'pointer';
-  card.onclick = () => { showModule('heures'); /* ouvrir hamburger demandes */ setTimeout(() => { const btn = document.getElementById('hamburger-btn'); if (btn) btn.click(); setTimeout(() => { if (typeof setMenuTab === 'function') setMenuTab('demandes-mgr'); }, 100); }, 100); };
+  card.querySelector('.accueil-card-body').style.cursor = 'pointer';\n  card.querySelector('.accueil-card-body').onclick = () => { showModule('heures'); /* ouvrir hamburger demandes */ setTimeout(() => { const btn = document.getElementById('hamburger-btn'); if (btn) btn.click(); setTimeout(() => { if (typeof setMenuTab === 'function') setMenuTab('demandes-mgr'); }, 100); }, 100); };
   return card;
 }
 
@@ -126,8 +126,7 @@ function buildHSCard(sid) {
     body.innerHTML = html;
   }
 
-  card.style.cursor = 'pointer';
-  card.onclick = () => { showModule('heures'); };
+  card.querySelector('.accueil-card-body').style.cursor = 'pointer';\n  card.querySelector('.accueil-card-body').onclick = () => { showModule('heures'); };
   return card;
 }
 
@@ -154,8 +153,7 @@ function buildNear35hCard(sid) {
     body.innerHTML = html;
   }
 
-  card.style.cursor = 'pointer';
-  card.onclick = () => { showModule('heures'); };
+  card.querySelector('.accueil-card-body').style.cursor = 'pointer';\n  card.querySelector('.accueil-card-body').onclick = () => { showModule('heures'); };
   return card;
 }
 
@@ -184,31 +182,34 @@ function buildProblemesCard(sid) {
     body.innerHTML = html;
   }
 
-  card.style.cursor = 'pointer';
-  card.onclick = () => { showModule('flotte'); setTimeout(() => { if (typeof renderFlotte === 'function') { flotteTab = 'problemes'; renderFlotte(); } }, 50); };
+  card.querySelector('.accueil-card-body').style.cursor = 'pointer';\n  card.querySelector('.accueil-card-body').onclick = () => { showModule('flotte'); setTimeout(() => { if (typeof renderFlotte === 'function') { flotteTab = 'problemes'; renderFlotte(); } }, 50); };
   return card;
 }
 
 /* ── Helper : créer une card ──────────────────────────────── */
 function createCard(icon, title) {
   const card = document.createElement('div');
-  card.style.cssText = 'background:var(--bg-sidebar);border:1px solid var(--border);border-radius:14px;padding:20px;transition:transform 0.18s,box-shadow 0.18s,border-color 0.18s;position:relative;overflow:hidden;';
-  card.onmouseenter = () => { card.style.transform = 'translateY(-3px)'; card.style.boxShadow = '0 8px 28px rgba(0,0,0,0.25)'; card.style.borderColor = 'var(--accent)'; };
-  card.onmouseleave = () => { card.style.transform = ''; card.style.boxShadow = ''; card.style.borderColor = 'var(--border)'; };
-
-  // Glow subtil en haut de la card
-  const glow = document.createElement('div');
-  glow.style.cssText = 'position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:0.4;border-radius:14px 14px 0 0;';
-  card.appendChild(glow);
+  card.style.cssText = 'background:var(--bg-sidebar);border:1px solid var(--border);border-radius:14px;padding:0;transition:transform 0.18s,box-shadow 0.18s,border-color 0.18s;position:relative;overflow:hidden;';
+  card.onmouseenter = () => { card.style.boxShadow = '0 4px 16px rgba(0,0,0,0.15)'; card.style.borderColor = 'var(--accent)'; };
+  card.onmouseleave = () => { card.style.boxShadow = ''; card.style.borderColor = 'var(--border)'; };
 
   const header = document.createElement('div');
-  header.style.cssText = 'display:flex;align-items:center;gap:10px;margin-bottom:12px;';
-  header.innerHTML = `<span style="font-size:22px;">${icon}</span><span style="font-size:14px;font-weight:700;color:var(--text-primary);">${title}</span>`;
+  header.style.cssText = 'display:flex;align-items:center;gap:10px;padding:14px 16px;cursor:pointer;user-select:none;';
+  header.innerHTML = `<span style="font-size:20px;">${icon}</span><span style="font-size:13px;font-weight:700;color:var(--text-primary);flex:1;">${title}</span><span class="card-toggle" style="font-size:12px;color:var(--text-muted);transition:transform 0.2s;">▼</span>`;
   card.appendChild(header);
 
   const body = document.createElement('div');
   body.className = 'accueil-card-body';
+  body.style.cssText = 'display:none;padding:0 16px 14px;';
   card.appendChild(body);
+
+  // Toggle ouverture/fermeture
+  header.onclick = (e) => {
+    e.stopPropagation();
+    const isOpen = body.style.display !== 'none';
+    body.style.display = isOpen ? 'none' : 'block';
+    header.querySelector('.card-toggle').style.transform = isOpen ? '' : 'rotate(180deg)';
+  };
 
   return card;
 }
@@ -234,8 +235,7 @@ function buildVMExpirationCard(sid) {
     body.innerHTML = html;
   }
 
-  card.style.cursor = 'pointer';
-  card.onclick = () => { showModule('rh'); setTimeout(() => { rhTab = 'suivi-papiers'; renderRH(); }, 50); };
+  card.querySelector('.accueil-card-body').style.cursor = 'pointer';\n  card.querySelector('.accueil-card-body').onclick = () => { showModule('rh'); setTimeout(() => { rhTab = 'suivi-papiers'; renderRH(); }, 50); };
   return card;
 }
 
@@ -260,8 +260,72 @@ function buildCTExpirationCard(sid) {
     body.innerHTML = html;
   }
 
+  card.querySelector('.accueil-card-body').style.cursor = 'pointer';\n  card.querySelector('.accueil-card-body').onclick = () => { showModule('flotte'); setTimeout(() => { flotteTab = 'entretien'; renderFlotte(); }, 50); };
+  return card;
+}
+
+/* ── Card AST + Heures Supp (DSP/CE) ──────────────────────── */
+function buildASTCard(sid) {
+  const card = createCard('📞', 'AST + Heures Supp');
+  const body = card.querySelector('.accueil-card-body');
+
+  let html = '';
+
+  // AST : chauffeurs avec 5 RSTD cette semaine (depuis le planning)
+  const now = new Date();
+  const year = now.getFullYear(), month = now.getMonth();
+  const nbDays = new Date(year, month + 1, 0).getDate();
+  const data = typeof loadPlanning === 'function' ? loadPlanning(sid, year, month) : {};
+  let chauffeurs = [];
+  try { chauffeurs = JSON.parse(localStorage.getItem(sid + '-repertoire')) || []; } catch (_) {}
+  const eligible = chauffeurs.filter(c => ['Chauffeur', 'Formateur'].includes(c.role));
+
+  // Trouver la semaine en cours (lundi → dimanche)
+  const monday = new Date(now);
+  const dow = monday.getDay() || 7;
+  monday.setDate(monday.getDate() - dow + 1);
+
+  const astList = [];
+  eligible.forEach(c => {
+    const nom = ((c.prenom || '') + ' ' + (c.nom || '')).trim();
+    let rstdCount = 0;
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(monday); d.setDate(d.getDate() + i);
+      if (d.getMonth() !== month) continue;
+      const statut = data[nom + '_' + d.getDate()] || '';
+      if (statut === 'RSTD') rstdCount++;
+    }
+    if (rstdCount >= 5) astList.push({ nom, rstdCount });
+  });
+
+  if (astList.length) {
+    html += '<div style="font-size:11px;font-weight:700;color:#f97316;margin-bottom:6px;">📞 Astreintes cette semaine (' + astList.length + ')</div>';
+    astList.forEach(a => {
+      html += '<div style="font-size:11px;padding:2px 0;border-bottom:1px solid var(--border);">' + a.nom + ' <span style="color:#f97316;">(' + a.rstdCount + 'j)</span></div>';
+    });
+  } else {
+    html += '<div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">✅ Aucune astreinte cette semaine</div>';
+  }
+
+  // HS semaine -1 : heures supp triées décroissant
+  let overtimeData = [];
+  if (typeof getOvertimeData === 'function') {
+    overtimeData = getOvertimeData(sid, now);
+  }
+
+  if (overtimeData.length) {
+    html += '<div style="font-size:11px;font-weight:700;color:#f87171;margin:10px 0 6px;">⚠️ Heures supp. semaine -1 (' + overtimeData.length + ')</div>';
+    overtimeData.sort((a, b) => b.supMin - a.supMin).forEach(item => {
+      html += '<div style="display:flex;justify-content:space-between;font-size:11px;padding:2px 0;border-bottom:1px solid var(--border);"><span>' + item.nom + '</span><span style="color:#f87171;font-weight:700;">+' + (typeof minToTime === 'function' ? minToTime(item.supMin) : item.supMin + 'min') + '</span></div>';
+    });
+  } else {
+    html += '<div style="font-size:11px;color:var(--text-muted);margin-top:8px;">✅ Aucune heure supp. semaine -1</div>';
+  }
+
+  body.innerHTML = html;
+
   card.style.cursor = 'pointer';
-  card.onclick = () => { showModule('flotte'); setTimeout(() => { flotteTab = 'entretien'; renderFlotte(); }, 50); };
+  card.querySelector('.accueil-card-body').onclick = (e) => { e.stopPropagation(); showModule('heures'); };
   return card;
 }
 
@@ -297,8 +361,7 @@ function buildAcomptesVirementCard(sid) {
     body.innerHTML = html;
   }
 
-  card.style.cursor = 'pointer';
-  card.onclick = () => { showModule('heures'); setTimeout(() => { const btn = document.getElementById('hamburger-btn'); if (btn) btn.click(); setTimeout(() => { if (typeof setMenuTab === 'function') setMenuTab('demandes-mgr'); }, 100); }, 100); };
+  card.querySelector('.accueil-card-body').style.cursor = 'pointer';\n  card.querySelector('.accueil-card-body').onclick = () => { showModule('heures'); setTimeout(() => { const btn = document.getElementById('hamburger-btn'); if (btn) btn.click(); setTimeout(() => { if (typeof setMenuTab === 'function') setMenuTab('demandes-mgr'); }, 100); }, 100); };
   return card;
 }
 
