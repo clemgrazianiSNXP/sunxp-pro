@@ -72,17 +72,18 @@ function renderAttribution() {
     <th style="padding:3px 3px;width:30px;">St.</th>
     <th style="padding:3px 3px;text-align:left;">Plaque</th>
     <th style="padding:3px 4px;text-align:left;min-width:90px;">Chauffeur</th>
-    <th style="padding:3px 3px;width:28px;">PDA</th>
-    <th style="padding:3px 3px;width:32px;">Trs.</th>
-    <th style="padding:3px 3px;width:28px;">Lic.</th>
-    <th style="padding:3px 2px;width:36px;">Clef</th>
-    <th style="padding:3px 3px;width:50px;">VIGIK</th>
+    <th style="padding:3px 1px;width:24px;">PDA</th>
+    <th style="padding:3px 1px;width:26px;">Trs.</th>
+    <th style="padding:3px 1px;width:24px;">Lic.</th>
+    <th style="padding:3px 1px;width:30px;">Clef</th>
+    <th style="padding:3px 1px;width:44px;">VIGIK</th>
     <th style="padding:3px 2px;width:18px;background:rgba(74,222,128,0.1);">U</th>
     <th style="padding:3px 2px;width:18px;background:rgba(74,222,128,0.1);">P</th>
     <th style="padding:3px 2px;width:18px;background:rgba(74,222,128,0.1);">T</th>
     <th style="padding:3px 2px;width:18px;background:rgba(74,222,128,0.1);">L</th>
     <th style="padding:3px 2px;width:18px;background:rgba(74,222,128,0.1);">C</th>
-    <th style="padding:3px 2px;width:24px;background:rgba(74,222,128,0.1);">V</th>
+    <th style="padding:3px 2px;width:18px;background:rgba(74,222,128,0.1);">V</th>
+    <th style="padding:3px 2px;width:20px;background:rgba(74,222,128,0.1);">✓</th>
     <th style="padding:3px 6px;">Com.</th>
   </tr>`;
   table.appendChild(thead);
@@ -93,17 +94,20 @@ function renderAttribution() {
     tr.style.cssText = 'height:24px;border-bottom:1px solid var(--border);';
 
     if (row.statut === 'X') {
-      // Ligne fusionnée
+      // Ligne fusionnée — UTA/Tél restent, fusion à partir de Chauffeur
       const bg = row.fusionColor || 'rgba(248,113,113,0.1)';
       tr.style.background = bg;
       tr.innerHTML = `
         <td style="padding:1px;">${mvBtns(idx, rows.length)}</td>
-        <td style="padding:1px 3px;font-size:9px;">${row.modele}</td>
-        <td style="padding:1px 3px;font-size:9px;">${row.agence}${row.bva?' BVA':''}</td>
-        <td colspan="4" style="padding:1px;text-align:center;"><select class="h-inp" data-idx="${idx}" data-f="statut" style="width:24px;font-size:9px;padding:0;"><option value="OK">OK</option><option value="BU">BU</option><option value="X" selected>✕</option></select></td>
-        <td style="padding:1px 3px;font-weight:700;color:var(--accent);font-size:9px;">${row.plaque}</td>
-        <td colspan="12" style="padding:1px 4px;"><input class="h-inp" value="${row.fusionTitle}" data-idx="${idx}" data-f="fusionTitle" placeholder="Raison..." style="width:100%;font-size:9px;text-align:left;font-weight:600;color:${row.fusionColor||'#f87171'};"></td>
-        <td style="padding:1px;"><input type="color" value="${row.fusionColor||'#f87171'}" data-idx="${idx}" data-f="fusionColor" style="width:18px;height:16px;border:none;padding:0;cursor:pointer;"></td>
+        <td style="padding:1px 2px;font-size:9px;text-align:left;">${row.modele}</td>
+        <td style="padding:1px 2px;font-size:9px;text-align:left;">${row.agence}${row.bva?' BVA':''}</td>
+        <td style="padding:1px;"><input type="checkbox" ${row.checkMensuel?'checked':''} data-idx="${idx}" data-f="checkMensuel" style="width:12px;height:12px;"></td>
+        <td style="padding:1px 3px;"><input class="h-inp" value="${row.uta}" data-idx="${idx}" data-f="uta" style="width:28px;font-size:9px;padding:1px;"></td>
+        <td style="padding:1px 3px;"><input class="h-inp" value="${row.telepeages}" data-idx="${idx}" data-f="telepeages" style="width:28px;font-size:9px;padding:1px;"></td>
+        <td style="padding:1px;"><select class="h-inp" data-idx="${idx}" data-f="statut" style="width:30px;font-size:9px;padding:1px;background:var(--bg-tab-active);color:var(--text-primary);border:1px solid var(--border);border-radius:3px;"><option value="OK">OK</option><option value="BU">BU</option><option value="X" selected>✕</option></select></td>
+        <td style="padding:1px 3px;font-weight:700;color:var(--accent);font-size:9px;text-align:left;">${row.plaque}</td>
+        <td colspan="14" style="padding:1px 4px;"><input class="h-inp" value="${row.fusionTitle}" data-idx="${idx}" data-f="fusionTitle" placeholder="Raison..." style="width:100%;font-size:9px;text-align:left;font-weight:600;color:${row.fusionColor||'#f87171'};"></td>
+        <td style="padding:1px;"><input type="color" value="${row.fusionColor||'#f87171'}" data-idx="${idx}" data-f="fusionColor" style="width:16px;height:14px;border:none;padding:0;cursor:pointer;"></td>
       `;
     } else {
       tr.innerHTML = `
@@ -116,17 +120,18 @@ function renderAttribution() {
         <td style="padding:1px;"><select class="h-inp" data-idx="${idx}" data-f="statut" style="width:30px;font-size:9px;padding:1px;background:var(--bg-tab-active);color:var(--text-primary);border:1px solid var(--border);border-radius:3px;"><option value="OK" ${row.statut==='OK'?'selected':''}>OK</option><option value="BU" ${row.statut==='BU'?'selected':''}>BU</option><option value="X" ${row.statut==='X'?'selected':''}>✕</option></select></td>
         <td style="padding:1px 3px;font-weight:700;color:var(--accent);font-size:9px;text-align:left;">${row.plaque}</td>
         <td style="padding:1px;position:relative;"><input class="h-inp attr-chauffeur-inp" value="${row.chauffeur}" data-idx="${idx}" data-f="chauffeur" style="width:88px;font-size:9px;padding:1px 3px;text-align:left;" placeholder="—"></td>
-        <td><input class="h-inp" value="${row.pda}" data-idx="${idx}" data-f="pda" style="width:26px;font-size:9px;padding:1px;"></td>
-        <td><input class="h-inp" value="${row.trousseau}" data-idx="${idx}" data-f="trousseau" style="width:30px;font-size:9px;padding:1px;"></td>
-        <td><input class="h-inp" value="${row.licence}" data-idx="${idx}" data-f="licence" style="width:26px;font-size:9px;padding:1px;"></td>
-        <td style="padding:1px;"><select class="h-inp" data-idx="${idx}" data-f="clefBal" style="width:34px;font-size:8px;padding:0;"><option value="">—</option><option value="PERSO" ${row.clefBal==='PERSO'?'selected':''}>P</option><option value="C21" ${row.clefBal==='C21'?'selected':''}>C21</option></select></td>
-        <td><input class="h-inp" value="${row.vigik}" data-idx="${idx}" data-f="vigik" style="width:48px;font-size:8px;padding:1px;"></td>
+        <td><input class="h-inp" value="${row.pda}" data-idx="${idx}" data-f="pda" style="width:22px;font-size:9px;padding:1px;"></td>
+        <td><input class="h-inp" value="${row.trousseau}" data-idx="${idx}" data-f="trousseau" style="width:24px;font-size:9px;padding:1px;"></td>
+        <td><input class="h-inp" value="${row.licence}" data-idx="${idx}" data-f="licence" style="width:22px;font-size:9px;padding:1px;"></td>
+        <td style="padding:1px;"><select class="h-inp" data-idx="${idx}" data-f="clefBal" style="width:28px;font-size:8px;padding:0;background:var(--bg-tab-active);color:var(--text-primary);border:1px solid var(--border);border-radius:3px;"><option value="">—</option><option value="PERSO" ${row.clefBal==='PERSO'?'selected':''}>P</option><option value="C21" ${row.clefBal==='C21'?'selected':''}>C21</option></select></td>
+        <td><input class="h-inp" value="${row.vigik}" data-idx="${idx}" data-f="vigik" style="width:42px;font-size:8px;padding:1px;"></td>
         <td style="text-align:center;background:rgba(74,222,128,0.03);"><input type="checkbox" ${row.retourUta?'checked':''} data-idx="${idx}" data-f="retourUta" style="width:12px;height:12px;"></td>
         <td style="text-align:center;background:rgba(74,222,128,0.03);"><input type="checkbox" ${row.retourPda?'checked':''} data-idx="${idx}" data-f="retourPda" style="width:12px;height:12px;"></td>
         <td style="text-align:center;background:rgba(74,222,128,0.03);"><input type="checkbox" ${row.retourTrousseau?'checked':''} data-idx="${idx}" data-f="retourTrousseau" style="width:12px;height:12px;"></td>
         <td style="text-align:center;background:rgba(74,222,128,0.03);"><input type="checkbox" ${row.retourLicence?'checked':''} data-idx="${idx}" data-f="retourLicence" style="width:12px;height:12px;"></td>
         <td style="text-align:center;background:rgba(74,222,128,0.03);"><input type="checkbox" ${row.retourClefBal?'checked':''} data-idx="${idx}" data-f="retourClefBal" style="width:12px;height:12px;"></td>
-        <td style="text-align:center;background:rgba(74,222,128,0.03);"><input type="checkbox" ${row.retourVigik?'checked':''} data-idx="${idx}" data-f="retourVigik" style="width:12px;height:12px;"><button class="h-btn" style="font-size:7px;padding:0 2px;margin-left:1px;" title="Tout OK" data-idx="${idx}" data-action="allok">✓</button></td>
+        <td style="text-align:center;background:rgba(74,222,128,0.03);"><input type="checkbox" ${row.retourVigik?'checked':''} data-idx="${idx}" data-f="retourVigik" style="width:12px;height:12px;"></td>
+        <td style="text-align:center;background:rgba(74,222,128,0.03);"><button class="h-btn" style="font-size:7px;padding:0 3px;" title="Tout OK" data-idx="${idx}" data-action="allok">✓</button></td>
         <td><input class="h-inp" value="${row.commentaire}" data-idx="${idx}" data-f="commentaire" style="width:100%;font-size:9px;padding:1px 3px;"></td>
       `;
     }
@@ -139,7 +144,7 @@ function renderAttribution() {
   const nbOk = rows.filter(r => r.statut === 'OK').length;
   const nbBu = rows.filter(r => r.statut === 'BU').length;
   const nbAttr = rows.filter(r => r.chauffeur && r.statut === 'OK').length;
-  tfoot.innerHTML = `<tr style="border-top:2px solid var(--accent);"><td colspan="21" style="padding:6px;font-size:10px;font-weight:700;">OK: ${nbOk} | BU: ${nbBu} | Attribués: ${nbAttr} | Total: ${rows.length}</td></tr>`;
+  tfoot.innerHTML = `<tr style="border-top:2px solid var(--accent);"><td colspan="22" style="padding:6px;font-size:10px;font-weight:700;">OK: ${nbOk} | BU: ${nbBu} | Attribués: ${nbAttr} | Total: ${rows.length}</td></tr>`;
   table.appendChild(tfoot);
 
   tableWrap.appendChild(table);
