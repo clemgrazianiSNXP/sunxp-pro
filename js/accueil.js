@@ -1,7 +1,7 @@
 /* js/accueil.js — Tableau de bord Accueil Responsable (SunXP Pro) */
 console.log('accueil.js chargé');
 
-function initAccueil() { renderAccueil(); }
+function initAccueil() { renderAccueil(); if (typeof updateNavBadges === 'function') updateNavBadges(); }
 
 function renderAccueil() {
   const container = document.getElementById('module-accueil');
@@ -299,20 +299,22 @@ function getCTExpiringSoon(sid) {
 /* ── Badges de notification sur les onglets ───────────────── */
 function updateNavBadges() {
   const sid = window.getActiveStationId ? window.getActiveStationId() : 'default';
+  if (sid === 'default') return; // Pas de station sélectionnée
+
   const vmCount = getVMExpiringSoon(sid).length;
   const ctCount = getCTExpiringSoon(sid).length;
 
   // Badge sur onglet RH
-  const rhTab = document.querySelector('.nav-tab[data-module="rh"]');
-  if (rhTab) {
-    rhTab.querySelector('.nav-badge')?.remove();
+  const rhTabEl = document.querySelector('.nav-tab[data-module="rh"]');
+  if (rhTabEl) {
+    rhTabEl.querySelector('.nav-badge')?.remove();
     if (vmCount > 0) {
       const badge = document.createElement('span');
       badge.className = 'nav-badge';
       badge.style.cssText = 'position:absolute;top:2px;right:2px;background:#f87171;color:#fff;font-size:9px;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 4px;';
       badge.textContent = vmCount;
-      rhTab.style.position = 'relative';
-      rhTab.appendChild(badge);
+      rhTabEl.style.position = 'relative';
+      rhTabEl.appendChild(badge);
     }
   }
 
@@ -331,5 +333,8 @@ function updateNavBadges() {
   }
 }
 
-// Mettre à jour les badges au chargement et à chaque changement de module
-document.addEventListener('DOMContentLoaded', () => setTimeout(updateNavBadges, 500));
+// Mettre à jour les badges au chargement, après sélection de station, et à chaque rendu accueil
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(updateNavBadges, 1500);
+  setTimeout(updateNavBadges, 3000);
+});
