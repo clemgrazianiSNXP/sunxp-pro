@@ -12,6 +12,17 @@ const PLANNING_CODE_COLORS = {
   RLV1:'#84cc16', RLV2:'#eab308', RLV3:'#ef4444'
 };
 
+// Lignes résumé en haut de la grille (partie fixe gauche = label, partie droite = valeurs éditables par jour)
+const PLANNING_SUMMARY_ROWS = [
+  { key: 'capamax',    label: 'CAPA MAX',          color: '#a78bfa', editable: true },
+  { key: 'forecast',   label: 'FORECAST',          color: '#60a5fa', editable: true },
+  { key: 'routes',     label: 'Routes réalisées',  color: '#4ade80', editable: true },
+  { key: 'cut',        label: 'Cut',               color: '#f87171', editable: true },
+  { key: 'bu_paye',    label: 'BU payé',           color: '#f97316', editable: true },
+  { key: 'nb_chauffeurs', label: 'Nb chauffeurs',  color: '#fbbf24', auto: 'RSTD' },
+  { key: 'bu_planifie',   label: 'BU planifié',    color: '#f97316', auto: 'BU' }
+];
+
 let planningCurrentDate = new Date();
 
 /* ── Point d'entrée ───────────────────────────────────────── */
@@ -24,19 +35,24 @@ function initPlanning() {
 function planningKey(stationId, year, month) {
   return stationId + '-planning-' + year + '-' + String(month + 1).padStart(2, '0');
 }
-
-function loadPlanning(stationId, year, month) {
-  try {
-    const raw = localStorage.getItem(planningKey(stationId, year, month));
-    return raw ? JSON.parse(raw) : {};
-  } catch (_) { return {}; }
+function planningMetaKey(stationId, year, month) {
+  return stationId + '-planning-meta-' + year + '-' + String(month + 1).padStart(2, '0');
 }
 
+function loadPlanning(stationId, year, month) {
+  try { return JSON.parse(localStorage.getItem(planningKey(stationId, year, month))) || {}; } catch (_) { return {}; }
+}
 function savePlanning(stationId, year, month, data) {
   try {
     localStorage.setItem(planningKey(stationId, year, month), JSON.stringify(data));
     if (typeof dbSavePlanning === 'function') dbSavePlanning(stationId, year, month, data);
   } catch (_) {}
+}
+function loadPlanningMeta(stationId, year, month) {
+  try { return JSON.parse(localStorage.getItem(planningMetaKey(stationId, year, month))) || {}; } catch (_) { return {}; }
+}
+function savePlanningMeta(stationId, year, month, meta) {
+  try { localStorage.setItem(planningMetaKey(stationId, year, month), JSON.stringify(meta)); } catch (_) {}
 }
 
 /* ── Utilitaires dates ────────────────────────────────────── */
@@ -65,22 +81,36 @@ function renderPlanning() {
   const month = planningCurrentDate.getMonth();
   const nbDays = getDaysInMonth(year, month);
   const data = loadPlanning(stationId, year, month);
+  const meta = loadPlanningMeta(stationId, year, month);
   const chauffeurs = getPlanningChauffeurs(stationId);
 
-  // Toolbar navigation mois
+  // Toolbar
   container.appendChild(buildPlanningToolbar(year, month));
 
-  // Corps : partie fixe gauche + grille scrollable droite
+  // Titre mois/paie
+  const titleBar = document.createElement('div');
+  titleBar.style.cssText = 'padding:6px 16px;font-size:11px;color:var(--text-muted);background:var(--bg-sidebar);border-bottom:1px solid var(--border);display:flex;gap:20px;';
+  const monthLabel = planningCurrentDate.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+  titleBar.innerHTML = `<span style="font-weight:700;color:var(--text-primary);text-transform:uppercase;">${monthLabel}</span><span>Paie : ${planningCurrentDate.toLocaleDateString('fr-FR', { month: 'long' }).toUpperCase()}</span>`;
+  container.appendChild(titleBar);
+
+  // Corps
   const body = document.createElement('div');
   body.style.cssText = 'display:flex;flex:1;overflow:hidden;';
 
-  // Partie fixe gauche
-  const fixedLeft = buildFixedLeft(chauffeurs, data, nbDays, year, month);
+  const fixedLeft = buildFixedLeft(chauffeurs, data, meta, nbDays, year, month);
   body.appendChild(fixedLeft);
 
-  // Partie scrollable droite
-  const scrollRight = buildScrollableRight(chauffeurs, data, nbDays, year, month, stationId);
+  const scrollRight = buildScrollableRight(chauffeurs, data, meta, nbDays, year, month, stationId);
   body.appendChild(scrollRight);
+
+  // Synchroniser le scroll vertical
+  const leftScroll = fixedLeft.querySelector('.pl-left-scroll');
+  const rightScroll = scrollRight.querySelector('.pl-right-scroll');
+  if (leftScroll && rightScroll) {
+    leftScroll.addEventListener('scroll', () => { rightScroll.scrollTop = leftScroll.scrollTop; });
+    rightScroll.addEventListener('scroll', () => { leftScroll.scrollTop = rightScroll.scrollTop; });
+  }
 
   container.appendChild(body);
 }
@@ -107,118 +137,153 @@ function buildPlanningToolbar(year, month) {
 }
 
 /* ── Partie fixe gauche ───────────────────────────────────── */
-function buildFixedLeft(chauffeurs, data, nbDays, year, month) {
+function buildFixedLeft(chauffeurs, data, meta, nbDays, year, month) {
   const wrap = document.createElement('div');
-  wrap.style.cssText = 'min-width:220px;width:220px;overflow-y:auto;border-right:2px solid var(--border);flex-shrink:0;font-size:11px;';
+  wrap.style.cssText = 'min-width:240px;width:240px;display:flex;flex-direction:column;border-right:2px solid var(--border);flex-shrink:0;font-size:11px;overflow:hidden;';
 
-  const table = document.createElement('table');
-  table.style.cssText = 'width:100%;border-collapse:collapse;';
+  // En-tête fixe (lignes résumé labels)
+  const headerFixed = document.createElement('div');
+  headerFixed.style.cssText = 'flex-shrink:0;';
 
-  // En-tête : 3 lignes résumé + header chauffeurs
-  // Ligne 1 : vide (correspond à Date)
-  // Ligne 2 : vide (correspond à Jour)
-  // Ligne 3 : vide (correspond à Semaine)
-  // Ligne 4 : "Planifiés" label
-  // Ligne 5 : "BU" label
-  // Ligne 6+ : chauffeurs
+  const headerTable = document.createElement('table');
+  headerTable.style.cssText = 'width:100%;border-collapse:collapse;';
 
-  const thead = document.createElement('thead');
-  thead.innerHTML = `
-    <tr><th style="height:22px;background:var(--bg-sidebar);border-bottom:1px solid var(--border);"></th><th style="height:22px;background:var(--bg-sidebar);border-bottom:1px solid var(--border);text-align:right;padding-right:8px;font-size:10px;color:var(--text-muted);">Jrs plan.</th></tr>
+  // 3 lignes d'en-tête : Date, Jour, Semaine
+  headerTable.innerHTML = `
+    <tr><td style="height:22px;padding:2px 8px;color:var(--text-muted);font-size:9px;border-bottom:1px solid var(--border);background:var(--bg-sidebar);">Date</td></tr>
+    <tr><td style="height:22px;padding:2px 8px;color:var(--text-muted);font-size:9px;border-bottom:1px solid var(--border);background:var(--bg-sidebar);">Jour</td></tr>
+    <tr><td style="height:22px;padding:2px 8px;color:var(--text-muted);font-size:9px;border-bottom:1px solid var(--border);background:var(--bg-sidebar);">Semaine</td></tr>
   `;
-  table.appendChild(thead);
 
-  // Lignes résumé en-tête
-  const tbody = document.createElement('tbody');
+  // Lignes résumé (CAPAMAX, FORECAST, etc.)
+  PLANNING_SUMMARY_ROWS.forEach(row => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td style="height:24px;padding:2px 8px;font-weight:700;color:${row.color};font-size:10px;border-bottom:1px solid var(--border);background:var(--bg-sidebar);white-space:nowrap;">${row.label}</td>`;
+    headerTable.appendChild(tr);
+  });
 
-  // Ligne résumé "Planifiés"
-  const trPlan = document.createElement('tr');
-  trPlan.innerHTML = '<td colspan="2" style="padding:3px 8px;font-weight:700;color:#4ade80;background:var(--bg-sidebar);border-bottom:1px solid var(--border);font-size:10px;">📅 Planifiés (RSTD)</td>';
-  tbody.appendChild(trPlan);
+  headerFixed.appendChild(headerTable);
+  wrap.appendChild(headerFixed);
 
-  // Ligne résumé "BU"
-  const trBU = document.createElement('tr');
-  trBU.innerHTML = '<td colspan="2" style="padding:3px 8px;font-weight:700;color:#f97316;background:var(--bg-sidebar);border-bottom:1px solid var(--border);font-size:10px;">🔶 BU</td>';
-  tbody.appendChild(trBU);
+  // Partie scrollable (chauffeurs)
+  const scrollArea = document.createElement('div');
+  scrollArea.className = 'pl-left-scroll';
+  scrollArea.style.cssText = 'flex:1;overflow-y:auto;overflow-x:hidden;';
 
-  // Chauffeurs
+  const bodyTable = document.createElement('table');
+  bodyTable.style.cssText = 'width:100%;border-collapse:collapse;';
+
   chauffeurs.forEach(c => {
     const nom = (c.prenom + ' ' + c.nom).trim();
+    const role = c.role || '';
     const rstdCount = countCodeForDriver(data, nom, 'RSTD', nbDays);
     const tr = document.createElement('tr');
     tr.style.cssText = 'height:26px;';
     tr.innerHTML = `
-      <td style="padding:2px 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;color:var(--text-primary);font-size:11px;">${nom}</td>
-      <td style="padding:2px 8px;text-align:right;font-weight:700;color:var(--accent);font-size:11px;">${rstdCount}</td>
+      <td style="padding:2px 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px;color:var(--text-primary);font-size:11px;">${nom}</td>
+      <td style="padding:2px 4px;font-size:9px;color:var(--text-muted);width:40px;text-align:center;">${role}</td>
+      <td style="padding:2px 4px;text-align:right;font-weight:700;color:var(--accent);font-size:11px;width:30px;" class="pl-rstd-count" data-nom="${nom}">${rstdCount}</td>
     `;
-    tbody.appendChild(tr);
+    bodyTable.appendChild(tr);
   });
 
-  table.appendChild(tbody);
-  wrap.appendChild(table);
+  scrollArea.appendChild(bodyTable);
+  wrap.appendChild(scrollArea);
   return wrap;
 }
 
 /* ── Partie scrollable droite ─────────────────────────────── */
-function buildScrollableRight(chauffeurs, data, nbDays, year, month, stationId) {
+function buildScrollableRight(chauffeurs, data, meta, nbDays, year, month, stationId) {
   const wrap = document.createElement('div');
-  wrap.style.cssText = 'flex:1;overflow:auto;';
+  wrap.style.cssText = 'flex:1;display:flex;flex-direction:column;overflow:hidden;';
 
-  const table = document.createElement('table');
-  table.style.cssText = 'border-collapse:collapse;font-size:11px;';
+  // En-tête fixe (dates + jours + semaines + résumé)
+  const headerFixed = document.createElement('div');
+  headerFixed.style.cssText = 'flex-shrink:0;overflow-x:auto;';
+  headerFixed.classList.add('pl-header-scroll');
 
-  const thead = document.createElement('thead');
+  const headerTable = document.createElement('table');
+  headerTable.style.cssText = 'border-collapse:collapse;';
 
   // Ligne 1 : Dates
-  let headerDates = '<tr>';
+  let rowDates = '<tr>';
   for (let d = 1; d <= nbDays; d++) {
     const isWeekend = [0, 6].includes(new Date(year, month, d).getDay());
-    const bg = isWeekend ? 'background:rgba(255,255,255,0.03);' : '';
-    headerDates += `<th style="min-width:38px;width:38px;padding:2px;text-align:center;font-size:10px;color:var(--text-muted);border-bottom:1px solid var(--border);${bg}">${d}</th>`;
+    const bg = isWeekend ? 'background:rgba(255,255,255,0.05);' : '';
+    rowDates += `<td style="min-width:38px;width:38px;height:22px;text-align:center;font-size:10px;color:var(--text-muted);border-bottom:1px solid var(--border);${bg}">${d}</td>`;
   }
-  headerDates += '</tr>';
+  rowDates += '</tr>';
 
   // Ligne 2 : Jours
-  let headerJours = '<tr>';
+  let rowJours = '<tr>';
   for (let d = 1; d <= nbDays; d++) {
     const dayName = getDayName(year, month, d);
     const isWeekend = [0, 6].includes(new Date(year, month, d).getDay());
     const color = isWeekend ? 'color:#f87171;' : 'color:var(--text-muted);';
-    const bg = isWeekend ? 'background:rgba(255,255,255,0.03);' : '';
-    headerJours += `<th style="min-width:38px;width:38px;padding:2px;text-align:center;font-size:9px;font-weight:600;${color}border-bottom:1px solid var(--border);${bg}">${dayName}</th>`;
+    const bg = isWeekend ? 'background:rgba(255,255,255,0.05);' : '';
+    rowJours += `<td style="min-width:38px;width:38px;height:22px;text-align:center;font-size:9px;font-weight:600;${color}border-bottom:1px solid var(--border);${bg}">${dayName}</td>`;
   }
-  headerJours += '</tr>';
+  rowJours += '</tr>';
 
-  thead.innerHTML = headerDates + headerJours;
-  table.appendChild(thead);
-
-  const tbody = document.createElement('tbody');
-
-  // Ligne résumé Planifiés (count RSTD par jour)
-  const trPlan = document.createElement('tr');
-  trPlan.style.cssText = 'background:var(--bg-sidebar);';
+  // Ligne 3 : Numéro de semaine
+  let rowWeek = '<tr>';
   for (let d = 1; d <= nbDays; d++) {
-    const count = countCodeForDay(data, chauffeurs, d, 'RSTD');
-    const td = document.createElement('td');
-    td.style.cssText = 'text-align:center;font-weight:700;color:#4ade80;font-size:10px;padding:3px 2px;border-bottom:1px solid var(--border);';
-    td.textContent = count || '';
-    trPlan.appendChild(td);
+    const wn = getWeekNumber(new Date(year, month, d));
+    const dow = new Date(year, month, d).getDay();
+    const isMonday = dow === 1;
+    const isWeekend = [0, 6].includes(dow);
+    const bg = isWeekend ? 'background:rgba(255,255,255,0.05);' : '';
+    const border = isMonday ? 'border-left:2px solid var(--accent);' : '';
+    rowWeek += `<td style="min-width:38px;width:38px;height:22px;text-align:center;font-size:9px;color:var(--accent);font-weight:700;border-bottom:1px solid var(--border);${bg}${border}">S${wn}</td>`;
   }
-  tbody.appendChild(trPlan);
+  rowWeek += '</tr>';
 
-  // Ligne résumé BU (count BU par jour)
-  const trBU = document.createElement('tr');
-  trBU.style.cssText = 'background:var(--bg-sidebar);';
-  for (let d = 1; d <= nbDays; d++) {
-    const count = countCodeForDay(data, chauffeurs, d, 'BU');
-    const td = document.createElement('td');
-    td.style.cssText = 'text-align:center;font-weight:700;color:#f97316;font-size:10px;padding:3px 2px;border-bottom:1px solid var(--border);';
-    td.textContent = count || '';
-    trBU.appendChild(td);
-  }
-  tbody.appendChild(trBU);
+  headerTable.innerHTML = rowDates + rowJours + rowWeek;
 
-  // Lignes chauffeurs
+  // Lignes résumé éditables (CAPAMAX, FORECAST, Routes, Cut, BU payé, Nb chauffeurs, BU planifié)
+  PLANNING_SUMMARY_ROWS.forEach(rowDef => {
+    const tr = document.createElement('tr');
+    for (let d = 1; d <= nbDays; d++) {
+      const td = document.createElement('td');
+      const isWeekend = [0, 6].includes(new Date(year, month, d).getDay());
+      td.style.cssText = `min-width:38px;width:38px;height:24px;text-align:center;border-bottom:1px solid var(--border);padding:0;${isWeekend ? 'background:rgba(255,255,255,0.03);' : ''}`;
+
+      if (rowDef.auto) {
+        // Valeur auto-calculée
+        const count = countCodeForDay(data, chauffeurs, d, rowDef.auto);
+        td.style.cssText += `font-weight:700;color:${rowDef.color};font-size:10px;`;
+        td.textContent = count || '';
+        td.className = 'pl-auto-' + rowDef.key;
+        td.dataset.day = d;
+      } else {
+        // Champ éditable
+        const inp = document.createElement('input');
+        const metaKey = rowDef.key + '_' + d;
+        inp.value = meta[metaKey] || '';
+        inp.style.cssText = `width:100%;height:22px;border:none;background:transparent;text-align:center;font-size:10px;font-weight:700;color:${rowDef.color};outline:none;padding:0;font-family:inherit;`;
+        inp.addEventListener('change', () => {
+          meta[metaKey] = inp.value.trim();
+          savePlanningMeta(stationId, year, month, meta);
+        });
+        inp.addEventListener('keydown', e => { if (e.key === 'Enter') inp.blur(); });
+        td.appendChild(inp);
+      }
+      tr.appendChild(td);
+    }
+    headerTable.appendChild(tr);
+  });
+
+  headerFixed.appendChild(headerTable);
+  wrap.appendChild(headerFixed);
+
+  // Partie scrollable (grille chauffeurs)
+  const scrollArea = document.createElement('div');
+  scrollArea.className = 'pl-right-scroll';
+  scrollArea.style.cssText = 'flex:1;overflow:auto;';
+
+  const bodyTable = document.createElement('table');
+  bodyTable.style.cssText = 'border-collapse:collapse;';
+
   chauffeurs.forEach(c => {
     const nom = (c.prenom + ' ' + c.nom).trim();
     const tr = document.createElement('tr');
@@ -228,8 +293,10 @@ function buildScrollableRight(chauffeurs, data, nbDays, year, month, stationId) 
       const cellKey = nom + '_' + d;
       const val = (data[cellKey] || '').toUpperCase();
       const isWeekend = [0, 6].includes(new Date(year, month, d).getDay());
+      const dow = new Date(year, month, d).getDay();
+      const isMonday = dow === 1;
       const td = document.createElement('td');
-      td.style.cssText = `min-width:38px;width:38px;padding:0;text-align:center;border:1px solid var(--border);position:relative;${isWeekend ? 'background:rgba(255,255,255,0.02);' : ''}`;
+      td.style.cssText = `min-width:38px;width:38px;padding:0;text-align:center;border:1px solid var(--border);${isWeekend ? 'background:rgba(255,255,255,0.03);' : ''}${isMonday ? 'border-left:2px solid var(--accent);' : ''}`;
 
       const inp = document.createElement('input');
       inp.className = 'pl-cell-input';
@@ -238,7 +305,6 @@ function buildScrollableRight(chauffeurs, data, nbDays, year, month, stationId) 
       inp.dataset.nom = nom;
       inp.dataset.day = d;
 
-      // Colorer le fond si code connu
       if (val && PLANNING_CODE_COLORS[val]) {
         td.style.background = hexToRgba(PLANNING_CODE_COLORS[val], 0.15);
       }
@@ -248,18 +314,17 @@ function buildScrollableRight(chauffeurs, data, nbDays, year, month, stationId) 
         inp.value = v;
         data[cellKey] = v;
         inp.style.color = PLANNING_CODE_COLORS[v] || 'var(--text-primary)';
-        td.style.background = (v && PLANNING_CODE_COLORS[v]) ? hexToRgba(PLANNING_CODE_COLORS[v], 0.15) : (isWeekend ? 'rgba(255,255,255,0.02)' : '');
+        td.style.background = (v && PLANNING_CODE_COLORS[v]) ? hexToRgba(PLANNING_CODE_COLORS[v], 0.15) : (isWeekend ? 'rgba(255,255,255,0.03)' : '');
         savePlanning(stationId, year, month, data);
-        updatePlanningResume(tbody, data, chauffeurs, nbDays);
+        updateAutoRows(data, chauffeurs, nbDays);
         updateFixedLeftCounts(chauffeurs, data, nbDays);
       });
 
       inp.addEventListener('keydown', e => {
         if (e.key === 'Enter') { e.preventDefault(); inp.blur(); }
-        // Navigation flèches
         if (['ArrowRight','ArrowLeft','ArrowDown','ArrowUp'].includes(e.key)) {
           e.preventDefault();
-          const allInputs = Array.from(table.querySelectorAll('.pl-cell-input'));
+          const allInputs = Array.from(bodyTable.querySelectorAll('.pl-cell-input'));
           const idx = allInputs.indexOf(inp);
           const cols = nbDays;
           let target = -1;
@@ -274,39 +339,42 @@ function buildScrollableRight(chauffeurs, data, nbDays, year, month, stationId) 
       td.appendChild(inp);
       tr.appendChild(td);
     }
-    tbody.appendChild(tr);
+    bodyTable.appendChild(tr);
   });
 
-  table.appendChild(tbody);
-  wrap.appendChild(table);
+  scrollArea.appendChild(bodyTable);
+  wrap.appendChild(scrollArea);
+
+  // Synchroniser le scroll horizontal header ↔ body
+  scrollArea.addEventListener('scroll', () => { headerFixed.scrollLeft = scrollArea.scrollLeft; });
+
   return wrap;
 }
 
-/* ── Mise à jour des lignes résumé ────────────────────────── */
-function updatePlanningResume(tbody, data, chauffeurs, nbDays) {
-  const rows = tbody.querySelectorAll('tr');
-  if (rows.length < 2) return;
-  // Row 0 = Planifiés, Row 1 = BU
-  for (let d = 1; d <= nbDays; d++) {
-    const rstdCount = countCodeForDay(data, chauffeurs, d, 'RSTD');
-    const buCount = countCodeForDay(data, chauffeurs, d, 'BU');
-    rows[0].children[d - 1].textContent = rstdCount || '';
-    rows[1].children[d - 1].textContent = buCount || '';
-  }
+/* ── Mise à jour des lignes auto (Nb chauffeurs, BU planifié) ── */
+function updateAutoRows(data, chauffeurs, nbDays) {
+  const container = document.getElementById('module-planning');
+  if (!container) return;
+  PLANNING_SUMMARY_ROWS.forEach(rowDef => {
+    if (!rowDef.auto) return;
+    const cells = container.querySelectorAll('.pl-auto-' + rowDef.key);
+    cells.forEach(cell => {
+      const d = parseInt(cell.dataset.day);
+      const count = countCodeForDay(data, chauffeurs, d, rowDef.auto);
+      cell.textContent = count || '';
+    });
+  });
 }
 
+/* ── Mise à jour des compteurs RSTD dans la partie fixe gauche ── */
 function updateFixedLeftCounts(chauffeurs, data, nbDays) {
   const container = document.getElementById('module-planning');
   if (!container) return;
-  const fixedTable = container.querySelector('div:first-of-type table') || container.querySelectorAll('table')[0];
-  if (!fixedTable) return;
-  const trs = fixedTable.querySelectorAll('tbody tr');
-  // Skip first 2 rows (Planifiés, BU labels)
-  chauffeurs.forEach((c, i) => {
+  chauffeurs.forEach(c => {
     const nom = (c.prenom + ' ' + c.nom).trim();
     const count = countCodeForDriver(data, nom, 'RSTD', nbDays);
-    const row = trs[i + 2];
-    if (row && row.children[1]) row.children[1].textContent = count;
+    const cell = container.querySelector(`.pl-rstd-count[data-nom="${CSS.escape(nom)}"]`);
+    if (cell) cell.textContent = count;
   });
 }
 
@@ -315,8 +383,7 @@ function countCodeForDay(data, chauffeurs, day, code) {
   let count = 0;
   chauffeurs.forEach(c => {
     const nom = (c.prenom + ' ' + c.nom).trim();
-    const val = (data[nom + '_' + day] || '').toUpperCase();
-    if (val === code) count++;
+    if ((data[nom + '_' + day] || '').toUpperCase() === code) count++;
   });
   return count;
 }
