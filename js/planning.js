@@ -175,8 +175,8 @@ function buildFixedLeft(chauffeurs, data, meta, nbDays, year, month) {
     const tr = document.createElement('tr');
     tr.style.cssText = 'height:26px;';
     tr.innerHTML = `
-      <td style="padding:2px 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px;color:var(--text-primary);font-size:11px;">${nom}</td>
-      <td style="padding:2px 4px;font-size:9px;color:var(--text-muted);width:40px;text-align:center;">${role}</td>
+      <td style="padding:2px 4px;font-size:9px;color:var(--text-muted);width:50px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${role}</td>
+      <td style="padding:2px 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px;color:var(--text-primary);font-size:11px;">${nom}</td>
       <td style="padding:2px 4px;text-align:right;font-weight:700;color:var(--accent);font-size:11px;width:30px;" class="pl-rstd-count" data-nom="${nom}">${rstdCount}</td>
     `;
     bodyTable.appendChild(tr);
