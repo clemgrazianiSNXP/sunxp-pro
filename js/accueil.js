@@ -99,7 +99,8 @@ function buildDemandesCard(sid) {
       </div>`;
   }
 
-  card.querySelector('.accueil-card-body').style.cursor = 'pointer';\n  card.querySelector('.accueil-card-body').onclick = () => { showModule('heures'); /* ouvrir hamburger demandes */ setTimeout(() => { const btn = document.getElementById('hamburger-btn'); if (btn) btn.click(); setTimeout(() => { if (typeof setMenuTab === 'function') setMenuTab('demandes-mgr'); }, 100); }, 100); };
+  card.querySelector('.accueil-card-body').style.cursor = 'pointer';
+  card.querySelector('.accueil-card-body').onclick = function() { showModule('heures'); setTimeout(function() { var btn = document.getElementById('hamburger-btn'); if (btn) btn.click(); setTimeout(function() { if (typeof setMenuTab === 'function') setMenuTab('demandes-mgr'); }, 100); }, 100); };
   return card;
 }
 
@@ -126,7 +127,8 @@ function buildHSCard(sid) {
     body.innerHTML = html;
   }
 
-  card.querySelector('.accueil-card-body').style.cursor = 'pointer';\n  card.querySelector('.accueil-card-body').onclick = () => { showModule('heures'); };
+  card.querySelector('.accueil-card-body').style.cursor = 'pointer';
+  card.querySelector('.accueil-card-body').onclick = () => { showModule('heures'); };
   return card;
 }
 
@@ -153,7 +155,8 @@ function buildNear35hCard(sid) {
     body.innerHTML = html;
   }
 
-  card.querySelector('.accueil-card-body').style.cursor = 'pointer';\n  card.querySelector('.accueil-card-body').onclick = () => { showModule('heures'); };
+  card.querySelector('.accueil-card-body').style.cursor = 'pointer';
+  card.querySelector('.accueil-card-body').onclick = () => { showModule('heures'); };
   return card;
 }
 
@@ -182,7 +185,8 @@ function buildProblemesCard(sid) {
     body.innerHTML = html;
   }
 
-  card.querySelector('.accueil-card-body').style.cursor = 'pointer';\n  card.querySelector('.accueil-card-body').onclick = () => { showModule('flotte'); setTimeout(() => { if (typeof renderFlotte === 'function') { flotteTab = 'problemes'; renderFlotte(); } }, 50); };
+  card.querySelector('.accueil-card-body').style.cursor = 'pointer';
+  card.querySelector('.accueil-card-body').onclick = () => { showModule('flotte'); setTimeout(() => { if (typeof renderFlotte === 'function') { flotteTab = 'problemes'; renderFlotte(); } }, 50); };
   return card;
 }
 
@@ -235,7 +239,8 @@ function buildVMExpirationCard(sid) {
     body.innerHTML = html;
   }
 
-  card.querySelector('.accueil-card-body').style.cursor = 'pointer';\n  card.querySelector('.accueil-card-body').onclick = () => { showModule('rh'); setTimeout(() => { rhTab = 'suivi-papiers'; renderRH(); }, 50); };
+  card.querySelector('.accueil-card-body').style.cursor = 'pointer';
+  card.querySelector('.accueil-card-body').onclick = () => { showModule('rh'); setTimeout(() => { rhTab = 'suivi-papiers'; renderRH(); }, 50); };
   return card;
 }
 
@@ -260,7 +265,8 @@ function buildCTExpirationCard(sid) {
     body.innerHTML = html;
   }
 
-  card.querySelector('.accueil-card-body').style.cursor = 'pointer';\n  card.querySelector('.accueil-card-body').onclick = () => { showModule('flotte'); setTimeout(() => { flotteTab = 'entretien'; renderFlotte(); }, 50); };
+  card.querySelector('.accueil-card-body').style.cursor = 'pointer';
+  card.querySelector('.accueil-card-body').onclick = () => { showModule('flotte'); setTimeout(() => { flotteTab = 'entretien'; renderFlotte(); }, 50); };
   return card;
 }
 
@@ -361,7 +367,8 @@ function buildAcomptesVirementCard(sid) {
     body.innerHTML = html;
   }
 
-  card.querySelector('.accueil-card-body').style.cursor = 'pointer';\n  card.querySelector('.accueil-card-body').onclick = () => { showModule('heures'); setTimeout(() => { const btn = document.getElementById('hamburger-btn'); if (btn) btn.click(); setTimeout(() => { if (typeof setMenuTab === 'function') setMenuTab('demandes-mgr'); }, 100); }, 100); };
+  card.querySelector('.accueil-card-body').style.cursor = 'pointer';
+  card.querySelector('.accueil-card-body').onclick = () => { showModule('heures'); setTimeout(() => { const btn = document.getElementById('hamburger-btn'); if (btn) btn.click(); setTimeout(() => { if (typeof setMenuTab === 'function') setMenuTab('demandes-mgr'); }, 100); }, 100); };
   return card;
 }
 
