@@ -136,26 +136,22 @@ window.dbSavePlanning = async function (stationId, year, month, data) {
   if (!sb()) return;
   try {
     const key = year + '-' + String(month + 1).padStart(2, '0');
-    const { error } = await sb().from('planning').upsert(
-      { station_id: stationId, mois_key: key, annee: year, mois: month + 1, data, updated_at: new Date().toISOString() },
-      { onConflict: 'station_id,mois_key' }
-    );
-    if (error) console.error('dbSavePlanning error:', error.message, error);
+    const payload = { station_id: stationId, mois_key: key, annee: year, mois: month + 1, data };
+    const { error } = await sb().from('planning').upsert(payload, { onConflict: 'station_id,mois_key' });
+    if (error) console.error('dbSavePlanning error:', error.message, error.details, error.hint);
     else console.log('✅ Planning sauvé Supabase:', key);
-  } catch (e) { console.warn('dbSavePlanning error:', e.message); }
+  } catch (e) { console.warn('dbSavePlanning catch:', e.message); }
 };
 
 window.dbSavePlanningMeta = async function (stationId, year, month, meta) {
   if (!sb()) return;
   try {
     const key = year + '-' + String(month + 1).padStart(2, '0');
-    const { error } = await sb().from('planning_meta').upsert(
-      { station_id: stationId, mois_key: key, annee: year, mois: month + 1, data: meta, updated_at: new Date().toISOString() },
-      { onConflict: 'station_id,mois_key' }
-    );
-    if (error) console.error('dbSavePlanningMeta error:', error.message, error);
+    const payload = { station_id: stationId, mois_key: key, annee: year, mois: month + 1, data: meta };
+    const { error } = await sb().from('planning_meta').upsert(payload, { onConflict: 'station_id,mois_key' });
+    if (error) console.error('dbSavePlanningMeta error:', error.message, error.details, error.hint);
     else console.log('✅ Planning meta sauvé Supabase:', key);
-  } catch (e) { console.warn('dbSavePlanningMeta error:', e.message); }
+  } catch (e) { console.warn('dbSavePlanningMeta catch:', e.message); }
 };
 
 /* ══════════════════════════════════════════════════════════════

@@ -42,14 +42,16 @@ async function loadPlanningFromSupabase(stationId, year, month) {
   try {
     const key = year + '-' + String(month + 1).padStart(2, '0');
     const { data, error } = await sb().from('planning').select('data').eq('station_id', stationId).eq('mois_key', key).maybeSingle();
-    if (!error && data && data.data) {
+    if (error) { console.warn('loadPlanning Supabase error:', error.message, error.details); return; }
+    if (data && data.data) {
       localStorage.setItem(planningKey(stationId, year, month), JSON.stringify(data.data));
+      console.log('📥 Planning chargé depuis Supabase:', key);
     }
     const { data: metaData, error: metaErr } = await sb().from('planning_meta').select('data').eq('station_id', stationId).eq('mois_key', key).maybeSingle();
     if (!metaErr && metaData && metaData.data) {
       localStorage.setItem(planningMetaKey(stationId, year, month), JSON.stringify(metaData.data));
     }
-  } catch (e) { console.warn('loadPlanningFromSupabase:', e.message); }
+  } catch (e) { console.warn('loadPlanningFromSupabase catch:', e.message); }
 }
 
 /* ── Persistance ──────────────────────────────────────────── */
