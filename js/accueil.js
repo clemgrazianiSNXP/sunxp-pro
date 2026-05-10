@@ -286,13 +286,26 @@ function buildASTCard(sid) {
   eligible.forEach(c => {
     const nom = ((c.prenom || '') + ' ' + (c.nom || '')).trim();
     let rstdCount = 0;
+    let alreadyAstreinte = false;
     for (let i = 0; i < 7; i++) {
       const d = new Date(monday); d.setDate(d.getDate() + i);
       if (d.getMonth() !== month) continue;
       const statut = data[nom + '_' + d.getDate()] || '';
       if (statut === 'RSTD') rstdCount++;
+      // Vérifier si déjà mis en Astreinte dans Heures cette semaine
+      const dk = sid + '-heures-' + d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+      try {
+        const raw = localStorage.getItem(dk);
+        if (raw) {
+          const hData = JSON.parse(raw);
+          if (hData.rows) {
+            const row = Object.values(hData.rows).find(r => r.nom && r.nom.trim() === nom);
+            if (row && row.statut === 'Astreinte') alreadyAstreinte = true;
+          }
+        }
+      } catch (_) {}
     }
-    if (rstdCount >= 5) astList.push({ nom, rstdCount });
+    if (rstdCount >= 5 && !alreadyAstreinte) astList.push({ nom, rstdCount });
   });
 
   let overtimeData = [];
@@ -301,7 +314,7 @@ function buildASTCard(sid) {
   }
   overtimeData.sort((a, b) => b.supMin - a.supMin);
 
-  const badgeCount = astList.length + overtimeData.length;
+  const badgeCount = astList.length + overtimeData.filter(o => !astList.find(a => a.nom === o.nom)).length;
   const card = createCard('📞', 'Chauffeurs à mettre en AST', badgeCount);
   const body = card.querySelector('.accueil-card-body');
 
