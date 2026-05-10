@@ -566,7 +566,7 @@ console.log('rapport-chauffeur.js chargé');
       html += section('🚫 Absences injustifiées — Année', aY.length);
       html += groupByWeek(aY, items => {
         let t = '<table class="rep-table" style="width:100%;font-size:12px;"><tbody>';
-        items.forEach(a => { t += `<tr style="border-bottom:1px solid var(--border);"><td style="padding:3px 6px;">${fmtShort(a.date)}</td><td style="padding:3px 6px;color:var(--text-muted);font-size:11px;">${escH(a.comment || '')}</td></tr>`; });
+        items.forEach(a => { t += `<tr style="border-bottom:1px solid var(--border);"><td style="padding:3px 6px;">${fmtShort(a.date)}</td><td style="padding:3px 6px;color:var(--text-muted);font-size:11px;">${escH(a.comment || '')}</td><td style="padding:3px 6px;"><button class="h-btn rap-del-abs-y" data-date="${escH(a.date)}" data-week="${escH(a._week || '')}" style="font-size:10px;padding:1px 5px;color:#f87171;border-color:#f87171;">🗑</button></td></tr>`; });
         return t + '</tbody></table>';
       });
     }
@@ -602,7 +602,7 @@ console.log('rapport-chauffeur.js chargé');
       html += section('📦 Concessions — Année', cY.length);
       html += groupByWeek(cY, items => {
         let t = '<table class="rep-table" style="width:100%;font-size:12px;"><tbody>';
-        items.forEach(c => { t += `<tr style="border-bottom:1px solid var(--border);"><td style="padding:3px 6px;font-family:monospace;font-size:11px;">${escH(c.tracking)}</td><td style="padding:3px 6px;text-align:center;">${fmtDate(c.dateLivraison)}</td><td style="padding:3px 6px;text-align:center;">${fmtDate(c.dateConcession)}</td><td style="padding:3px 6px;text-align:center;font-size:10px;color:var(--text-muted);">${escH(c.statutLivraison || '—')}</td></tr>`; });
+        items.forEach(c => { t += `<tr style="border-bottom:1px solid var(--border);"><td style="padding:3px 6px;font-family:monospace;font-size:11px;">${escH(c.tracking)}</td><td style="padding:3px 6px;text-align:center;">${fmtDate(c.dateLivraison)}</td><td style="padding:3px 6px;text-align:center;">${fmtDate(c.dateConcession)}</td><td style="padding:3px 6px;text-align:center;font-size:10px;color:var(--text-muted);">${escH(c.statutLivraison || '—')}</td><td style="padding:3px 6px;"><button class="h-btn rap-del-conc-y" data-tr="${escH(c.tracking)}" data-week="${escH(c._week || '')}" style="font-size:10px;padding:1px 5px;color:#f87171;border-color:#f87171;">🗑</button></td></tr>`; });
         return t + '</tbody></table>';
       });
     }
@@ -642,6 +642,32 @@ console.log('rapport-chauffeur.js chargé');
         const ex = loadConc(rapWeek);
         const nw = ex.filter(c => c.tracking !== tr);
         saveConc(rapWeek, nw);
+        rmModal(); renderStats();
+      };
+    });
+
+    // Bind delete concession buttons (année)
+    modal.querySelectorAll('.rap-del-conc-y').forEach(btn => {
+      btn.onclick = () => {
+        const tr = btn.dataset.tr, week = btn.dataset.week;
+        if (week) {
+          const ex = loadConc(week);
+          const nw = ex.filter(c => c.tracking !== tr);
+          saveConc(week, nw);
+        }
+        rmModal(); renderStats();
+      };
+    });
+
+    // Bind delete absence buttons (année)
+    modal.querySelectorAll('.rap-del-abs-y').forEach(btn => {
+      btn.onclick = () => {
+        const d = btn.dataset.date, week = btn.dataset.week;
+        if (week) {
+          const ex = loadAbsences(week);
+          const idx = ex.findIndex(a => a.chauffeur === nom && a.date === d);
+          if (idx >= 0) { ex.splice(idx, 1); saveAbsences(week, ex); }
+        }
         rmModal(); renderStats();
       };
     });
