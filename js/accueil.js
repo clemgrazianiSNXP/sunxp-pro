@@ -75,15 +75,14 @@ function renderAccueil() {
 
 /* ── Card Demandes en attente ─────────────────────────────── */
 function buildDemandesCard(sid) {
-  const card = createCard('📋', 'Demandes en attente');
-  const body = card.querySelector('.accueil-card-body');
-
   let repos = 0, acomptes = 0, conges = 0;
   try { repos = (JSON.parse(localStorage.getItem(sid + '-repos-demandes')) || []).filter(d => d.statut === 'en_attente').length; } catch(_) {}
   try { acomptes = (JSON.parse(localStorage.getItem(sid + '-acomptes')) || []).filter(d => d.statut === 'en_attente').length; } catch(_) {}
   try { conges = (JSON.parse(localStorage.getItem(sid + '-conges-payes')) || []).filter(d => d.statut === 'en_attente').length; } catch(_) {}
-
   const total = repos + acomptes + conges;
+
+  const card = createCard('📋', 'Demandes en attente', total);
+  const body = card.querySelector('.accueil-card-body');
 
   if (total === 0) {
     body.innerHTML = '<p style="color:var(--text-muted);font-size:12px;text-align:center;margin:8px 0;">✅ Aucune demande en attente</p>';
@@ -191,15 +190,17 @@ function buildProblemesCard(sid) {
 }
 
 /* ── Helper : créer une card ──────────────────────────────── */
-function createCard(icon, title) {
+function createCard(icon, title, badgeCount) {
   const card = document.createElement('div');
   card.style.cssText = 'background:var(--bg-sidebar);border:1px solid var(--border);border-radius:14px;padding:0;transition:transform 0.18s,box-shadow 0.18s,border-color 0.18s;position:relative;overflow:hidden;';
   card.onmouseenter = () => { card.style.boxShadow = '0 4px 16px rgba(0,0,0,0.15)'; card.style.borderColor = 'var(--accent)'; };
   card.onmouseleave = () => { card.style.boxShadow = ''; card.style.borderColor = 'var(--border)'; };
 
+  const badgeHtml = badgeCount > 0 ? '<span style="background:#f87171;color:#fff;font-size:10px;font-weight:700;min-width:18px;height:18px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;padding:0 5px;">' + badgeCount + '</span>' : '';
+
   const header = document.createElement('div');
   header.style.cssText = 'display:flex;align-items:center;gap:10px;padding:14px 16px;cursor:pointer;user-select:none;';
-  header.innerHTML = `<span style="font-size:20px;">${icon}</span><span style="font-size:13px;font-weight:700;color:var(--text-primary);flex:1;">${title}</span><span class="card-toggle" style="font-size:12px;color:var(--text-muted);transition:transform 0.2s;">▼</span>`;
+  header.innerHTML = '<span style="font-size:20px;">' + icon + '</span><span style="font-size:13px;font-weight:700;color:var(--text-primary);flex:1;">' + title + '</span>' + badgeHtml + '<span class="card-toggle" style="font-size:12px;color:var(--text-muted);transition:transform 0.2s;">▼</span>';
   card.appendChild(header);
 
   const body = document.createElement('div');
@@ -208,9 +209,9 @@ function createCard(icon, title) {
   card.appendChild(body);
 
   // Toggle ouverture/fermeture
-  header.onclick = (e) => {
+  header.onclick = function(e) {
     e.stopPropagation();
-    const isOpen = body.style.display !== 'none';
+    var isOpen = body.style.display !== 'none';
     body.style.display = isOpen ? 'none' : 'block';
     header.querySelector('.card-toggle').style.transform = isOpen ? '' : 'rotate(180deg)';
   };
@@ -220,10 +221,9 @@ function createCard(icon, title) {
 
 /* ── Card VM expirantes (RH) ──────────────────────────────── */
 function buildVMExpirationCard(sid) {
-  const card = createCard('🩺', 'Visites médicales à renouveler');
-  const body = card.querySelector('.accueil-card-body');
-
   const expiring = getVMExpiringSoon(sid);
+  const card = createCard('🩺', 'Visites médicales à renouveler', expiring.length);
+  const body = card.querySelector('.accueil-card-body');
 
   if (!expiring.length) {
     body.innerHTML = '<p style="color:var(--text-muted);font-size:12px;text-align:center;margin:8px 0;">✅ Toutes les VM sont à jour</p>';
@@ -246,10 +246,9 @@ function buildVMExpirationCard(sid) {
 
 /* ── Card CT expirantes (PARC) ────────────────────────────── */
 function buildCTExpirationCard(sid) {
-  const card = createCard('📋', 'CT à renouveler');
-  const body = card.querySelector('.accueil-card-body');
-
   const expiring = getCTExpiringSoon(sid);
+  const card = createCard('📋', 'CT à renouveler', expiring.length);
+  const body = card.querySelector('.accueil-card-body');
 
   if (!expiring.length) {
     body.innerHTML = '<p style="color:var(--text-muted);font-size:12px;text-align:center;margin:8px 0;">✅ Tous les CT sont à jour</p>';
@@ -337,10 +336,10 @@ function buildASTCard(sid) {
 
 /* ── Card Virements acomptes (RH) ─────────────────────────── */
 function buildAcomptesVirementCard(sid) {
-  const card = createCard('💶', 'Virements acomptes');
-  const body = card.querySelector('.accueil-card-body');
-
   const virements = getAcomptesVirements(sid);
+  const totalVirements = virements.virement15.length + virements.virement22.length;
+  const card = createCard('💶', 'Virements acomptes', totalVirements);
+  const body = card.querySelector('.accueil-card-body');
 
   if (!virements.virement15.length && !virements.virement22.length) {
     body.innerHTML = '<p style="color:var(--text-muted);font-size:12px;text-align:center;margin:8px 0;">✅ Aucun virement à faire</p>';
