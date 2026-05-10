@@ -392,13 +392,27 @@ function countCodeForDriver(data, nom, code, nbDays) {
   return count;
 }
 
-/* ── Chauffeurs depuis le répertoire ──────────────────────── */
+/* ── Chauffeurs + Responsables pour le planning (ordre hiérarchique) ── */
 function getPlanningChauffeurs(stationId) {
-  try {
-    const raw = localStorage.getItem(stationId + '-repertoire');
-    if (raw) { const arr = JSON.parse(raw); if (arr && arr.length) return arr; }
-  } catch (_) {}
-  return [];
+  // Responsables en haut (ordre : RH, Qualité, Mécanicien, Gestionnaire Flotte, Chef Parc, Dispatcher, Chef équipe)
+  const RESP_ORDER = ['Ressources Humaines', 'Responsable Qualité', 'Mécanicien', 'Gestionnaire de Flotte', 'Chef de Parc', 'Dispatcher', 'Chef d\'équipe'];
+  let responsables = [];
+  try { responsables = JSON.parse(localStorage.getItem(stationId + '-responsables')) || []; } catch (_) {}
+  responsables.sort((a, b) => {
+    const ia = RESP_ORDER.indexOf(a.role); const ib = RESP_ORDER.indexOf(b.role);
+    return (ia >= 0 ? ia : 999) - (ib >= 0 ? ib : 999);
+  });
+
+  // Chauffeurs en dessous (ordre : CES, BU, Formateur, Chauffeur)
+  const CHAUFF_ORDER = ['CES', 'BU', 'Formateur', 'Chauffeur'];
+  let chauffeurs = [];
+  try { chauffeurs = JSON.parse(localStorage.getItem(stationId + '-repertoire')) || []; } catch (_) {}
+  chauffeurs.sort((a, b) => {
+    const ia = CHAUFF_ORDER.indexOf(a.role); const ib = CHAUFF_ORDER.indexOf(b.role);
+    return (ia >= 0 ? ia : 999) - (ib >= 0 ? ib : 999);
+  });
+
+  return [...responsables, ...chauffeurs];
 }
 
 /* ── Utilitaire couleur ───────────────────────────────────── */

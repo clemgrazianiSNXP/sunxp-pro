@@ -2,6 +2,12 @@
 console.log('repertoire.js chargé');
 
 let repSearchQuery = '';
+let repView = 'chauffeurs'; // 'chauffeurs' | 'responsables' | 'identifier'
+
+// Rôles chauffeurs (ordre hiérarchique)
+const ROLES_CHAUFFEURS = ['CES', 'BU', 'Formateur', 'Chauffeur'];
+// Rôles responsables (ordre hiérarchique)
+const ROLES_RESPONSABLES = ['Ressources Humaines', 'Responsable Qualité', 'Mécanicien', 'Gestionnaire de Flotte', 'Chef de Parc', 'Dispatcher', 'Chef d\'équipe'];
 
 /* ── Point d'entrée ───────────────────────────────────────── */
 function initRepertoire() {
@@ -11,20 +17,36 @@ function initRepertoire() {
 
 /* ── Persistance ──────────────────────────────────────────── */
 function repKey(stationId) { return stationId + '-repertoire'; }
+function repResponsablesKey(stationId) { return stationId + '-responsables'; }
 
 function loadChauffeurs(stationId) {
-  try {
-    const raw = localStorage.getItem(repKey(stationId));
-    return raw ? JSON.parse(raw) : [];
-  } catch (_) { return []; }
+  try { return JSON.parse(localStorage.getItem(repKey(stationId))) || []; } catch (_) { return []; }
 }
-
 function saveChauffeurs(stationId, list) {
   try {
     localStorage.setItem(repKey(stationId), JSON.stringify(list));
-    // Sync vers Supabase
     if (typeof dbSaveChauffeurs === 'function') dbSaveChauffeurs(stationId, list);
   } catch (_) {}
+}
+function loadResponsables(stationId) {
+  try { return JSON.parse(localStorage.getItem(repResponsablesKey(stationId))) || []; } catch (_) { return []; }
+}
+function saveResponsables(stationId, list) {
+  try {
+    localStorage.setItem(repResponsablesKey(stationId), JSON.stringify(list));
+    if (typeof dbSaveResponsables === 'function') dbSaveResponsables(stationId, list);
+  } catch (_) {}
+}
+
+/* ── Tri hiérarchique ─────────────────────────────────────── */
+function sortByRole(list, roleOrder) {
+  return [...list].sort((a, b) => {
+    const ia = roleOrder.indexOf(a.role);
+    const ib = roleOrder.indexOf(b.role);
+    const ra = ia >= 0 ? ia : 999;
+    const rb = ib >= 0 ? ib : 999;
+    return ra - rb;
+  });
 }
 
 /* ── Rendu principal ──────────────────────────────────────── */
@@ -35,12 +57,11 @@ function renderRepertoire() {
   container.style.cssText = 'display:flex;flex-direction:column;align-items:stretch;padding:0;overflow:hidden;';
 
   const stationId = window.getActiveStationId ? window.getActiveStationId() : 'default';
-  const chauffeurs = loadChauffeurs(stationId);
 
-  // Sous-onglets Répertoire / Identifier
+  // Sous-onglets
   const tabBar = document.createElement('div');
   tabBar.style.cssText = 'display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--bg-sidebar);flex-shrink:0;';
-  [['repertoire','👥 Répertoire'],['identifier','🔍 Identifier']].forEach(([id,label]) => {
+  [['chauffeurs','🚛 Chauffeurs'],['responsables','👔 Responsables'],['identifier','🔍 Identifier']].forEach(([id,label]) => {
     const btn = document.createElement('button');
     btn.className = 'h-btn';
     btn.style.cssText = `flex:none;padding:8px 16px;border-radius:0;border:none;border-bottom:2px solid ${repView===id?'var(--accent)':'transparent'};color:${repView===id?'var(--accent)':'var(--text-muted)'};font-size:12px;`;
@@ -51,56 +72,75 @@ function renderRepertoire() {
   container.appendChild(tabBar);
 
   if (repView === 'identifier') {
-    container.appendChild(renderIdentifier(stationId));
+    if (typeof renderIdentifier === 'function') container.appendChild(renderIdentifier(stationId));
     return;
   }
 
-  container.appendChild(buildRepToolbar(stationId, chauffeurs));
+  if (repView === 'responsables') {
+    renderResponsablesView(container, stationId);
+    return;
+  }
+
+  // Vue Chauffeurs
+  const chauffeurs = sortByRole(loadChauffeurs(stationId), ROLES_CHAUFFEURS);
+  container.appendChild(buildRepToolbar(stationId, 'chauffeur'));
 
   const listWrap = document.createElement('div');
   listWrap.style.cssText = 'flex:1;overflow:auto;padding:16px;';
-  listWrap.appendChild(buildRepTable(chauffeurs, stationId));
+  listWrap.appendChild(buildPersonGrid(chauffeurs, stationId, 'chauffeur'));
   container.appendChild(listWrap);
 
-  // Zone formulaire (overlay)
+  const formZone = document.createElement('div');
+  formZone.id = 'rep-form-zone';
+  container.appendChild(formZone);
+}
+
+/* ── Vue Responsables ─────────────────────────────────────── */
+function renderResponsablesView(container, stationId) {
+  const responsables = sortByRole(loadResponsables(stationId), ROLES_RESPONSABLES);
+  container.appendChild(buildRepToolbar(stationId, 'responsable'));
+
+  const listWrap = document.createElement('div');
+  listWrap.style.cssText = 'flex:1;overflow:auto;padding:16px;';
+  listWrap.appendChild(buildPersonGrid(responsables, stationId, 'responsable'));
+  container.appendChild(listWrap);
+
   const formZone = document.createElement('div');
   formZone.id = 'rep-form-zone';
   container.appendChild(formZone);
 }
 
 /* ── Toolbar ──────────────────────────────────────────────── */
-function buildRepToolbar(stationId, chauffeurs) {
+function buildRepToolbar(stationId, type) {
   const bar = document.createElement('div');
   bar.className = 'rep-toolbar';
+  const label = type === 'responsable' ? '+ Ajouter un responsable' : '+ Ajouter un chauffeur';
   bar.innerHTML = `
     <input class="rep-search" id="rep-search" placeholder="🔍 Rechercher par nom ou prénom..." value="${repSearchQuery}">
-    <button class="rep-btn rep-btn-primary" id="rep-add-btn">+ Ajouter un chauffeur</button>
+    <button class="rep-btn rep-btn-primary" id="rep-add-btn">${label}</button>
   `;
-
   bar.querySelector('#rep-search').addEventListener('input', e => {
     repSearchQuery = e.target.value;
     renderRepertoire();
   });
-
   bar.querySelector('#rep-add-btn').addEventListener('click', () => {
-    openForm(null, stationId);
+    openPersonForm(null, stationId, type);
   });
-
   return bar;
 }
 
-/* ── Tableau ──────────────────────────────────────────────── */
-function buildRepTable(chauffeurs, stationId) {
+/* ── Grille de fiches ─────────────────────────────────────── */
+function buildPersonGrid(list, stationId, type) {
   const q = repSearchQuery.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-  const filtered = chauffeurs.filter(c => {
-    const full = (c.prenom + ' ' + c.nom).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  const filtered = list.filter(c => {
+    const full = (c.prenom + ' ' + c.nom + ' ' + (c.role || '')).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
     return full.includes(q);
   });
 
   if (!filtered.length) {
     const empty = document.createElement('p');
     empty.style.cssText = 'color:var(--text-muted);text-align:center;margin-top:40px;font-size:14px;';
-    empty.textContent = chauffeurs.length ? 'Aucun résultat pour cette recherche.' : 'Aucun chauffeur dans ce répertoire. Cliquez sur "+ Ajouter un chauffeur".';
+    empty.textContent = list.length ? 'Aucun résultat.' : (type === 'responsable' ? 'Aucun responsable. Cliquez sur "+ Ajouter un responsable".' : 'Aucun chauffeur. Cliquez sur "+ Ajouter un chauffeur".');
     return empty;
   }
 
@@ -109,65 +149,51 @@ function buildRepTable(chauffeurs, stationId) {
 
   filtered.forEach(c => {
     const card = document.createElement('div');
-    card.style.cssText = [
-      'background:var(--bg-sidebar)',
-      'border:1px solid var(--border)',
-      'border-radius:12px',
-      'padding:20px 22px',
-      'width:240px',
-      'display:flex',
-      'flex-direction:column',
-      'gap:8px',
-      'transition:border-color 0.18s ease,transform 0.18s ease',
-      'cursor:default'
-    ].join(';');
+    card.style.cssText = 'background:var(--bg-sidebar);border:1px solid var(--border);border-radius:12px;padding:20px 22px;width:240px;display:flex;flex-direction:column;gap:8px;transition:border-color 0.18s,transform 0.18s;cursor:default;';
     card.onmouseenter = () => { card.style.borderColor = 'var(--accent)'; card.style.transform = 'translateY(-2px)'; };
     card.onmouseleave = () => { card.style.borderColor = 'var(--border)'; card.style.transform = ''; };
 
     const avatar = document.createElement('div');
     avatar.style.cssText = 'width:44px;height:44px;border-radius:50%;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:var(--accent);margin-bottom:4px;';
-    avatar.textContent = (c.prenom[0] || '') + (c.nom[0] || '');
+    avatar.textContent = (c.prenom?.[0] || '') + (c.nom?.[0] || '');
 
     const name = document.createElement('div');
     name.style.cssText = 'font-size:14px;font-weight:700;color:var(--text-primary);';
     name.textContent = c.prenom + ' ' + c.nom;
 
-    const tel = document.createElement('div');
-    tel.style.cssText = 'font-size:12px;color:var(--text-muted);';
-    tel.textContent = '📞 ' + (c.telephone || '—');
+    const role = document.createElement('div');
+    role.style.cssText = 'font-size:11px;color:var(--accent);background:var(--accent-dim);padding:3px 7px;border-radius:4px;align-self:flex-start;font-weight:600;';
+    role.textContent = c.role || '—';
 
-    const amazonId = document.createElement('div');
-    amazonId.style.cssText = 'font-size:11px;font-family:monospace;color:var(--accent);background:var(--accent-dim);padding:3px 7px;border-radius:4px;align-self:flex-start;';
-    amazonId.textContent = c.id_amazon || '—';
+    const matricule = document.createElement('div');
+    matricule.style.cssText = 'font-size:11px;color:var(--text-muted);';
+    matricule.textContent = c.matricule ? '🏷 ' + c.matricule : '';
+
+    const amazonLine = document.createElement('div');
+    amazonLine.style.cssText = 'font-size:10px;font-family:monospace;color:var(--text-muted);';
+    amazonLine.textContent = c.id_amazon ? '📦 ' + c.id_amazon : '';
 
     const actions = document.createElement('div');
     actions.style.cssText = 'display:flex;gap:8px;margin-top:6px;';
 
-    const waLink = document.createElement('a');
-    waLink.href = 'https://wa.me/' + waNumber(c.telephone);
-    waLink.target = '_blank';
-    waLink.style.cssText = 'font-size:18px;text-decoration:none;line-height:1;';
-    waLink.textContent = '💬';
-    waLink.title = 'WhatsApp';
-
     const editBtn = document.createElement('button');
     editBtn.className = 'rep-btn rep-btn-edit';
     editBtn.textContent = '✏️ Modifier';
-    editBtn.onclick = () => openForm(c, stationId);
+    editBtn.onclick = () => openPersonForm(c, stationId, type);
 
     const delBtn = document.createElement('button');
     delBtn.className = 'rep-btn rep-btn-delete';
     delBtn.textContent = '🗑';
-    delBtn.onclick = () => deleteChauffeur(c.id, stationId);
+    delBtn.onclick = () => deletePerson(c.id, stationId, type);
 
-    actions.appendChild(waLink);
     actions.appendChild(editBtn);
     actions.appendChild(delBtn);
 
     card.appendChild(avatar);
     card.appendChild(name);
-    card.appendChild(tel);
-    card.appendChild(amazonId);
+    card.appendChild(role);
+    if (c.matricule) card.appendChild(matricule);
+    if (c.id_amazon) card.appendChild(amazonLine);
     card.appendChild(actions);
     grid.appendChild(card);
   });
@@ -176,21 +202,23 @@ function buildRepTable(chauffeurs, stationId) {
 }
 
 /* ── Formulaire ───────────────────────────────────────────── */
-function openForm(chauffeur, stationId) {
+function openPersonForm(person, stationId, type) {
   const zone = document.getElementById('rep-form-zone');
   if (!zone) return;
   showRepertoireForm(
-    zone,
-    chauffeur,
+    zone, person, type,
     (saved) => {
-      const list = loadChauffeurs(stationId);
-      // Chercher par id OU par id_amazon pour éviter les doublons
-      const idx = list.findIndex(c => 
-        (c.id && c.id === saved.id) || 
-        (c.id_amazon && c.id_amazon === saved.id_amazon)
-      );
-      if (idx >= 0) list[idx] = saved; else list.push(saved);
-      saveChauffeurs(stationId, list);
+      if (type === 'responsable') {
+        const list = loadResponsables(stationId);
+        const idx = list.findIndex(c => c.id === saved.id);
+        if (idx >= 0) list[idx] = saved; else list.push(saved);
+        saveResponsables(stationId, list);
+      } else {
+        const list = loadChauffeurs(stationId);
+        const idx = list.findIndex(c => c.id === saved.id);
+        if (idx >= 0) list[idx] = saved; else list.push(saved);
+        saveChauffeurs(stationId, list);
+      }
       zone.innerHTML = '';
       renderRepertoire();
     },
@@ -198,19 +226,19 @@ function openForm(chauffeur, stationId) {
   );
 }
 
-function deleteChauffeur(id, stationId) {
-  showConfirmModal('Supprimer ce chauffeur ?', () => {
-    const list = loadChauffeurs(stationId).filter(c => c.id !== id && !(c.id_amazon && c.id_amazon === id));
-    saveChauffeurs(stationId, list);
+function deletePerson(id, stationId, type) {
+  const label = type === 'responsable' ? 'ce responsable' : 'ce chauffeur';
+  showConfirmModal('Supprimer ' + label + ' ?', () => {
+    if (type === 'responsable') {
+      const list = loadResponsables(stationId).filter(c => c.id !== id);
+      saveResponsables(stationId, list);
+    } else {
+      const list = loadChauffeurs(stationId).filter(c => c.id !== id);
+      saveChauffeurs(stationId, list);
+    }
     renderRepertoire();
   });
 }
 
 /* ── Utilitaires ──────────────────────────────────────────── */
-function waNumber(tel) {
-  return tel.replace(/\D/g, '');
-}
-
-function esc(str) {
-  return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
+function waNumber(tel) { return (tel || '').replace(/\D/g, ''); }

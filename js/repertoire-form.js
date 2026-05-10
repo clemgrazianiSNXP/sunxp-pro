@@ -1,47 +1,46 @@
-/* js/repertoire-form.js — Formulaire ajout/modification chauffeur */
+/* js/repertoire-form.js — Formulaire ajout/modification personne (chauffeur ou responsable) */
 
 /**
  * Affiche le formulaire dans le container donné.
  * @param {HTMLElement} container
- * @param {object|null} chauffeur  - null = ajout, objet = modification
- * @param {function} onSave        - callback(chauffeur)
- * @param {function} onCancel      - callback()
+ * @param {object|null} person  - null = ajout, objet = modification
+ * @param {string} type         - 'chauffeur' | 'responsable'
+ * @param {function} onSave     - callback(person)
+ * @param {function} onCancel   - callback()
  */
-function showRepertoireForm(container, chauffeur, onSave, onCancel) {
-  const isEdit = !!chauffeur;
+function showRepertoireForm(container, person, type, onSave, onCancel) {
+  const isEdit = !!person;
+  const roles = type === 'responsable' ? ROLES_RESPONSABLES : ROLES_CHAUFFEURS;
+  const titleLabel = type === 'responsable' ? 'un responsable' : 'un chauffeur';
+
+  const roleOptions = roles.map(r => `<option value="${r}" ${person?.role === r ? 'selected' : ''}>${r}</option>`).join('');
+
   container.innerHTML = `
     <div class="rep-form-overlay">
       <div class="rep-form-box">
-        <h2 class="rep-form-title">${isEdit ? 'Modifier' : 'Ajouter'} un chauffeur</h2>
+        <h2 class="rep-form-title">${isEdit ? 'Modifier' : 'Ajouter'} ${titleLabel}</h2>
 
         <div class="rep-field">
           <label>Prénom *</label>
-          <input id="rf-prenom" class="rep-input" value="${esc(chauffeur?.prenom || '')}" placeholder="Prénom">
+          <input id="rf-prenom" class="rep-input" value="${esc(person?.prenom || '')}" placeholder="Prénom">
           <span class="rep-error" id="rf-err-prenom"></span>
         </div>
         <div class="rep-field">
           <label>Nom *</label>
-          <input id="rf-nom" class="rep-input" value="${esc(chauffeur?.nom || '')}" placeholder="Nom">
+          <input id="rf-nom" class="rep-input" value="${esc(person?.nom || '')}" placeholder="Nom">
           <span class="rep-error" id="rf-err-nom"></span>
         </div>
         <div class="rep-field">
-          <label>Téléphone * <small>(ex: +33612345678)</small></label>
-          <input id="rf-tel" class="rep-input" value="${esc(chauffeur?.telephone || '')}" placeholder="+33612345678">
-          <span class="rep-error" id="rf-err-tel"></span>
+          <label>Rôle *</label>
+          <select id="rf-role" class="rep-input">${roleOptions}</select>
         </div>
         <div class="rep-field">
-          <label>ID Amazon * <small>(commence par A)</small></label>
-          <input id="rf-amazon" class="rep-input" value="${esc(chauffeur?.id_amazon || '')}" placeholder="AZR123456789">
-          <span class="rep-error" id="rf-err-amazon"></span>
+          <label>Matricule</label>
+          <input id="rf-matricule" class="rep-input" value="${esc(person?.matricule || '')}" placeholder="Matricule">
         </div>
         <div class="rep-field">
-          <label>Email <small>(pour accès espace chauffeur)</small></label>
-          <input id="rf-email" type="email" class="rep-input" value="${esc(chauffeur?.email || '')}" placeholder="chauffeur@email.com">
-          <span class="rep-error" id="rf-err-email"></span>
-        </div>
-        <div class="rep-field">
-          <label>Matricule TSM</label>
-          <input id="rf-matricule" class="rep-input" value="${esc(chauffeur?.matricule_tsm || '')}" placeholder="Matricule TSM">
+          <label>ID Amazon <small>(optionnel)</small></label>
+          <input id="rf-amazon" class="rep-input" value="${esc(person?.id_amazon || '')}" placeholder="AZR123456789">
         </div>
 
         <div class="rep-form-actions">
@@ -53,65 +52,30 @@ function showRepertoireForm(container, chauffeur, onSave, onCancel) {
   `;
 
   container.querySelector('#rf-cancel').addEventListener('click', onCancel);
-  container.querySelector('#rf-save').addEventListener('click', async () => {
-    const prenom  = container.querySelector('#rf-prenom').value.trim();
-    const nom     = container.querySelector('#rf-nom').value.trim();
-    const tel     = container.querySelector('#rf-tel').value.trim();
-    const amazon  = container.querySelector('#rf-amazon').value.trim();
-    const email   = container.querySelector('#rf-email').value.trim();
+  container.querySelector('#rf-save').addEventListener('click', () => {
+    const prenom = container.querySelector('#rf-prenom').value.trim();
+    const nom = container.querySelector('#rf-nom').value.trim();
+    const role = container.querySelector('#rf-role').value;
     const matricule = container.querySelector('#rf-matricule').value.trim();
+    const id_amazon = container.querySelector('#rf-amazon').value.trim().toUpperCase();
     let valid = true;
 
     const setErr = (id, msg) => {
       const el = container.querySelector(id);
-      el.textContent = msg;
-      if (msg) valid = false;
+      if (el) { el.textContent = msg; if (msg) valid = false; }
     };
 
-    setErr('#rf-err-prenom', prenom  ? '' : 'Le prénom est obligatoire.');
-    setErr('#rf-err-nom',    nom     ? '' : 'Le nom est obligatoire.');
-    setErr('#rf-err-tel',    tel     ? '' : 'Le téléphone est obligatoire.');
-    setErr('#rf-err-amazon', !amazon ? 'L\'ID Amazon est obligatoire.'
-                           : !amazon.toUpperCase().startsWith('A') ? 'L\'ID Amazon doit commencer par A.'
-                           : '');
+    setErr('#rf-err-prenom', prenom ? '' : 'Le prénom est obligatoire.');
+    setErr('#rf-err-nom', nom ? '' : 'Le nom est obligatoire.');
 
     if (!valid) return;
 
-    const chauffeurData = {
-      id: chauffeur?.id || ('c_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7)),
-      prenom, nom, telephone: tel, id_amazon: amazon.toUpperCase(), matricule_tsm: matricule, email: email || ''
+    const personData = {
+      id: person?.id || ('p_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7)),
+      prenom, nom, role, matricule, id_amazon
     };
 
-    // Créer le compte auth si email renseigné et pas encore de compte
-    if (email && typeof sb === 'function' && sb()) {
-      // Vérifier si un compte existe déjà pour cet email (ne pas recréer)
-      const existingEmail = chauffeur?.email || '';
-      if (email !== existingEmail) {
-        const saveBtn = container.querySelector('#rf-save');
-        saveBtn.disabled = true; saveBtn.textContent = 'Création du compte...';
-        try {
-          const stationId = window.getActiveStationId ? window.getActiveStationId() : 'default';
-          const password = amazon.toUpperCase().slice(0, 4) + tel.slice(-4);
-          const res = await fetch(sb().supabaseUrl + '/functions/v1/create-chauffeur-account', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + sb().supabaseKey },
-            body: JSON.stringify({ email, password, nom, prenom, station_id: stationId, chauffeur_id: amazon.toUpperCase() })
-          });
-          const result = await res.json();
-          if (result.error && !result.error.includes('already been registered')) {
-            setErr('#rf-err-email', result.error);
-            saveBtn.disabled = false; saveBtn.textContent = 'Enregistrer';
-            return;
-          }
-          console.log('✅ Compte chauffeur créé');
-        } catch (e) {
-          console.warn('Erreur création compte:', e.message);
-        }
-        saveBtn.disabled = false; saveBtn.textContent = 'Enregistrer';
-      }
-    }
-
-    onSave(chauffeurData);
+    onSave(personData);
   });
 }
 
