@@ -227,22 +227,23 @@ function buildPlanningToolbar(year, month) {
   const nextMonday = getMondayOfPortal ? getMondayOfPortal(new Date()) : new Date();
   nextMonday.setDate(nextMonday.getDate() + 7);
   const nextWeekKey = nextMonday.toISOString().slice(0, 10);
-  const published = getPublishedWeeks ? getPublishedWeeks(stationId) : [];
+  const published = typeof getPublishedWeeks === 'function' ? getPublishedWeeks(stationId) : [];
   if (published.includes(nextWeekKey)) {
-    publishBtn.textContent = '✅ S+1 publiée';
+    publishBtn.textContent = '🔄 Re-publier S+1';
     publishBtn.style.background = '#4ade80';
     publishBtn.style.color = '#000';
-    publishBtn.disabled = true;
   } else {
     publishBtn.textContent = '📤 Publier S+1';
-    publishBtn.onclick = () => {
-      if (typeof publishWeek === 'function') publishWeek(stationId, nextMonday);
+  }
+  publishBtn.onclick = () => {
+    if (typeof publishWeek === 'function') {
+      publishWeek(stationId, nextMonday);
       // Publier aussi la semaine en cours si pas encore fait
       const curMonday = getMondayOfPortal ? getMondayOfPortal(new Date()) : new Date();
-      if (typeof publishWeek === 'function') publishWeek(stationId, curMonday);
-      renderPlanning();
-    };
-  }
+      publishWeek(stationId, curMonday);
+    }
+    renderPlanning();
+  };
   bar.querySelector('.h-toolbar-right').appendChild(publishBtn);
 
   return bar;
