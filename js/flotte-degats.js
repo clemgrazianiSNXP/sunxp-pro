@@ -10,13 +10,46 @@ function saveDegats(list) {
     sb().from('degats').delete().eq('station_id', stationId).then(({ error: delErr }) => {
       if (delErr) console.warn('degats delete error:', delErr.message);
       if (list.length) {
-        const rows = list.map(d => ({ station_id: stationId, degat_id: d.id, plaque: d.plaque, chauffeur: d.chauffeur, date_incident: d.date, description: d.description || '', photos: d.photos || [] }));
+        const rows = list.map(d => ({ station_id: stationId, degat_id: d.id, plaque: d.plaque, chauffeur: d.chauffeur, date_incident: d.date, description: d.description || '', photos: d.photos || [], montant: d.montant || null, montant_valide: d.montant_valide || false }));
         sb().from('degats').insert(rows).then(({ error: insErr }) => {
           if (insErr) console.warn('degats insert error:', insErr.message);
           else console.log('✅ Dégâts synced:', rows.length);
         });
       }
     });
+  }
+  // Mettre à jour la colonne Casse Camion dans les primes
+  if (stationId) updateCasseCamionFromDegats(stationId);
+}
+
+/* ── Calcul et mise à jour de Casse Camion dans les primes ── */
+function updateCasseCamionFromDegats(stationId) {
+  const degats = loadDegats();
+  const now = new Date();
+  const year = now.getFullYear(), month = now.getMonth();
+
+  // Grouper les montants validés par chauffeur pour le mois en cours
+  const montantsParChauffeur = {};
+  degats.forEach(d => {
+    if (!d.montant_valide || !d.montant) return;
+    const dt = new Date(d.date);
+    if (dt.getMonth() !== month || dt.getFullYear() !== year) return;
+    if (!montantsParChauffeur[d.chauffeur]) montantsParChauffeur[d.chauffeur] = 0;
+    montantsParChauffeur[d.chauffeur] += parseFloat(d.montant) || 0;
+  });
+
+  // Mettre à jour les primes
+  if (typeof loadPrimesData === 'function' && typeof savePrimesData === 'function') {
+    const data = loadPrimesData(stationId, year, month);
+    const chauffeurs = typeof getChauffeursList === 'function' ? getChauffeursList(stationId) : [];
+    chauffeurs.forEach(c => {
+      const nom = ((c.prenom || '') + ' ' + (c.nom || '')).trim();
+      const key = c.id_amazon || c.id;
+      if (!data[key]) data[key] = {};
+      const cumul = montantsParChauffeur[nom] || 0;
+      data[key].casseCamion = cumul > 0 ? cumul : (data[key].casseCamion || '');
+    });
+    savePrimesData(stationId, year, month, data);
   }
 }
 
@@ -97,7 +130,7 @@ function renderDegats() {
     const table = document.createElement('table');
     table.className = 'h-table';
     table.style.cssText = 'font-size:12px;';
-    table.innerHTML = '<thead><tr><th style="text-align:left;padding:6px 8px;">Chauffeur</th><th>Ce mois</th><th>Total</th><th>Dernier incident</th><th></th></tr></thead>';
+    table.innerHTML = '<thead><tr><th style="text-align:left;padding:6px 8px;">Chauffeur</th><th>Ce mois</th><th>Total</th><th>Dernier incident</th><th style="text-align:center;">Montant validé</th><th style="text-align:center;">Montant en attente</th><th></th></tr></thead>';
     const tbody = document.createElement('tbody');
 
     Object.entries(byChauffeur)
@@ -109,6 +142,17 @@ function renderDegats() {
         const total = incidents.length;
         const last = incidents.sort((a, b) => new Date(b.date) - new Date(a.date))[0];
 
+        // Calcul montants validés et en attente pour ce mois
+        const moisIncidents = incidents.filter(d => { const dt = new Date(d.date); return dt.getMonth() === curMonth && dt.getFullYear() === curYear; });
+        let montantValide = 0, montantAttente = 0;
+        moisIncidents.forEach(d => {
+          const m = parseFloat(d.montant) || 0;
+          if (m > 0) {
+            if (d.montant_valide) montantValide += m;
+            else montantAttente += m;
+          }
+        });
+
         const tr = document.createElement('tr');
         tr.style.cssText = total > 0 ? '' : 'opacity:0.4;';
         tr.innerHTML = `
@@ -116,6 +160,8 @@ function renderDegats() {
           <td style="text-align:center;color:${moisCount>0?'#f87171':'var(--text-muted)'};">${moisCount}</td>
           <td style="text-align:center;font-weight:700;color:${total>0?'#f97316':'var(--text-muted)'};">${total}</td>
           <td style="text-align:center;font-size:10px;color:var(--text-muted);">${last ? new Date(last.date).toLocaleDateString('fr-FR') + ' — ' + last.plaque : '—'}</td>
+          <td style="text-align:center;font-weight:700;color:#4ade80;">${montantValide > 0 ? montantValide + '€' : '—'}</td>
+          <td style="text-align:center;font-weight:700;color:#fbbf24;">${montantAttente > 0 ? montantAttente + '€' : '—'}</td>
           <td style="text-align:center;"></td>
         `;
 
@@ -156,6 +202,45 @@ function showChauffeurDegats(nom, incidents) {
       </div>
       <div style="color:var(--text-muted);margin-bottom:4px;">${d.description || 'Pas de description'}</div>
     `;
+
+    // Montant + validation
+    const montantRow = document.createElement('div');
+    montantRow.style.cssText = 'display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap;';
+    const montantLabel = document.createElement('span');
+    montantLabel.style.cssText = 'font-size:11px;color:var(--text-muted);';
+    montantLabel.textContent = '💶 Montant :';
+    montantRow.appendChild(montantLabel);
+
+    const montantInput = document.createElement('input');
+    montantInput.type = 'number'; montantInput.min = '0'; montantInput.step = '0.01';
+    montantInput.value = d.montant || '';
+    montantInput.placeholder = '—';
+    montantInput.style.cssText = 'width:70px;padding:3px 6px;font-size:11px;background:var(--bg-sidebar);border:1px solid var(--border);border-radius:4px;color:var(--text-primary);';
+    montantInput.onchange = () => {
+      const degats = loadDegats();
+      const item = degats.find(x => x.id === d.id);
+      if (item) { item.montant = montantInput.value ? parseFloat(montantInput.value) : null; saveDegats(degats); }
+    };
+    montantRow.appendChild(montantInput);
+
+    const euroSpan = document.createElement('span');
+    euroSpan.style.cssText = 'font-size:11px;color:var(--text-muted);';
+    euroSpan.textContent = '€';
+    montantRow.appendChild(euroSpan);
+
+    const validerBtn = document.createElement('button');
+    validerBtn.style.cssText = 'font-size:10px;padding:3px 8px;border-radius:4px;border:none;cursor:pointer;font-weight:600;' +
+      (d.montant_valide ? 'background:#4ade80;color:#000;' : 'background:var(--bg-sidebar);border:1px solid #fbbf24;color:#fbbf24;');
+    validerBtn.textContent = d.montant_valide ? '✓ Validé' : 'Valider';
+    validerBtn.onclick = () => {
+      const degats = loadDegats();
+      const item = degats.find(x => x.id === d.id);
+      if (item) { item.montant_valide = !item.montant_valide; saveDegats(degats); }
+      overlay.remove();
+      if (typeof renderFlotte === 'function') renderFlotte();
+    };
+    montantRow.appendChild(validerBtn);
+    card.appendChild(montantRow);
     if (d.photos && d.photos.length) {
       const ph = document.createElement('div');
       ph.style.cssText = 'display:flex;gap:4px;flex-wrap:wrap;';
@@ -226,6 +311,14 @@ function showDegatsForm(camions, chauffeurs, stationId) {
   photoLabel.textContent = '📷 Photos (optionnel)';
   const photoInp = document.createElement('input');
   photoInp.type = 'file'; photoInp.accept = 'image/*'; photoInp.multiple = true;
+
+  // Champ montant (optionnel)
+  const montantInp = document.createElement('input');
+  montantInp.type = 'number'; montantInp.placeholder = '💶 Montant (optionnel)';
+  montantInp.className = 'rep-input'; montantInp.style.cssText = 'padding:8px;font-size:12px;';
+  montantInp.min = '0'; montantInp.step = '0.01';
+  box.appendChild(montantInp);
+
   box.appendChild(photoLabel); box.appendChild(photoInp);
 
   const btns = document.createElement('div');
@@ -248,7 +341,7 @@ function showDegatsForm(camions, chauffeurs, stationId) {
       if (url) photos.push(url);
     }
     const degats = loadDegats();
-    degats.push({ id: degatId, plaque: camionInp.value.trim(), chauffeur: chauffeurInp.value.trim(), date: dateInp.value, description: desc.value, photos });
+    degats.push({ id: degatId, plaque: camionInp.value.trim(), chauffeur: chauffeurInp.value.trim(), date: dateInp.value, description: desc.value, photos, montant: montantInp.value ? parseFloat(montantInp.value) : null, montant_valide: false });
     saveDegats(degats);
     overlay.remove();
     if (typeof renderFlotte === 'function') renderFlotte();

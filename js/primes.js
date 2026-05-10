@@ -303,6 +303,65 @@ function buildImpactCell(colKey, row, chauffeurKey, data, sid) {
     return td;
   }
 
+  // Casse Camion: auto-calculé depuis les dégâts validés mais reste modifiable
+  if (colKey === 'casseCamion') {
+    const chauffeurs = getChauffeursList(sid);
+    const c = chauffeurs.find(ch => (ch.id_amazon || ch.id) === chauffeurKey);
+    const nom = c ? ((c.prenom || '') + ' ' + (c.nom || '')).trim() : '';
+    // Calculer le cumul des montants validés du mois
+    let cumulValide = 0;
+    if (typeof loadDegats === 'function') {
+      const degats = loadDegats();
+      degats.forEach(d => {
+        if (d.chauffeur === nom && d.montant_valide && d.montant) {
+          const dt = new Date(d.date);
+          if (dt.getMonth() === primesMonth && dt.getFullYear() === primesYear) {
+            cumulValide += parseFloat(d.montant) || 0;
+          }
+        }
+      });
+    }
+    // Si cumul > 0, pré-remplir mais laisser modifiable
+    if (cumulValide > 0 && !row[colKey]) row[colKey] = cumulValide;
+    else if (cumulValide > 0) row[colKey] = cumulValide;
+    data[chauffeurKey] = row;
+
+    const val = row[colKey] || '';
+    const inp = document.createElement('input');
+    inp.className = 'h-inp h-inp-sm'; inp.value = val; inp.style.width = '70px';
+    inp.title = cumulValide > 0 ? 'Auto-calculé depuis dégâts validés : ' + cumulValide + '€' : 'Saisie manuelle';
+    if (cumulValide > 0) inp.style.borderColor = '#4ade80';
+    inp.onchange = () => { row[colKey]=inp.value; data[chauffeurKey]=row; savePrimesData(sid,primesYear,primesMonth,data); renderPrimes(); };
+    td.appendChild(inp);
+
+    const commentKey = 'comment_' + colKey;
+    const comment = row[commentKey] || '';
+    const emojiBtn = document.createElement('span');
+    emojiBtn.textContent = comment ? '💬' : '📝';
+    emojiBtn.style.cssText = 'cursor:pointer;font-size:10px;opacity:'+(comment?'1':'0.3')+';margin-left:1px;vertical-align:middle;';
+    emojiBtn.title = comment || 'Ajouter un commentaire';
+    emojiBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      document.querySelectorAll('.prime-comment-popup').forEach(p=>p.remove());
+      const popup = document.createElement('div'); popup.className='prime-comment-popup';
+      popup.style.cssText='position:fixed;z-index:9999;background:var(--bg-sidebar);border:1px solid var(--accent);border-radius:8px;padding:8px;box-shadow:0 4px 16px rgba(0,0,0,0.5);display:flex;flex-direction:column;gap:4px;width:180px;';
+      const rect=emojiBtn.getBoundingClientRect(); popup.style.top=(rect.bottom+4)+'px'; popup.style.left=rect.left+'px';
+      const ta=document.createElement('textarea'); ta.value=comment; ta.placeholder='Commentaire...';
+      ta.style.cssText='width:100%;height:50px;resize:vertical;background:var(--bg-primary);border:1px solid var(--border);border-radius:4px;color:var(--text-primary);font-size:11px;padding:4px;font-family:var(--font-family);outline:none;';
+      const br=document.createElement('div'); br.style.cssText='display:flex;gap:4px;';
+      const ok=document.createElement('button'); ok.textContent='✓'; ok.style.cssText='flex:1;background:var(--accent);color:#fff;border:none;border-radius:4px;padding:3px;font-size:11px;cursor:pointer;';
+      ok.onclick=()=>{ row[commentKey]=ta.value; data[chauffeurKey]=row; savePrimesData(sid,primesYear,primesMonth,data); popup.remove(); renderPrimes(); };
+      const no=document.createElement('button'); no.textContent='✕'; no.style.cssText='background:transparent;border:1px solid var(--border);color:var(--text-muted);border-radius:4px;padding:3px 6px;font-size:11px;cursor:pointer;';
+      no.onclick=()=>popup.remove();
+      br.appendChild(ok); br.appendChild(no); popup.appendChild(ta); popup.appendChild(br);
+      document.body.appendChild(popup); ta.focus();
+      setTimeout(()=>{ document.addEventListener('click',function cl(ev){ if(!popup.contains(ev.target)&&ev.target!==emojiBtn){popup.remove();document.removeEventListener('click',cl);} }); },0);
+    });
+    td.appendChild(emojiBtn);
+    if (comment) { const tri=document.createElement('span'); tri.style.cssText='position:absolute;top:0;right:0;width:0;height:0;border-style:solid;border-width:0 7px 7px 0;border-color:transparent var(--accent) transparent transparent;pointer-events:none;'; td.appendChild(tri); }
+    return td;
+  }
+
   const val = row[colKey] || '';
   const isWide = (colKey === 'casseCamion' || colKey === 'autre');
   const inp = document.createElement('input');
