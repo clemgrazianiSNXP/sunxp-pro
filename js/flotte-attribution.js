@@ -161,6 +161,7 @@ function buildAttrToolbar(stationId, rows) {
     <button class="h-btn h-nav" id="attr-next">▶</button>
     <button class="h-btn" id="attr-today" style="font-size:10px;">Aujourd'hui</button>
     <button class="h-btn" id="attr-dup" style="background:rgba(96,165,250,0.15);border-color:#60a5fa;color:#60a5fa;font-size:10px;font-weight:700;">📋 Dupliquer → J+1</button>
+    <button class="h-btn" id="attr-del" style="font-size:10px;color:#f87171;border-color:#f87171;">🗑 Supprimer</button>
   `;
   toolbar.querySelector('#attr-prev').onclick = () => { attrDate.setDate(attrDate.getDate() - 1); renderFlotte(); };
   toolbar.querySelector('#attr-next').onclick = () => {
@@ -174,6 +175,12 @@ function buildAttrToolbar(stationId, rows) {
     saveAttribution(stationId, nextDate, JSON.parse(JSON.stringify(rows)));
     attrDate = nextDate;
     renderFlotte();
+  };
+  toolbar.querySelector('#attr-del').onclick = () => {
+    showConfirmModal('Supprimer l\'attribution du ' + dl + ' ?', () => {
+      localStorage.removeItem(attrKey(stationId, attrDate));
+      renderFlotte();
+    });
   };
   return toolbar;
 }
