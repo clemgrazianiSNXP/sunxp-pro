@@ -661,6 +661,25 @@ window.preloadStationData = async function (stationId) {
       });
     }
 
+    // Planning Published (semaines publiées aux chauffeurs)
+    const { data: pubData } = await sb().from('planning_published').select('data').eq('station_id', stationId).maybeSingle();
+    if (pubData && pubData.data) {
+      localStorage.setItem(stationId + '-planning-published', JSON.stringify(pubData.data));
+      console.log('  Planning published: chargé');
+    }
+
+    // Attribution (derniers 7 jours pour l'accueil chauffeur)
+    const today = new Date();
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(today); d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().slice(0, 10);
+      const attrKey = stationId + '-attribution-' + dateStr;
+      const { data: attrData } = await sb().from('attribution').select('data').eq('station_id', stationId).eq('date_jour', dateStr).maybeSingle();
+      if (attrData && attrData.data) {
+        localStorage.setItem(attrKey, JSON.stringify(attrData.data));
+      }
+    }
+
     console.log('✅ Préchargement terminé');
   } catch (e) {
     console.warn('Préchargement partiel:', e.message);
