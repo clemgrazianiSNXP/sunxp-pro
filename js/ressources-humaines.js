@@ -44,8 +44,7 @@ function renderRH() {
   } else if (rhTab === 'suivi-papiers') {
     content.appendChild(typeof renderSuiviPapiers === 'function' ? renderSuiviPapiers() : document.createElement('div'));
   } else if (rhTab === 'docs-employes') {
-    const p = document.createElement('p'); p.style.cssText = 'color:var(--text-muted);text-align:center;margin-top:40px;'; p.textContent = '📄 Documents employés — à venir';
-    content.appendChild(p);
+    content.appendChild(typeof renderDocsEmployes === 'function' ? renderDocsEmployes() : document.createElement('div'));
   }
 
   container.appendChild(content);

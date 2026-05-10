@@ -50,7 +50,6 @@ function toggleMenuPanel() {
           <button class="menu-panel-tab" data-tab="analyse" onclick="setMenuTab('analyse')" title="Analyse & Performance">📊</button>
           <button class="menu-panel-tab" data-tab="badges-mgr" onclick="setMenuTab('badges-mgr')" title="Badges chauffeurs">🏆</button>
           <button class="menu-panel-tab" data-tab="documents" onclick="setMenuTab('documents')" title="Documents bureau">📄</button>
-          <button class="menu-panel-tab" data-tab="docs-chauffeurs" onclick="setMenuTab('docs-chauffeurs')" title="Documents chauffeurs">👤</button>
           <button class="menu-panel-tab active" data-tab="parametres" onclick="setMenuTab('parametres')" title="Paramètres">⚙️</button>
           <button class="menu-panel-tab" data-tab="cles-codes" onclick="setMenuTab('cles-codes')" title="Clés & Codes">🔑</button>
           <button class="menu-panel-tab" data-tab="contacts" onclick="setMenuTab('contacts')" title="Contacts">📇</button>
