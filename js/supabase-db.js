@@ -132,15 +132,25 @@ window.dbSaveResponsables = async function (stationId, responsables) {
 /* ══════════════════════════════════════════════════════════════
    PLANNING (mensuel)
    ══════════════════════════════════════════════════════════════ */
+let _planSaveTimeout = null;
+let _planSavePending = null;
+
 window.dbSavePlanning = async function (stationId, year, month, data) {
   if (!sb()) return;
-  try {
-    // Delete + insert (plus fiable que upsert avec mots réservés year/month)
-    await sb().from('planning').delete().eq('station_id', stationId).eq('year', year).eq('month', month + 1);
-    const { error } = await sb().from('planning').insert({ station_id: stationId, year: year, month: month + 1, data });
-    if (error) console.error('dbSavePlanning error:', error.message, error.details);
-    else console.log('✅ Planning sauvé Supabase:', year + '-' + (month + 1));
-  } catch (e) { console.warn('dbSavePlanning catch:', e.message); }
+  // Debounce : attendre 500ms avant de sauver (évite les conflits si plusieurs cellules changent vite)
+  _planSavePending = { stationId, year, month, data };
+  if (_planSaveTimeout) clearTimeout(_planSaveTimeout);
+  _planSaveTimeout = setTimeout(async () => {
+    const p = _planSavePending;
+    if (!p) return;
+    _planSavePending = null;
+    try {
+      await sb().from('planning').delete().eq('station_id', p.stationId).eq('year', p.year).eq('month', p.month + 1);
+      const { error } = await sb().from('planning').insert({ station_id: p.stationId, year: p.year, month: p.month + 1, data: p.data });
+      if (error) console.error('dbSavePlanning error:', error.message);
+      else console.log('✅ Planning sauvé Supabase:', p.year + '-' + (p.month + 1));
+    } catch (e) { console.warn('dbSavePlanning catch:', e.message); }
+  }, 500);
 };
 
 window.dbSavePlanningMeta = async function (stationId, year, month, meta) {
