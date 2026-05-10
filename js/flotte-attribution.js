@@ -1,271 +1,162 @@
-/* js/flotte-attribution.js — Attribution des camions (SunXP Pro) */
+/* js/flotte-attribution.js — Attribution camions style spreadsheet (SunXP Pro) */
 console.log('flotte-attribution.js chargé');
 
 let attrDate = new Date();
+const ATTR_COLS = ['CM','UTA','Tél','St','Chauffeur','PDA','Trs','Lic','Clef','VIGIK','rU','rP','rT','rL','rC','rV','✓','Com'];
+const ATTR_W = [28, 36, 36, 32, 100, 36, 36, 36, 38, 60, 22, 22, 22, 22, 22, 22, 22, 120];
 
 /* ── Persistance ──────────────────────────────────────────── */
-function attrKey(stationId, date) { return stationId + '-attribution-' + date.toISOString().slice(0, 10); }
-function loadAttribution(stationId, date) { try { return JSON.parse(localStorage.getItem(attrKey(stationId, date))) || null; } catch (_) { return null; } }
-function saveAttribution(stationId, date, data) {
-  const key = attrKey(stationId, date);
-  try { localStorage.setItem(key, JSON.stringify(data)); } catch (_) {}
-  if (typeof dbSave === 'function') dbSave('attribution', key, { station_id: stationId, date_jour: date.toISOString().slice(0, 10) }, data);
+function attrKey(sid, d) { return sid + '-attribution-' + d.toISOString().slice(0,10); }
+function loadAttr(sid, d) { try { return JSON.parse(localStorage.getItem(attrKey(sid, d))); } catch(_) { return null; } }
+function saveAttr(sid, d, data) {
+  localStorage.setItem(attrKey(sid, d), JSON.stringify(data));
+  if (typeof dbSave === 'function') dbSave('attribution', attrKey(sid, d), { station_id: sid, date_jour: d.toISOString().slice(0,10) }, data);
 }
 
 /* ── Rendu principal ──────────────────────────────────────── */
 function renderAttribution() {
   const wrap = document.createElement('div');
-  wrap.style.cssText = 'display:flex;flex-direction:column;gap:0;height:100%;';
-
-  const stationId = window.getActiveStationId ? window.getActiveStationId() : null;
-  if (!stationId) { wrap.innerHTML = '<p style="color:var(--text-muted);padding:20px;">Sélectionnez une station.</p>'; return wrap; }
+  wrap.style.cssText = 'display:flex;flex-direction:column;height:100%;overflow:hidden;';
+  const sid = window.getActiveStationId ? window.getActiveStationId() : null;
+  if (!sid) { wrap.innerHTML = '<p style="color:var(--text-muted);padding:20px;">Sélectionnez une station.</p>'; return wrap; }
 
   const camions = loadCamions();
-  const chauffeurs = [];
-  try { const r = localStorage.getItem(stationId + '-repertoire'); if (r) chauffeurs.push(...JSON.parse(r)); } catch (_) {}
+  const chauffeurs = []; try { chauffeurs.push(...JSON.parse(localStorage.getItem(sid+'-repertoire'))||[]); } catch(_){}
+  let rows = loadAttr(sid, attrDate);
 
-  let rows = loadAttribution(stationId, attrDate);
+  // Toolbar
+  wrap.appendChild(buildAttrBar(sid, rows));
 
-  // Si pas de données pour ce jour ET pas de données pour la veille → initialiser depuis camions
-  // Si pas de données pour ce jour mais données hier → bloquer (doit dupliquer)
+  // Bloquer si pas de données et veille existe
   if (!rows) {
-    const yesterday = new Date(attrDate); yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayData = loadAttribution(stationId, yesterday);
-    if (yesterdayData) {
-      // Bloquer : doit dupliquer depuis la veille
-      wrap.appendChild(buildAttrToolbar(stationId, rows));
+    const yest = new Date(attrDate); yest.setDate(yest.getDate()-1);
+    if (loadAttr(sid, yest)) {
       const msg = document.createElement('div');
-      msg.style.cssText = 'flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;';
-      msg.innerHTML = `<div style="font-size:36px;">📋</div><p style="color:var(--text-muted);font-size:13px;">Pas encore d'attribution pour ce jour.</p><p style="color:var(--text-muted);font-size:11px;">Revenez au jour précédent et cliquez "Dupliquer → J+1"</p>`;
-      wrap.appendChild(msg);
-      return wrap;
+      msg.style.cssText = 'flex:1;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:13px;';
+      msg.textContent = 'Dupliquez depuis le jour précédent pour créer cette page.';
+      wrap.appendChild(msg); return wrap;
     }
-    // Première utilisation : initialiser depuis répertoire camions
-    rows = camions.map(c => ({
-      plaque: c.plaque, modele: (c.marque || '') + ' ' + (c.modele || ''), agence: c.agence || 'SNXP', bva: c.bva || false,
-      checkMensuel: false, uta: '', telepeages: '', statut: 'OK',
-      chauffeur: '', pda: '', trousseau: '', licence: '', clefBal: '', vigik: '',
-      retourUta: false, retourPda: false, retourTrousseau: false, retourLicence: false, retourClefBal: false, retourVigik: false,
-      commentaire: '', fusionTitle: '', fusionColor: ''
-    }));
-    saveAttribution(stationId, attrDate, rows);
+    rows = camions.map(c => ({ plaque:c.plaque, modele:(c.marque||'')+' '+(c.modele||''), agence:c.agence||'SNXP', bva:c.bva||false, cm:false, uta:'', tel:'', statut:'OK', chauffeur:'', pda:'', trs:'', lic:'', clef:'', vigik:'', rU:false, rP:false, rT:false, rL:false, rC:false, rV:false, com:'', fusionTitle:'', fusionColor:'' }));
+    saveAttr(sid, attrDate, rows);
   }
 
-  wrap.appendChild(buildAttrToolbar(stationId, rows));
+  // Corps : fixe gauche + scroll droite
+  const body = document.createElement('div');
+  body.style.cssText = 'display:flex;flex:1;overflow:hidden;';
 
-  // Tableau
-  const tableWrap = document.createElement('div');
-  tableWrap.style.cssText = 'flex:1;overflow:auto;';
-
-  const table = document.createElement('table');
-  table.style.cssText = 'font-size:10px;border-collapse:collapse;width:100%;';
-
-  // Header
-  const thead = document.createElement('thead');
-  thead.innerHTML = `<tr style="background:var(--bg-sidebar);">
-    <th style="width:18px;padding:3px 1px;"></th>
-    <th style="padding:3px 2px;text-align:left;">Modèle</th>
-    <th style="padding:3px 2px;text-align:left;">Agence</th>
-    <th style="padding:3px 1px;width:20px;text-align:left;">CM</th>
-    <th style="padding:3px 4px;width:30px;">UTA</th>
-    <th style="padding:3px 4px;width:30px;">Tél.</th>
-    <th style="padding:3px 3px;width:30px;">St.</th>
-    <th style="padding:3px 3px;text-align:left;">Plaque</th>
-    <th style="padding:3px 4px;text-align:left;min-width:90px;">Chauffeur</th>
-    <th style="padding:3px 1px;width:24px;">PDA</th>
-    <th style="padding:3px 1px;width:26px;">Trs.</th>
-    <th style="padding:3px 1px;width:24px;">Lic.</th>
-    <th style="padding:3px 1px;width:30px;">Clef</th>
-    <th style="padding:3px 1px;width:44px;">VIGIK</th>
-    <th style="padding:3px 2px;width:18px;background:rgba(74,222,128,0.1);">U</th>
-    <th style="padding:3px 2px;width:18px;background:rgba(74,222,128,0.1);">P</th>
-    <th style="padding:3px 2px;width:18px;background:rgba(74,222,128,0.1);">T</th>
-    <th style="padding:3px 2px;width:18px;background:rgba(74,222,128,0.1);">L</th>
-    <th style="padding:3px 2px;width:18px;background:rgba(74,222,128,0.1);">C</th>
-    <th style="padding:3px 2px;width:18px;background:rgba(74,222,128,0.1);">V</th>
-    <th style="padding:3px 2px;width:20px;background:rgba(74,222,128,0.1);">✓</th>
-    <th style="padding:3px 6px;">Com.</th>
-  </tr>`;
-  table.appendChild(thead);
-
-  const tbody = document.createElement('tbody');
-  rows.forEach((row, idx) => {
+  // Partie fixe gauche
+  const left = document.createElement('div');
+  left.style.cssText = 'width:180px;min-width:180px;border-right:2px solid var(--border);overflow-y:auto;flex-shrink:0;';
+  const lt = document.createElement('table');
+  lt.style.cssText = 'width:100%;border-collapse:collapse;font-size:10px;';
+  lt.innerHTML = '<thead><tr><th style="height:26px;padding:4px;text-align:left;border-bottom:1px solid var(--border);background:var(--bg-sidebar);">Plaque</th><th style="padding:4px;text-align:left;border-bottom:1px solid var(--border);background:var(--bg-sidebar);">Modèle</th><th style="padding:4px;text-align:left;border-bottom:1px solid var(--border);background:var(--bg-sidebar);">Agence</th></tr></thead>';
+  const ltb = document.createElement('tbody');
+  rows.forEach((r,i) => {
     const tr = document.createElement('tr');
-    tr.style.cssText = 'height:24px;border-bottom:1px solid var(--border);';
-
-    if (row.statut === 'X') {
-      // Ligne fusionnée — UTA/Tél restent, fusion à partir de Chauffeur
-      const bg = row.fusionColor || 'rgba(248,113,113,0.1)';
-      tr.style.background = bg;
-      tr.innerHTML = `
-        <td style="padding:1px;">${mvBtns(idx, rows.length)}</td>
-        <td style="padding:1px 2px;font-size:9px;text-align:left;">${row.modele}</td>
-        <td style="padding:1px 2px;font-size:9px;text-align:left;">${row.agence}${row.bva?' BVA':''}</td>
-        <td style="padding:1px;"><input type="checkbox" ${row.checkMensuel?'checked':''} data-idx="${idx}" data-f="checkMensuel" style="width:12px;height:12px;"></td>
-        <td style="padding:1px 3px;"><input class="h-inp" value="${row.uta}" data-idx="${idx}" data-f="uta" style="width:28px;font-size:9px;padding:1px;"></td>
-        <td style="padding:1px 3px;"><input class="h-inp" value="${row.telepeages}" data-idx="${idx}" data-f="telepeages" style="width:28px;font-size:9px;padding:1px;"></td>
-        <td style="padding:1px;"><select class="h-inp" data-idx="${idx}" data-f="statut" style="width:30px;font-size:9px;padding:1px;background:var(--bg-tab-active);color:var(--text-primary);border:1px solid var(--border);border-radius:3px;"><option value="OK">OK</option><option value="BU">BU</option><option value="X" selected>✕</option></select></td>
-        <td style="padding:1px 3px;font-weight:700;color:var(--accent);font-size:9px;text-align:left;">${row.plaque}</td>
-        <td colspan="14" style="padding:1px 4px;"><input class="h-inp" value="${row.fusionTitle}" data-idx="${idx}" data-f="fusionTitle" placeholder="Raison..." style="width:100%;font-size:9px;text-align:left;font-weight:600;color:${row.fusionColor||'#f87171'};"></td>
-        <td style="padding:1px;"><input type="color" value="${row.fusionColor||'#f87171'}" data-idx="${idx}" data-f="fusionColor" style="width:16px;height:14px;border:none;padding:0;cursor:pointer;"></td>
-      `;
-    } else {
-      tr.innerHTML = `
-        <td style="padding:1px;">${mvBtns(idx, rows.length)}</td>
-        <td style="padding:1px 2px;font-size:9px;white-space:nowrap;overflow:hidden;max-width:60px;text-align:left;">${row.modele}</td>
-        <td style="padding:1px 2px;font-size:9px;text-align:left;">${row.agence}${row.bva?' BVA':''}</td>
-        <td style="padding:1px;text-align:left;"><input type="checkbox" ${row.checkMensuel?'checked':''} data-idx="${idx}" data-f="checkMensuel" style="width:12px;height:12px;"></td>
-        <td style="padding:1px 3px;"><input class="h-inp" value="${row.uta}" data-idx="${idx}" data-f="uta" style="width:28px;font-size:9px;padding:1px;"></td>
-        <td style="padding:1px 3px;"><input class="h-inp" value="${row.telepeages}" data-idx="${idx}" data-f="telepeages" style="width:28px;font-size:9px;padding:1px;"></td>
-        <td style="padding:1px;"><select class="h-inp" data-idx="${idx}" data-f="statut" style="width:30px;font-size:9px;padding:1px;background:var(--bg-tab-active);color:var(--text-primary);border:1px solid var(--border);border-radius:3px;"><option value="OK" ${row.statut==='OK'?'selected':''}>OK</option><option value="BU" ${row.statut==='BU'?'selected':''}>BU</option><option value="X" ${row.statut==='X'?'selected':''}>✕</option></select></td>
-        <td style="padding:1px 3px;font-weight:700;color:var(--accent);font-size:9px;text-align:left;">${row.plaque}</td>
-        <td style="padding:1px;position:relative;"><input class="h-inp attr-chauffeur-inp" value="${row.chauffeur}" data-idx="${idx}" data-f="chauffeur" style="width:88px;font-size:9px;padding:1px 3px;text-align:left;" placeholder="—"></td>
-        <td><input class="h-inp" value="${row.pda}" data-idx="${idx}" data-f="pda" style="width:22px;font-size:9px;padding:1px;"></td>
-        <td><input class="h-inp" value="${row.trousseau}" data-idx="${idx}" data-f="trousseau" style="width:24px;font-size:9px;padding:1px;"></td>
-        <td><input class="h-inp" value="${row.licence}" data-idx="${idx}" data-f="licence" style="width:22px;font-size:9px;padding:1px;"></td>
-        <td style="padding:1px;"><select class="h-inp" data-idx="${idx}" data-f="clefBal" style="width:28px;font-size:8px;padding:0;background:var(--bg-tab-active);color:var(--text-primary);border:1px solid var(--border);border-radius:3px;"><option value="">—</option><option value="PERSO" ${row.clefBal==='PERSO'?'selected':''}>P</option><option value="C21" ${row.clefBal==='C21'?'selected':''}>C21</option></select></td>
-        <td><input class="h-inp" value="${row.vigik}" data-idx="${idx}" data-f="vigik" style="width:42px;font-size:8px;padding:1px;"></td>
-        <td style="text-align:center;background:rgba(74,222,128,0.03);"><input type="checkbox" ${row.retourUta?'checked':''} data-idx="${idx}" data-f="retourUta" style="width:12px;height:12px;"></td>
-        <td style="text-align:center;background:rgba(74,222,128,0.03);"><input type="checkbox" ${row.retourPda?'checked':''} data-idx="${idx}" data-f="retourPda" style="width:12px;height:12px;"></td>
-        <td style="text-align:center;background:rgba(74,222,128,0.03);"><input type="checkbox" ${row.retourTrousseau?'checked':''} data-idx="${idx}" data-f="retourTrousseau" style="width:12px;height:12px;"></td>
-        <td style="text-align:center;background:rgba(74,222,128,0.03);"><input type="checkbox" ${row.retourLicence?'checked':''} data-idx="${idx}" data-f="retourLicence" style="width:12px;height:12px;"></td>
-        <td style="text-align:center;background:rgba(74,222,128,0.03);"><input type="checkbox" ${row.retourClefBal?'checked':''} data-idx="${idx}" data-f="retourClefBal" style="width:12px;height:12px;"></td>
-        <td style="text-align:center;background:rgba(74,222,128,0.03);"><input type="checkbox" ${row.retourVigik?'checked':''} data-idx="${idx}" data-f="retourVigik" style="width:12px;height:12px;"></td>
-        <td style="text-align:center;background:rgba(74,222,128,0.03);"><button class="h-btn" style="font-size:7px;padding:0 3px;" title="Tout OK" data-idx="${idx}" data-action="allok">✓</button></td>
-        <td><input class="h-inp" value="${row.commentaire}" data-idx="${idx}" data-f="commentaire" style="width:100%;font-size:9px;padding:1px 3px;"></td>
-      `;
-    }
-    tbody.appendChild(tr);
+    tr.style.cssText = `height:26px;border-bottom:1px solid var(--border);${r.statut==='X'?'background:'+(r.fusionColor||'rgba(248,113,113,0.1)')+';':''}`;
+    tr.innerHTML = `<td style="padding:2px 4px;font-weight:700;color:var(--accent);white-space:nowrap;">${r.plaque}</td><td style="padding:2px 4px;font-size:9px;white-space:nowrap;overflow:hidden;max-width:60px;">${r.modele}</td><td style="padding:2px 4px;font-size:9px;">${r.agence}${r.bva?' BVA':''}</td>`;
+    ltb.appendChild(tr);
   });
-  table.appendChild(tbody);
+  lt.appendChild(ltb); left.appendChild(lt);
 
-  // Compteurs
-  const tfoot = document.createElement('tfoot');
-  const nbOk = rows.filter(r => r.statut === 'OK').length;
-  const nbBu = rows.filter(r => r.statut === 'BU').length;
-  const nbAttr = rows.filter(r => r.chauffeur && r.statut === 'OK').length;
-  tfoot.innerHTML = `<tr style="border-top:2px solid var(--accent);"><td colspan="22" style="padding:6px;font-size:10px;font-weight:700;">OK: ${nbOk} | BU: ${nbBu} | Attribués: ${nbAttr} | Total: ${rows.length}</td></tr>`;
-  table.appendChild(tfoot);
+  // Partie scrollable droite
+  const right = document.createElement('div');
+  right.style.cssText = 'flex:1;overflow:auto;';
+  const rt = document.createElement('table');
+  rt.style.cssText = 'border-collapse:collapse;font-size:10px;';
 
-  tableWrap.appendChild(table);
-  wrap.appendChild(tableWrap);
+  // Header droite
+  const rth = document.createElement('thead');
+  let hdr = '<tr>';
+  ATTR_COLS.forEach((c,i) => { hdr += `<th style="height:26px;min-width:${ATTR_W[i]}px;width:${ATTR_W[i]}px;padding:3px;text-align:center;border:1px solid var(--border);background:var(--bg-sidebar);font-size:9px;font-weight:600;${i>=10&&i<=15?'background:rgba(74,222,128,0.08);':''}">${c}</th>`; });
+  hdr += '</tr>';
+  rth.innerHTML = hdr;
+  rt.appendChild(rth);
+
+  // Body droite
+  const rtb = document.createElement('tbody');
+  rows.forEach((r,idx) => {
+    const tr = document.createElement('tr');
+    tr.style.cssText = `height:26px;${r.statut==='X'?'background:'+(r.fusionColor||'rgba(248,113,113,0.1)')+';':''}`;
+
+    if (r.statut === 'X') {
+      // Fusionné à droite
+      tr.innerHTML = `<td style="border:1px solid var(--border);text-align:center;"><select class="attr-sel" data-i="${idx}" data-f="statut" style="width:100%;border:none;background:transparent;color:var(--text-primary);font-size:9px;text-align:center;"><option value="OK">OK</option><option value="BU">BU</option><option value="X" selected>✕</option></select></td><td colspan="17" style="border:1px solid var(--border);padding:2px 6px;"><input class="attr-inp" data-i="${idx}" data-f="fusionTitle" value="${r.fusionTitle||''}" placeholder="Raison..." style="width:100%;border:none;background:transparent;color:${r.fusionColor||'#f87171'};font-size:10px;font-weight:600;outline:none;"><input type="color" class="attr-color" data-i="${idx}" value="${r.fusionColor||'#f87171'}" style="width:14px;height:14px;border:none;padding:0;cursor:pointer;vertical-align:middle;margin-left:4px;"></td>`;
+    } else {
+      const cell = (val, f, w, type) => {
+        const s = `min-width:${w}px;width:${w}px;border:1px solid var(--border);padding:1px;text-align:center;`;
+        if (type === 'check') return `<td style="${s}${f.startsWith('r')?'background:rgba(74,222,128,0.04);':''}"><input type="checkbox" class="attr-cb" data-i="${idx}" data-f="${f}" ${val?'checked':''} style="width:13px;height:13px;"></td>`;
+        if (type === 'select-st') return `<td style="${s}"><select class="attr-sel" data-i="${idx}" data-f="statut" style="width:100%;border:none;background:transparent;color:var(--text-primary);font-size:9px;text-align:center;outline:none;"><option value="OK" ${r.statut==='OK'?'selected':''}>OK</option><option value="BU" ${r.statut==='BU'?'selected':''}>BU</option><option value="X">✕</option></select></td>`;
+        if (type === 'select-clef') return `<td style="${s}"><select class="attr-sel" data-i="${idx}" data-f="clef" style="width:100%;border:none;background:transparent;color:var(--text-primary);font-size:9px;text-align:center;outline:none;"><option value="">—</option><option value="PERSO" ${val==='PERSO'?'selected':''}>P</option><option value="C21" ${val==='C21'?'selected':''}>C21</option></select></td>`;
+        if (type === 'btn') return `<td style="${s}background:rgba(74,222,128,0.04);"><button class="attr-allok" data-i="${idx}" style="font-size:8px;background:none;border:none;color:var(--accent);cursor:pointer;font-weight:700;">✓</button></td>`;
+        if (f === 'chauffeur') return `<td style="${s}"><input class="attr-inp attr-ch" data-i="${idx}" data-f="${f}" value="${val||''}" style="width:100%;border:none;background:transparent;color:var(--text-primary);font-size:9px;outline:none;text-align:left;padding:0 3px;" placeholder="—"></td>`;
+        return `<td style="${s}"><input class="attr-inp" data-i="${idx}" data-f="${f}" value="${val||''}" style="width:100%;border:none;background:transparent;color:var(--text-primary);font-size:9px;outline:none;text-align:center;" placeholder=""></td>`;
+      };
+      tr.innerHTML = cell(r.cm,'cm',ATTR_W[0],'check') + cell(r.uta,'uta',ATTR_W[1]) + cell(r.tel,'tel',ATTR_W[2]) + cell(null,'statut',ATTR_W[3],'select-st') + cell(r.chauffeur,'chauffeur',ATTR_W[4]) + cell(r.pda,'pda',ATTR_W[5]) + cell(r.trs,'trs',ATTR_W[6]) + cell(r.lic,'lic',ATTR_W[7]) + cell(r.clef,'clef',ATTR_W[8],'select-clef') + cell(r.vigik,'vigik',ATTR_W[9]) + cell(r.rU,'rU',ATTR_W[10],'check') + cell(r.rP,'rP',ATTR_W[11],'check') + cell(r.rT,'rT',ATTR_W[12],'check') + cell(r.rL,'rL',ATTR_W[13],'check') + cell(r.rC,'rC',ATTR_W[14],'check') + cell(r.rV,'rV',ATTR_W[15],'check') + cell(null,null,ATTR_W[16],'btn') + cell(r.com,'com',ATTR_W[17]);
+    }
+    rtb.appendChild(tr);
+  });
+  rt.appendChild(rtb); right.appendChild(rt);
+
+  body.appendChild(left); body.appendChild(right);
+  wrap.appendChild(body);
+
+  // Sync scroll vertical
+  left.addEventListener('scroll', () => { right.scrollTop = left.scrollTop; });
+  right.addEventListener('scroll', () => { left.scrollTop = right.scrollTop; });
 
   // Bind events
-  setTimeout(() => bindAttrEvents(tableWrap, rows, stationId, chauffeurs), 0);
+  setTimeout(() => bindAttr(right, rows, sid, chauffeurs), 0);
   return wrap;
 }
 
 /* ── Toolbar ──────────────────────────────────────────────── */
-function buildAttrToolbar(stationId, rows) {
-  const toolbar = document.createElement('div');
-  toolbar.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 12px;border-bottom:1px solid var(--border);background:var(--bg-sidebar);flex-shrink:0;flex-wrap:wrap;';
-  const dl = attrDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-  toolbar.innerHTML = `
-    <button class="h-btn h-nav" id="attr-prev">◀</button>
-    <span style="font-size:12px;font-weight:600;min-width:180px;text-align:center;">${dl}</span>
-    <button class="h-btn h-nav" id="attr-next">▶</button>
-    <button class="h-btn" id="attr-today" style="font-size:10px;">Aujourd'hui</button>
-    <button class="h-btn" id="attr-dup" style="background:rgba(96,165,250,0.15);border-color:#60a5fa;color:#60a5fa;font-size:10px;font-weight:700;">📋 Dupliquer → J+1</button>
-    <button class="h-btn" id="attr-del" style="font-size:10px;color:#f87171;border-color:#f87171;">🗑 Supprimer</button>
-  `;
-  toolbar.querySelector('#attr-prev').onclick = () => { attrDate.setDate(attrDate.getDate() - 1); renderFlotte(); };
-  toolbar.querySelector('#attr-next').onclick = () => {
-    const nextDate = new Date(attrDate); nextDate.setDate(nextDate.getDate() + 1);
-    if (loadAttribution(stationId, nextDate)) { attrDate = nextDate; renderFlotte(); }
-  };
-  toolbar.querySelector('#attr-today').onclick = () => { attrDate = new Date(); renderFlotte(); };
-  toolbar.querySelector('#attr-dup').onclick = () => {
-    if (!rows) return;
-    const nextDate = new Date(attrDate); nextDate.setDate(nextDate.getDate() + 1);
-    saveAttribution(stationId, nextDate, JSON.parse(JSON.stringify(rows)));
-    attrDate = nextDate;
-    renderFlotte();
-  };
-  toolbar.querySelector('#attr-del').onclick = () => {
-    showConfirmModal('Supprimer l\'attribution du ' + dl + ' ?', () => {
-      localStorage.removeItem(attrKey(stationId, attrDate));
-      renderFlotte();
-    });
-  };
-  return toolbar;
+function buildAttrBar(sid, rows) {
+  const bar = document.createElement('div');
+  bar.className = 'h-toolbar';
+  const dl = attrDate.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  bar.innerHTML = `<div class="h-toolbar-left"></div><div class="h-toolbar-center"><button class="h-btn h-nav" id="ab-prev">◀</button><span class="h-date-label">${dl}</span><button class="h-btn h-nav" id="ab-next">▶</button><button class="h-btn" id="ab-today">Aujourd'hui</button><button class="h-btn" id="ab-dup" style="background:rgba(96,165,250,0.15);border-color:#60a5fa;color:#60a5fa;font-weight:700;">📋 Dupliquer → J+1</button><button class="h-btn" id="ab-del" style="color:#f87171;border-color:#f87171;">🗑</button></div><div class="h-toolbar-right"></div>`;
+  bar.querySelector('#ab-prev').onclick = () => { attrDate.setDate(attrDate.getDate()-1); renderFlotte(); };
+  bar.querySelector('#ab-next').onclick = () => { const n=new Date(attrDate);n.setDate(n.getDate()+1); if(loadAttr(sid,n)){attrDate=n;renderFlotte();} };
+  bar.querySelector('#ab-today').onclick = () => { attrDate=new Date(); renderFlotte(); };
+  bar.querySelector('#ab-dup').onclick = () => { if(!rows)return; const n=new Date(attrDate);n.setDate(n.getDate()+1); saveAttr(sid,n,JSON.parse(JSON.stringify(rows))); attrDate=n; renderFlotte(); };
+  bar.querySelector('#ab-del').onclick = () => { showConfirmModal('Supprimer cette attribution ?',()=>{localStorage.removeItem(attrKey(sid,attrDate));renderFlotte();}); };
+  return bar;
 }
 
 /* ── Bind events ──────────────────────────────────────────── */
-function bindAttrEvents(container, rows, stationId, chauffeurs) {
-  container.querySelectorAll('input.h-inp:not(.attr-chauffeur-inp), select.h-inp').forEach(el => {
-    el.addEventListener('change', () => {
-      const i = parseInt(el.dataset.idx), f = el.dataset.f;
-      rows[i][f] = el.value;
-      saveAttribution(stationId, attrDate, rows);
-      if (f === 'statut') renderFlotte(); // re-render pour fusion
-    });
+function bindAttr(container, rows, sid, chauffeurs) {
+  container.querySelectorAll('.attr-inp:not(.attr-ch)').forEach(el => {
+    el.addEventListener('change', () => { rows[+el.dataset.i][el.dataset.f]=el.value; saveAttr(sid,attrDate,rows); });
   });
-  container.querySelectorAll('input[type="checkbox"]').forEach(el => {
-    el.addEventListener('change', () => {
-      const i = parseInt(el.dataset.idx), f = el.dataset.f;
-      rows[i][f] = el.checked;
-      saveAttribution(stationId, attrDate, rows);
-    });
+  container.querySelectorAll('.attr-sel').forEach(el => {
+    el.addEventListener('change', () => { rows[+el.dataset.i][el.dataset.f]=el.value; saveAttr(sid,attrDate,rows); if(el.dataset.f==='statut')renderFlotte(); });
   });
-  container.querySelectorAll('input[type="color"]').forEach(el => {
-    el.addEventListener('change', () => {
-      const i = parseInt(el.dataset.idx);
-      rows[i].fusionColor = el.value;
-      saveAttribution(stationId, attrDate, rows);
-      renderFlotte();
-    });
+  container.querySelectorAll('.attr-cb').forEach(el => {
+    el.addEventListener('change', () => { rows[+el.dataset.i][el.dataset.f]=el.checked; saveAttr(sid,attrDate,rows); });
   });
-  container.querySelectorAll('[data-action="allok"]').forEach(btn => {
-    btn.onclick = () => {
-      const i = parseInt(btn.dataset.idx);
-      rows[i].retourUta = true; rows[i].retourPda = true; rows[i].retourTrousseau = true;
-      rows[i].retourLicence = true; rows[i].retourClefBal = true; rows[i].retourVigik = true;
-      saveAttribution(stationId, attrDate, rows);
-      renderFlotte();
-    };
+  container.querySelectorAll('.attr-color').forEach(el => {
+    el.addEventListener('change', () => { rows[+el.dataset.i].fusionColor=el.value; saveAttr(sid,attrDate,rows); renderFlotte(); });
   });
-  container.querySelectorAll('[data-move]').forEach(btn => {
-    btn.onclick = () => {
-      const i = parseInt(btn.dataset.idx), dir = btn.dataset.move;
-      const j = dir === 'up' ? i - 1 : i + 1;
-      if (j < 0 || j >= rows.length) return;
-      [rows[i], rows[j]] = [rows[j], rows[i]];
-      saveAttribution(stationId, attrDate, rows);
-      renderFlotte();
-    };
+  container.querySelectorAll('.attr-allok').forEach(btn => {
+    btn.onclick = () => { const r=rows[+btn.dataset.i]; r.rU=r.rP=r.rT=r.rL=r.rC=r.rV=true; saveAttr(sid,attrDate,rows); renderFlotte(); };
   });
-  // Chauffeur autocomplete (like heures.js)
-  container.querySelectorAll('.attr-chauffeur-inp').forEach(inp => {
+  // Autocomplete chauffeur
+  container.querySelectorAll('.attr-ch').forEach(inp => {
     const drop = document.createElement('div');
-    drop.style.cssText = 'position:fixed;z-index:9999;background:var(--bg-sidebar);border:1px solid var(--accent);border-radius:5px;max-height:150px;overflow-y:auto;display:none;box-shadow:0 4px 16px rgba(0,0,0,0.4);';
+    drop.style.cssText = 'position:fixed;z-index:9999;background:var(--bg-sidebar);border:1px solid var(--accent);border-radius:4px;max-height:140px;overflow-y:auto;display:none;box-shadow:0 4px 12px rgba(0,0,0,0.4);';
     document.body.appendChild(drop);
-    function showDrop(q) {
-      const names = chauffeurs.map(c => (c.prenom + ' ' + c.nom).trim()).filter(n => n.toLowerCase().includes(q.toLowerCase()));
-      drop.innerHTML = '';
-      if (!names.length || !q) { drop.style.display = 'none'; return; }
-      names.slice(0, 8).forEach(n => {
-        const item = document.createElement('div');
-        item.textContent = n;
-        item.style.cssText = 'padding:4px 8px;cursor:pointer;font-size:10px;color:var(--text-primary);';
-        item.onmouseenter = () => item.style.background = 'var(--bg-tab-hover)';
-        item.onmouseleave = () => item.style.background = '';
-        item.onmousedown = e => { e.preventDefault(); inp.value = n; rows[parseInt(inp.dataset.idx)].chauffeur = n; saveAttribution(stationId, attrDate, rows); drop.style.display = 'none'; };
-        drop.appendChild(item);
-      });
-      const rect = inp.getBoundingClientRect();
-      drop.style.top = (rect.bottom + 2) + 'px'; drop.style.left = rect.left + 'px'; drop.style.minWidth = rect.width + 'px';
-      drop.style.display = 'block';
-    }
-    inp.addEventListener('input', () => showDrop(inp.value));
-    inp.addEventListener('focus', () => { if (inp.value) showDrop(inp.value); });
-    inp.addEventListener('blur', () => setTimeout(() => { drop.style.display = 'none'; }, 150));
-    inp.addEventListener('change', () => { rows[parseInt(inp.dataset.idx)].chauffeur = inp.value; saveAttribution(stationId, attrDate, rows); });
-    const obs = new MutationObserver(() => { if (!document.body.contains(inp)) { drop.remove(); obs.disconnect(); } });
-    obs.observe(document.body, { childList: true, subtree: true });
+    const show = q => {
+      const names = chauffeurs.map(c=>(c.prenom+' '+c.nom).trim()).filter(n=>n.toLowerCase().includes(q.toLowerCase()));
+      drop.innerHTML=''; if(!names.length||!q){drop.style.display='none';return;}
+      names.slice(0,6).forEach(n=>{const d=document.createElement('div');d.textContent=n;d.style.cssText='padding:4px 8px;cursor:pointer;font-size:10px;color:var(--text-primary);';d.onmouseenter=()=>d.style.background='var(--bg-tab-hover)';d.onmouseleave=()=>d.style.background='';d.onmousedown=e=>{e.preventDefault();inp.value=n;rows[+inp.dataset.i].chauffeur=n;saveAttr(sid,attrDate,rows);drop.style.display='none';};drop.appendChild(d);});
+      const rect=inp.getBoundingClientRect();drop.style.top=(rect.bottom+2)+'px';drop.style.left=rect.left+'px';drop.style.minWidth=rect.width+'px';drop.style.display='block';
+    };
+    inp.addEventListener('input',()=>show(inp.value));
+    inp.addEventListener('focus',()=>{if(inp.value)show(inp.value);});
+    inp.addEventListener('blur',()=>setTimeout(()=>{drop.style.display='none';},150));
+    inp.addEventListener('change',()=>{rows[+inp.dataset.i].chauffeur=inp.value;saveAttr(sid,attrDate,rows);});
+    const obs=new MutationObserver(()=>{if(!document.body.contains(inp)){drop.remove();obs.disconnect();}});
+    obs.observe(document.body,{childList:true,subtree:true});
   });
-}
-
-/* ── Move buttons ─────────────────────────────────────────── */
-function mvBtns(idx, total) {
-  return `<div style="display:flex;flex-direction:column;"><button data-idx="${idx}" data-move="up" style="font-size:7px;line-height:1;background:none;border:none;color:var(--text-muted);cursor:pointer;padding:0;${idx===0?'opacity:0.2;':''}">▲</button><button data-idx="${idx}" data-move="down" style="font-size:7px;line-height:1;background:none;border:none;color:var(--text-muted);cursor:pointer;padding:0;${idx===total-1?'opacity:0.2;':''}">▼</button></div>`;
 }
