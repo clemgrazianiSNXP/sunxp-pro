@@ -65,6 +65,27 @@ function renderExtractionPaie() {
     if (raw) chauffeurs = JSON.parse(raw);
   } catch (_) {}
 
+  // Ajouter les responsables et trier dans le même ordre que le planning
+  let responsables = [];
+  try {
+    const raw = localStorage.getItem(stationId + '-responsables');
+    if (raw) responsables = JSON.parse(raw);
+  } catch (_) {}
+
+  const RESP_ORDER = ['Ressources Humaines', 'Responsable Qualité', 'Mécanicien', 'Gestionnaire de Flotte', 'Chef de Parc', 'Dispatcher', "Chef d'équipe"];
+  const CHAUFF_ORDER = ['CES', 'BU', 'Formateur', 'Chauffeur'];
+  responsables.sort((a, b) => {
+    const ia = RESP_ORDER.indexOf(a.role), ib = RESP_ORDER.indexOf(b.role);
+    return (ia >= 0 ? ia : 999) - (ib >= 0 ? ib : 999);
+  });
+  chauffeurs.sort((a, b) => {
+    const ia = CHAUFF_ORDER.indexOf(a.role), ib = CHAUFF_ORDER.indexOf(b.role);
+    return (ia >= 0 ? ia : 999) - (ib >= 0 ? ib : 999);
+  });
+
+  // Fusionner : responsables en haut, puis chauffeurs
+  chauffeurs = [...responsables, ...chauffeurs];
+
   if (!chauffeurs.length) {
     wrap.innerHTML = '<p style="color:var(--text-muted);">Aucun chauffeur dans le répertoire.</p>';
     return wrap;
