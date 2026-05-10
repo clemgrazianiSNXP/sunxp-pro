@@ -47,7 +47,7 @@ function updateCasseCamionFromDegats(stationId) {
       const key = c.id_amazon || c.id;
       if (!data[key]) data[key] = {};
       const cumul = montantsParChauffeur[nom] || 0;
-      data[key].casseCamion = cumul > 0 ? cumul : (data[key].casseCamion || '');
+      data[key].casseCamion = cumul > 0 ? cumul : '';
     });
     savePrimesData(stationId, year, month, data);
   }
@@ -338,7 +338,7 @@ function showDegatsForm(camions, chauffeurs, stationId) {
       if (url) photos.push(url);
     }
     const degats = loadDegats();
-    degats.push({ id: degatId, plaque: camionInp.value.trim(), chauffeur: chauffeurInp.value.trim(), date: dateInp.value, description: desc.value, photos, montant: montantInp.value ? parseFloat(montantInp.value) : null, montant_valide: false });
+    degats.push({ id: degatId, plaque: camionInp.value.trim(), chauffeur: chauffeurInp.value.trim(), date: dateInp.value, description: desc.value, photos, montant: montantInp.value ? parseFloat(montantInp.value) : null, montant_valide: montantInp.value ? true : false });
     saveDegats(degats);
     overlay.remove();
     if (typeof renderFlotte === 'function') renderFlotte();

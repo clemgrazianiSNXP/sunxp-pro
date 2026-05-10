@@ -48,11 +48,11 @@ function portalDegats() {
         <span style="font-weight:700;font-size:14px;color:var(--accent);">🚛 ${esc(d.plaque)}</span>
         <span style="font-size:11px;color:var(--text-muted);">📅 ${fmtD(d.date)}</span>
       </div>
-      ${d.montant ? `<div style="display:flex;align-items:center;gap:6px;margin-top:4px;">
+      <div style="display:flex;align-items:center;gap:6px;margin-top:4px;">
         <span style="font-size:12px;font-weight:600;">💶 Montant :</span>
-        <span style="font-size:14px;font-weight:700;color:${d.montant_valide ? '#4ade80' : '#fbbf24'};">${d.montant}€</span>
-        <span style="font-size:10px;padding:2px 6px;border-radius:4px;background:${d.montant_valide ? 'rgba(74,222,128,0.15)' : 'rgba(251,191,36,0.15)'};color:${d.montant_valide ? '#4ade80' : '#fbbf24'};">${d.montant_valide ? 'Validé' : 'En attente'}</span>
-      </div>` : ''}
+        ${d.montant ? `<span style="font-size:14px;font-weight:700;color:${d.montant_valide ? '#4ade80' : '#fbbf24'};">${d.montant}€</span>
+        <span style="font-size:10px;padding:2px 6px;border-radius:4px;background:${d.montant_valide ? 'rgba(74,222,128,0.15)' : 'rgba(251,191,36,0.15)'};color:${d.montant_valide ? '#4ade80' : '#fbbf24'};">${d.montant_valide ? 'Validé' : 'En attente'}</span>` : `<span style="font-size:12px;color:#fbbf24;font-style:italic;">En attente</span>`}
+      </div>
       <div style="font-size:13px;font-weight:600;margin-top:6px;">Description du dégât :</div>
       <div style="font-size:13px;color:var(--text-primary);padding:8px;background:var(--bg-tab-hover);border-radius:6px;">${esc(d.description || 'Pas de description fournie')}</div>`;
 
