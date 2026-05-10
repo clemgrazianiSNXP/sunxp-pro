@@ -337,8 +337,11 @@ function portalStats() {
       <div style="display:flex;justify-content:space-around;margin-top:4px;">
         <div style="text-align:center;"><div style="font-size:10px;color:var(--text-muted);">Score POD</div><div style="font-size:20px;font-weight:700;color:${podColor};">${podRow.podPct}%</div></div>
         <div style="text-align:center;"><div style="font-size:10px;color:var(--text-muted);">Opportunités</div><div style="font-size:20px;font-weight:700;">${podRow.opportunities}</div></div>
-        <div style="text-align:center;"><div style="font-size:10px;color:var(--text-muted);">Rejetées</div><div style="font-size:20px;font-weight:700;color:#f87171;">${podRow.rejects}</div></div>
+        <div style="text-align:center;"><div style="font-size:10px;color:var(--text-muted);">Rejetées</div><div id="portal-pod-rejects" style="font-size:20px;font-weight:700;color:#f87171;${podRow.rejects > 0 ? 'cursor:pointer;text-decoration:underline;' : ''}">${podRow.rejects}</div></div>
       </div>`;
+    if (podRow.rejects > 0) {
+      card.querySelector('#portal-pod-rejects').onclick = () => showPodRejectDetail(podRow);
+    }
     wrap.appendChild(card);
   }
 

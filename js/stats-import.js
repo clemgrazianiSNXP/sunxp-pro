@@ -75,6 +75,7 @@ async function readPDFAsText(file) {
 /**
  * Extrait les données POD depuis le texte brut d'un PDF.
  * Cherche les lignes contenant un ID Amazon (A + 9-19 alphanum).
+ * Extrait aussi le détail des rejets par catégorie.
  */
 function parsePDFTextPOD(text, semaine) {
   const rows = [];
@@ -90,14 +91,24 @@ function parsePDFTextPOD(text, semaine) {
     // Cherche tous les nombres sur cette ligne et les suivantes (max 2 lignes)
     const searchText = [line, lines[i+1] || '', lines[i+2] || ''].join(' ');
     const nums = searchText.match(/\b\d+\b/g) || [];
-    // Filtre les nombres > 0 (ignore les 0 isolés et les années)
-    const candidates = nums.map(Number).filter(n => n > 0 && n < 100000);
-    if (candidates.length < 2) continue;
+    const candidates = nums.map(Number);
+    // On a besoin d'au moins 9 nombres : Opportunities, Success, Bypass, Rejects, BlurryPhoto, NoPackage, PackageInCar, PackageTooClose, PhotoTooDark
+    if (candidates.length < 4) continue;
+
     const opportunities = candidates[0];
     const success       = candidates[1];
-    const rejects       = opportunities - success;
-    const podPct = Math.round((100 - (rejects / opportunities * 100)) * 100) / 100;
-    rows.push({ semaine, idAmazon, opportunities, success, rejects, podPct });
+    const bypass        = candidates[2];
+    const rejects       = candidates[3];
+    // Détail des rejets (colonnes 5-9 dans le PDF)
+    const blurryPhoto     = candidates[4] || 0;
+    const noPackage       = candidates[5] || 0;
+    const packageInCar    = candidates[6] || 0;
+    const packageTooClose = candidates[7] || 0;
+    const photoTooDark    = candidates[8] || 0;
+
+    if (opportunities <= 0) continue;
+    const podPct = Math.round((success / opportunities * 100) * 100) / 100;
+    rows.push({ semaine, idAmazon, opportunities, success, rejects, podPct, blurryPhoto, noPackage, packageInCar, packageTooClose, photoTooDark });
   }
   return rows;
 }

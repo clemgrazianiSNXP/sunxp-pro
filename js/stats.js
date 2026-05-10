@@ -302,7 +302,12 @@ function buildPOD() {
   const tbody = document.createElement('tbody');
   data.forEach(r => {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${driverCell(r.idAmazon)}</td><td>${r.semaine}</td><td>${r.opportunities}</td><td>${r.success ?? ''}</td><td>${r.rejects}</td><td>${r.podPct}%</td><td></td>`;
+    const rejectStyle = r.rejects > 0 ? 'color:#f87171;cursor:pointer;text-decoration:underline;font-weight:700;' : '';
+    tr.innerHTML = `<td>${driverCell(r.idAmazon)}</td><td>${r.semaine}</td><td>${r.opportunities}</td><td>${r.success ?? ''}</td><td><span class="pod-reject-link" style="${rejectStyle}">${r.rejects}</span></td><td>${r.podPct}%</td><td></td>`;
+    // Clic sur rejects → popup détail
+    if (r.rejects > 0) {
+      tr.querySelector('.pod-reject-link').onclick = () => showPodRejectDetail(r);
+    }
     tr.lastElementChild.appendChild(deleteRowBtn('pod', statsWeekPOD, r.idAmazon, tr));
     tbody.appendChild(tr);
   });
@@ -665,4 +670,40 @@ ${dwcLine}
 Si tu n'as pas atteint certains de ces objectifs, je compte sur toi pour améliorer ces points en priorité ! Sinon, bravo à toi pour ton travail de cette semaine ! Je reste disponible si tu as la moindre question.
 
 📱 Retrouve toutes tes infos dans ton espace personnel SunXP Pro.`;
+}
+
+/* ── Popup détail rejets POD ──────────────────────────────── */
+function showPodRejectDetail(r) {
+  const d = resolveDriver(r.idAmazon);
+  const nom = d ? d.nom : r.idAmazon;
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;';
+  const box = document.createElement('div');
+  box.style.cssText = 'background:var(--bg-sidebar);border:1px solid var(--border);border-radius:12px;padding:24px;width:90%;max-width:360px;';
+  const details = [
+    { label: 'No Package Detected', value: r.noPackage || 0, icon: '📦' },
+    { label: 'Package In Car', value: r.packageInCar || 0, icon: '🚛' },
+    { label: 'Blurry Photo', value: r.blurryPhoto || 0, icon: '🔍' },
+    { label: 'Package Too Close', value: r.packageTooClose || 0, icon: '📏' },
+    { label: 'Photo Too Dark', value: r.photoTooDark || 0, icon: '🌑' }
+  ];
+  let html = '<h3 style="font-size:14px;color:var(--accent);margin:0 0 12px;">📸 Détail rejets POD — ' + nom + '</h3>';
+  html += '<div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">Total rejets : <strong style="color:#f87171;">' + r.rejects + '</strong></div>';
+  details.forEach(d => {
+    if (d.value > 0) {
+      html += '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;">';
+      html += '<span>' + d.icon + ' ' + d.label + '</span>';
+      html += '<span style="font-weight:700;color:#f87171;">' + d.value + '</span>';
+      html += '</div>';
+    }
+  });
+  if (details.every(d => d.value === 0)) {
+    html += '<div style="font-size:12px;color:var(--text-muted);text-align:center;padding:10px;">Pas de détail disponible</div>';
+  }
+  html += '<button class="h-btn" style="width:100%;margin-top:12px;" id="pod-detail-close">Fermer</button>';
+  box.innerHTML = html;
+  overlay.appendChild(box);
+  overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
+  document.body.appendChild(overlay);
+  box.querySelector('#pod-detail-close').onclick = () => overlay.remove();
 }
