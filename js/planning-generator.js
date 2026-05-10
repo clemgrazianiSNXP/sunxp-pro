@@ -63,6 +63,8 @@ function generatePlanning(stationId, year, month, daysToGenerate) {
       score += ds.assigned.size * 2;
       if (wouldViolateWeekClassic(ds, day, year, month)) score += 1000;
       if (wouldViolateWeekAmazon(ds, day, year, month)) score += 1000;
+      if (wouldCreate6Consecutive(ds, day, nbDays)) score += 1000; // HARD: pas 6 jours d'affilé
+      if (wouldExceed2Sundays(ds, day, year, month, nbDays)) score += 1000; // HARD: max 2 dimanches
       if (wouldCreate5Consecutive(ds, day, nbDays)) score += 50;
       return { ds, score };
     });
@@ -78,6 +80,44 @@ function generatePlanning(stationId, year, month, daysToGenerate) {
     }
     assignedPerDay[day] = count;
   }
+
+  // Garantir au moins 1 week-end entier off (sam+dim consécutifs sans RSTD)
+  // Si un chauffeur n'a aucun week-end complet off, retirer le RSTD du samedi
+  // du week-end où il a le moins de contraintes
+  eligible.forEach(c => {
+    const nom = (c.prenom + ' ' + c.nom).trim();
+    const weekends = []; // [{sat, sun}]
+    for (let d = 1; d <= nbDays; d++) {
+      const date = new Date(year, month, d);
+      if (date.getDay() === 6) { // samedi
+        const sun = d + 1;
+        if (sun <= nbDays) weekends.push({ sat: d, sun });
+      }
+    }
+    // Vérifier s'il a déjà un week-end complet off
+    const hasFullWeekendOff = weekends.some(we => {
+      const satVal = (data[nom + '_' + we.sat] || '').toUpperCase();
+      const sunVal = (data[nom + '_' + we.sun] || '').toUpperCase();
+      return satVal !== 'RSTD' && sunVal !== 'RSTD';
+    });
+    if (!hasFullWeekendOff && weekends.length > 0) {
+      // Trouver le week-end le plus facile à libérer (celui généré, pas pré-existant)
+      for (const we of weekends) {
+        const satKey = nom + '_' + we.sat;
+        const sunKey = nom + '_' + we.sun;
+        const satVal = (data[satKey] || '').toUpperCase();
+        const sunVal = (data[sunKey] || '').toUpperCase();
+        // Ne libérer que les RSTD qu'on a nous-mêmes générés (pas les bloqués)
+        const satWasBlocked = driverState.find(ds => ds.nom === nom)?.blocked.has(we.sat);
+        const sunWasBlocked = driverState.find(ds => ds.nom === nom)?.blocked.has(we.sun);
+        if (!satWasBlocked && !sunWasBlocked) {
+          if (satVal === 'RSTD') data[satKey] = '';
+          if (sunVal === 'RSTD') data[sunKey] = '';
+          break;
+        }
+      }
+    }
+  });
 
   // Remplir les cases vides restantes avec REP (pour les jours générés uniquement)
   days.forEach(d => {
@@ -161,6 +201,30 @@ function wouldViolateWeekAmazon(ds, day, year, month) {
   return count >= 5;
 }
 
+/* ── Contrainte HARD : pas 6 jours consécutifs (même entre 2 semaines) ── */
+function wouldCreate6Consecutive(ds, day, nbDays) {
+  const tempSet = new Set(ds.assigned);
+  tempSet.add(day);
+  let consecutive = 0;
+  for (let d = Math.max(1, day - 5); d <= Math.min(nbDays, day + 5); d++) {
+    if (tempSet.has(d)) { consecutive++; if (consecutive >= 6) return true; }
+    else consecutive = 0;
+  }
+  return false;
+}
+
+/* ── Contrainte HARD : max 2 dimanches travaillés dans le mois ── */
+function wouldExceed2Sundays(ds, day, year, month, nbDays) {
+  const date = new Date(year, month, day);
+  if (date.getDay() !== 0) return false; // pas un dimanche
+  let sundayCount = 0;
+  for (let d = 1; d <= nbDays; d++) {
+    if (new Date(year, month, d).getDay() === 0 && ds.assigned.has(d)) sundayCount++;
+  }
+  return sundayCount >= 2;
+}
+
+/* ── Contrainte souple : éviter 5 jours consécutifs ── */
 function wouldCreate5Consecutive(ds, day, nbDays) {
   const tempSet = new Set(ds.assigned);
   tempSet.add(day);
