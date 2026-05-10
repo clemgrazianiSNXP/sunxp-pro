@@ -292,10 +292,25 @@ function publishWeek(sid, monday) {
   if (!weeks.includes(key)) {
     weeks.push(key);
     localStorage.setItem(sid + '-planning-published', JSON.stringify(weeks));
+    // Sync vers Supabase
+    if (typeof dbSave === 'function') {
+      dbSave('planning_published', sid + '-planning-published', { station_id: sid }, weeks);
+    }
   }
 }
 
 function isWeekPublished(publishedWeeks, monday) {
   const key = monday.toISOString().slice(0, 10);
   return publishedWeeks.includes(key);
+}
+
+/* ── Chargement publication depuis Supabase ───────────────── */
+async function loadPublishedFromSupabase(sid) {
+  if (typeof sb !== 'function' || !sb()) return;
+  try {
+    const { data, error } = await sb().from('planning_published').select('data').eq('station_id', sid).maybeSingle();
+    if (!error && data && data.data) {
+      localStorage.setItem(sid + '-planning-published', JSON.stringify(data.data));
+    }
+  } catch (_) {}
 }

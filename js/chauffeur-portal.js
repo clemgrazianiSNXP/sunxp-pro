@@ -18,7 +18,9 @@ function initChauffeurPortal(chauffeur, stationId) {
   if (typeof closeMenuPanel === 'function') closeMenuPanel();
   // Initialiser le Realtime pour recevoir les notifications
   if (typeof initRealtime === 'function') setTimeout(initRealtime, 500);
-  renderPortal();
+  // Charger les semaines publiées depuis Supabase
+  if (typeof loadPublishedFromSupabase === 'function') loadPublishedFromSupabase(stationId).then(() => renderPortal());
+  else renderPortal();
 }
 
 /* ── Rendu principal ──────────────────────────────────────── */
