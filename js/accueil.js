@@ -23,21 +23,40 @@ function renderAccueil() {
   `;
   container.appendChild(header);
 
-  // Grid de cards
+  // Grid de cards organisé par poste
   const grid = document.createElement('div');
-  grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));gap:16px;padding:0 24px 24px;width:100%;max-width:1100px;';
+  grid.style.cssText = 'display:grid;grid-template-columns:repeat(3, 1fr);gap:16px;padding:0 24px 24px;width:100%;max-width:1100px;';
 
-  // 1. Demandes en attente
-  grid.appendChild(buildDemandesCard(sid));
+  // Colonne PARC
+  const colParc = document.createElement('div');
+  colParc.style.cssText = 'display:flex;flex-direction:column;gap:12px;';
+  const parcTitle = document.createElement('div');
+  parcTitle.style.cssText = 'font-size:13px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;text-align:center;padding:6px 0;border-bottom:2px solid #f97316;margin-bottom:4px;';
+  parcTitle.textContent = '🚛 PARC';
+  colParc.appendChild(parcTitle);
+  colParc.appendChild(buildProblemesCard(sid));
+  grid.appendChild(colParc);
 
-  // 2. Alertes H.S semaine précédente
-  grid.appendChild(buildHSCard(sid));
+  // Colonne DSP/CE
+  const colDsp = document.createElement('div');
+  colDsp.style.cssText = 'display:flex;flex-direction:column;gap:12px;';
+  const dspTitle = document.createElement('div');
+  dspTitle.style.cssText = 'font-size:13px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;text-align:center;padding:6px 0;border-bottom:2px solid var(--accent);margin-bottom:4px;';
+  dspTitle.textContent = '📋 DSP / CE';
+  colDsp.appendChild(dspTitle);
+  colDsp.appendChild(buildHSCard(sid));
+  colDsp.appendChild(buildNear35hCard(sid));
+  grid.appendChild(colDsp);
 
-  // 3. Chauffeurs proches des 35h (semaine en cours)
-  grid.appendChild(buildNear35hCard(sid));
-
-  // 4. Problèmes camions remontés récemment
-  grid.appendChild(buildProblemesCard(sid));
+  // Colonne RH
+  const colRh = document.createElement('div');
+  colRh.style.cssText = 'display:flex;flex-direction:column;gap:12px;';
+  const rhTitle = document.createElement('div');
+  rhTitle.style.cssText = 'font-size:13px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;text-align:center;padding:6px 0;border-bottom:2px solid #a78bfa;margin-bottom:4px;';
+  rhTitle.textContent = '👤 RH';
+  colRh.appendChild(rhTitle);
+  colRh.appendChild(buildDemandesCard(sid));
+  grid.appendChild(colRh);
 
   container.appendChild(grid);
 
