@@ -79,6 +79,17 @@ function generatePlanning(stationId, year, month, daysToGenerate) {
     assignedPerDay[day] = count;
   }
 
+  // Remplir les cases vides restantes avec REP (pour les jours générés uniquement)
+  days.forEach(d => {
+    eligible.forEach(c => {
+      const nom = (c.prenom + ' ' + c.nom).trim();
+      const val = (data[nom + '_' + d] || '').toUpperCase();
+      if (!val) {
+        data[nom + '_' + d] = 'REP';
+      }
+    });
+  });
+
   savePlanning(stationId, year, month, data);
 
   // Rapport : jours où l'objectif n'est pas atteint
