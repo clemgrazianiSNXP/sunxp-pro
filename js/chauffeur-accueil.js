@@ -123,8 +123,8 @@ function buildWeekRow(sid, nom, monday, weekNum, label, isPublished) {
     let statusIcon = '—';
     let statusBg = 'transparent';
     if (statut === 'P' || statut === 'Présent') { statusColor = '#4ade80'; statusIcon = '✓'; statusBg = 'rgba(74,222,128,0.1)'; }
-    else if (statut === 'R' || statut === 'Repos' || statut === 'REP') { statusColor = '#60a5fa'; statusIcon = 'REP'; statusBg = 'rgba(96,165,250,0.1)'; }
-    else if (statut === 'RSTD') { statusColor = '#60a5fa'; statusIcon = 'RSTD'; statusBg = 'rgba(96,165,250,0.1)'; }
+    else if (statut === 'R' || statut === 'Repos' || statut === 'REP') { statusColor = '#f87171'; statusIcon = 'REP'; statusBg = 'rgba(248,113,113,0.1)'; }
+    else if (statut === 'RSTD') { statusColor = '#4ade80'; statusIcon = 'RSTD'; statusBg = 'rgba(74,222,128,0.1)'; }
     else if (statut === 'CP') { statusColor = '#fbbf24'; statusIcon = 'CP'; statusBg = 'rgba(251,191,36,0.1)'; }
     else if (statut === 'AM' || statut === 'AT') { statusColor = '#f87171'; statusIcon = statut; statusBg = 'rgba(248,113,113,0.1)'; }
     else if (statut === 'F') { statusColor = '#a78bfa'; statusIcon = 'F'; statusBg = 'rgba(167,139,250,0.1)'; }
