@@ -740,7 +740,7 @@ function showListeJ1Popup(button, stationId) {
 
   function worksEveryDayJ1Week(nom) {
     let workedCount = 0;
-    for (let i = 0; i < 5; i++) { // lun à ven
+    for (let i = 0; i < 7; i++) { // lun à dim (toute la semaine)
       const d = new Date(mondayOfJ1);
       d.setDate(mondayOfJ1.getDate() + i);
       const pData = getPlanningData(d.getFullYear(), d.getMonth());
