@@ -52,7 +52,10 @@ function loadPlanningMeta(stationId, year, month) {
   try { return JSON.parse(localStorage.getItem(planningMetaKey(stationId, year, month))) || {}; } catch (_) { return {}; }
 }
 function savePlanningMeta(stationId, year, month, meta) {
-  try { localStorage.setItem(planningMetaKey(stationId, year, month), JSON.stringify(meta)); } catch (_) {}
+  try {
+    localStorage.setItem(planningMetaKey(stationId, year, month), JSON.stringify(meta));
+    if (typeof dbSavePlanningMeta === 'function') dbSavePlanningMeta(stationId, year, month, meta);
+  } catch (_) {}
 }
 
 /* ── Utilitaires dates ────────────────────────────────────── */

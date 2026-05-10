@@ -116,6 +116,49 @@ window.dbSaveChauffeurs = async function (stationId, chauffeurs) {
 };
 
 /* ══════════════════════════════════════════════════════════════
+   RESPONSABLES (Répertoire)
+   ══════════════════════════════════════════════════════════════ */
+window.dbSaveResponsables = async function (stationId, responsables) {
+  if (!sb()) return;
+  try {
+    await sb().from('responsables').delete().eq('station_id', stationId);
+    if (responsables.length) {
+      const rows = responsables.map(r => ({ station_id: stationId, local_id: r.id || '', nom: r.nom || '', prenom: r.prenom || '', role: r.role || '', matricule: r.matricule || '', id_amazon: r.id_amazon || '' }));
+      await sb().from('responsables').insert(rows);
+    }
+  } catch (e) { console.warn('dbSaveResponsables error:', e.message); }
+};
+
+/* ══════════════════════════════════════════════════════════════
+   PLANNING (mensuel)
+   ══════════════════════════════════════════════════════════════ */
+window.dbSavePlanning = async function (stationId, year, month, data) {
+  if (!sb()) return;
+  try {
+    const key = year + '-' + String(month + 1).padStart(2, '0');
+    const { data: existing } = await sb().from('planning').select('id').eq('station_id', stationId).eq('mois_key', key).maybeSingle();
+    if (existing) {
+      await sb().from('planning').update({ data, updated_at: new Date().toISOString() }).eq('station_id', stationId).eq('mois_key', key);
+    } else {
+      await sb().from('planning').insert({ station_id: stationId, mois_key: key, annee: year, mois: month + 1, data });
+    }
+  } catch (e) { console.warn('dbSavePlanning error:', e.message); }
+};
+
+window.dbSavePlanningMeta = async function (stationId, year, month, meta) {
+  if (!sb()) return;
+  try {
+    const key = year + '-' + String(month + 1).padStart(2, '0');
+    const { data: existing } = await sb().from('planning_meta').select('id').eq('station_id', stationId).eq('mois_key', key).maybeSingle();
+    if (existing) {
+      await sb().from('planning_meta').update({ data: meta, updated_at: new Date().toISOString() }).eq('station_id', stationId).eq('mois_key', key);
+    } else {
+      await sb().from('planning_meta').insert({ station_id: stationId, mois_key: key, annee: year, mois: month + 1, data: meta });
+    }
+  } catch (e) { console.warn('dbSavePlanningMeta error:', e.message); }
+};
+
+/* ══════════════════════════════════════════════════════════════
    GENERIC JSONB TABLES (heures, activite, stats, primes, etc.)
    Toutes ces tables ont la même structure : station_id + clé + data JSONB
    ══════════════════════════════════════════════════════════════ */
@@ -348,6 +391,34 @@ window.dbSyncAll = async function () {
       await dbSave('cles_codes', sid + '-cles-codes', { station_id: sid }, clesData);
     }
 
+    // Responsables
+    const respRaw = localStorage.getItem(sid + '-responsables');
+    if (respRaw) {
+      const respList = JSON.parse(respRaw);
+      if (respList.length) await dbSaveResponsables(sid, respList);
+    }
+
+    // Planning
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith(sid + '-planning-') && !k.includes('-meta-')) {
+        const moisKey = k.replace(sid + '-planning-', '');
+        const parts = moisKey.split('-');
+        if (parts.length === 2) {
+          const data = JSON.parse(localStorage.getItem(k));
+          await dbSavePlanning(sid, parseInt(parts[0]), parseInt(parts[1]) - 1, data);
+        }
+      }
+      if (k && k.startsWith(sid + '-planning-meta-')) {
+        const moisKey = k.replace(sid + '-planning-meta-', '');
+        const parts = moisKey.split('-');
+        if (parts.length === 2) {
+          const meta = JSON.parse(localStorage.getItem(k));
+          await dbSavePlanningMeta(sid, parseInt(parts[0]), parseInt(parts[1]) - 1, meta);
+        }
+      }
+    }
+
     console.log(`  ✅ ${sid} synced`);
   }
 
@@ -555,6 +626,31 @@ window.preloadStationData = async function (stationId) {
     if (probData && probData.data) {
       localStorage.setItem(stationId + '-problemes-camions', JSON.stringify(probData.data));
       console.log('  Problèmes Camions: chargés');
+    }
+
+    // Responsables
+    const { data: respData } = await sb().from('responsables').select('*').eq('station_id', stationId);
+    if (respData && respData.length) {
+      const responsables = respData.map(r => ({ id: r.local_id || ('p_' + Date.now()), nom: r.nom, prenom: r.prenom, role: r.role, matricule: r.matricule || '', id_amazon: r.id_amazon || '' }));
+      localStorage.setItem(stationId + '-responsables', JSON.stringify(responsables));
+      console.log(`  Responsables: ${responsables.length}`);
+    }
+
+    // Planning
+    const { data: planData } = await sb().from('planning').select('mois_key, data').eq('station_id', stationId);
+    if (planData && planData.length) {
+      planData.forEach(p => {
+        localStorage.setItem(stationId + '-planning-' + p.mois_key, JSON.stringify(p.data));
+      });
+      console.log(`  Planning: ${planData.length} mois`);
+    }
+
+    // Planning Meta
+    const { data: planMetaData } = await sb().from('planning_meta').select('mois_key, data').eq('station_id', stationId);
+    if (planMetaData && planMetaData.length) {
+      planMetaData.forEach(p => {
+        localStorage.setItem(stationId + '-planning-meta-' + p.mois_key, JSON.stringify(p.data));
+      });
     }
 
     console.log('✅ Préchargement terminé');
