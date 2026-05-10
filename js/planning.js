@@ -164,7 +164,6 @@ function buildPlanningToolbar(year, month) {
   }
 
   // Bulle Liste J+1 (entre "Mois en cours" et "Générer")
-  const stationId = window.getActiveStationId ? window.getActiveStationId() : 'default';
   const j1Btn = document.createElement('button');
   j1Btn.className = 'h-btn';
   j1Btn.style.cssText = 'background:rgba(96,165,250,0.15);border-color:#60a5fa;color:#60a5fa;font-size:11px;font-weight:700;';
@@ -722,23 +721,25 @@ function showListeJ1Popup(button, stationId) {
     }
   });
 
-  // Déterminer qui travaille chaque jour de la semaine actuelle (lun→aujourd'hui)
-  const today = new Date();
-  const dow = today.getDay();
-  const mondayDate = new Date(today);
-  mondayDate.setDate(today.getDate() - (dow === 0 ? 6 : dow - 1));
-  const daysThisWeekSoFar = dow === 0 ? 7 : dow; // nombre de jours lun→aujourd'hui
+  // Déterminer qui travaille les 5 jours de la semaine du J+1
+  // Si on est dimanche, J+1 = lundi → semaine d'après
+  const tomorrowDow = tomorrow.getDay(); // 0=dim, 1=lun...
+  const mondayOfJ1 = new Date(tomorrow);
+  mondayOfJ1.setDate(tomorrow.getDate() - (tomorrowDow === 0 ? 6 : tomorrowDow - 1));
 
-  function worksEveryDayThisWeek(nom) {
-    for (let i = 0; i < daysThisWeekSoFar; i++) {
-      const d = new Date(mondayDate);
-      d.setDate(mondayDate.getDate() + i);
-      if (d.getFullYear() !== year || d.getMonth() !== month) continue;
-      const dayNum = d.getDate();
-      const val = (data[nom + '_' + dayNum] || '').toUpperCase();
-      if (!isWorkedCode(val) && val !== 'BU' && val !== 'DBL') return false;
+  function worksEveryDayJ1Week(nom) {
+    let workedCount = 0;
+    for (let i = 0; i < 5; i++) { // lun à ven de la semaine J+1
+      const d = new Date(mondayOfJ1);
+      d.setDate(mondayOfJ1.getDate() + i);
+      const dYear = d.getFullYear(), dMonth = d.getMonth(), dDay = d.getDate();
+      const k = stationId + '-planning-' + dYear + '-' + String(dMonth + 1).padStart(2, '0');
+      let pData = {};
+      try { const raw = localStorage.getItem(k); if (raw) pData = JSON.parse(raw); } catch (_) {}
+      const val = (pData[nom + '_' + dDay] || '').toUpperCase();
+      if (isWorkedCode(val) || val === 'BU' || val === 'DBL') workedCount++;
     }
-    return daysThisWeekSoFar >= 5; // rouge seulement si déjà 5+ jours
+    return workedCount >= 5;
   }
 
   // Popup
@@ -772,7 +773,7 @@ function showListeJ1Popup(button, stationId) {
       let color = 'var(--text-primary)';
       if (item.code === 'BU') color = '#f97316';
       else if (item.code === 'DBL') color = '#60a5fa';
-      else if (worksEveryDayThisWeek(item.nom)) color = '#f87171';
+      else if (worksEveryDayJ1Week(item.nom)) color = '#f87171';
 
       const row = document.createElement('div');
       row.style.cssText = `padding:4px 12px;color:${color};font-size:12px;`;
