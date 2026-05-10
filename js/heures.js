@@ -389,18 +389,12 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
     const pauseEl  = tr.querySelector('[data-f="pause"]');
     const cell     = tr.querySelector('#travail-' + row.key);
     if (!vagueEl || !retourEl || !pauseEl || !cell) return;
-    const vague = vagueEl.value.trim();
-    const retour = retourEl.value.trim();
-    const pause = pauseEl.value.trim();
-    if (!vague || !retour || !pause) { cell.textContent = ''; cell.className = 'h-travail'; return; }
-    const min = calcTravail(vague, retour, parseInt(pause), '');
-    if (min == null) { cell.textContent = ''; cell.className = 'h-travail'; return; }
-    cell.textContent = minToTime(min);
-    cell.className = 'h-travail ' + travailColor(min);
-    // Fin de pause = heure de pause + durée de pause
+
+    // Fin de pause = heure de pause + durée de pause (calculé indépendamment)
     const fpCell = tr.querySelector('#finpause-' + row.key);
     if (fpCell) {
       const hpEl = tr.querySelector('[data-f="heurePause"]');
+      const pause = pauseEl.value.trim();
       if (hpEl) {
         const hp = hpEl.value.trim();
         if (hp && pause) {
@@ -410,6 +404,15 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
         } else fpCell.textContent = '';
       }
     }
+
+    const vague = vagueEl.value.trim();
+    const retour = retourEl.value.trim();
+    const pause = pauseEl.value.trim();
+    if (!vague || !retour || !pause) { cell.textContent = ''; cell.className = 'h-travail'; return; }
+    const min = calcTravail(vague, retour, parseInt(pause), '');
+    if (min == null) { cell.textContent = ''; cell.className = 'h-travail'; return; }
+    cell.textContent = minToTime(min);
+    cell.className = 'h-travail ' + travailColor(min);
   }
   updateTravail();
 
