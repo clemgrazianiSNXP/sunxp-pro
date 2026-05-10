@@ -4,13 +4,16 @@ console.log('planning.js chargé');
 const PLANNING_CODES = ['RSTD','REP','CP','AT','ABS','BU','AM','AST','DSP','CE','MAT','PAT','GAR','PARC','BUR','HN','OFF','RD','RDL','CSS','MAP','CHIME','SAFETY','DBL','RLV1','RLV2','RLV3'];
 
 const PLANNING_CODE_COLORS = {
-  RSTD:'#4ade80', REP:'#f87171', CP:'#60a5fa', AT:'#fbbf24', ABS:'#ef4444',
-  BU:'#f97316', AM:'#a78bfa', AST:'#fbbf24', DSP:'#38bdf8', CE:'#34d399',
-  MAT:'#f472b6', PAT:'#818cf8', GAR:'#fb923c', PARC:'#a3e635', BUR:'#94a3b8',
-  HN:'#6366f1', OFF:'#64748b', RD:'#2dd4bf', RDL:'#22d3ee', CSS:'#e879f9',
-  MAP:'#facc15', CHIME:'#3b82f6', SAFETY:'#06b6d4', DBL:'#dc2626',
-  RLV1:'#84cc16', RLV2:'#eab308', RLV3:'#ef4444'
+  RSTD:'#4ade80', REP:'#f87171', CP:'#fbbf24', AT:'#9ca3af', ABS:'#7dd3fc',
+  BU:'#f97316', AM:'#f472b6', AST:'#fbbf24', DSP:'#4b5563', CE:'#4b5563',
+  MAT:'#a78bfa', PAT:'#a78bfa', GAR:'#1e3a8a', PARC:'#38bdf8', BUR:'#86efac',
+  HN:'#d1d5db', OFF:'#64748b', RD:'#2dd4bf', RDL:'#22d3ee', CSS:'#e879f9',
+  MAP:'#a8a29e', CHIME:'#3b82f6', SAFETY:'#06b6d4', DBL:'#1e3a8a',
+  RLV1:'#22c55e', RLV2:'#16a34a', RLV3:'#15803d'
 };
+
+// Codes comptant comme jours travaillés (pour les contraintes du générateur)
+const PLANNING_WORKED_CODES = ['RSTD', 'RLV1', 'RLV2', 'RLV3'];
 
 // Lignes résumé en haut de la grille (partie fixe gauche = label, partie droite = valeurs éditables par jour)
 const PLANNING_SUMMARY_ROWS = [
@@ -509,6 +512,11 @@ function hexToRgba(hex, alpha) {
    ALERTES PLANNING (bulles toolbar)
    ══════════════════════════════════════════════════════════════ */
 
+function isWorkedCode(val) {
+  const v = (val || '').toUpperCase();
+  return v === 'RSTD' || v === 'RLV1' || v === 'RLV2' || v === 'RLV3';
+}
+
 /**
  * Détecte les chauffeurs à 5 RSTD dans la semaine courante (candidats astreinte).
  */
@@ -528,10 +536,10 @@ function getAstAlerts(eligible, data, year, month, nbDays) {
       d.setDate(mondayDate.getDate() + i);
       if (d.getFullYear() === year && d.getMonth() === month) {
         const dayNum = d.getDate();
-        if ((data[nom + '_' + dayNum] || '').toUpperCase() === 'RSTD') count++;
+        if (isWorkedCode(data[nom + '_' + dayNum])) count++;
       }
     }
-    if (count >= 5) alerts.push({ nom, detail: count + ' RSTD cette semaine' });
+    if (count >= 5) alerts.push({ nom, detail: count + ' jours cette semaine' });
   });
   return alerts;
 }
@@ -544,15 +552,15 @@ function getConstraintViolations(eligible, data, year, month, nbDays) {
 
   eligible.forEach(c => {
     const nom = (c.prenom + ' ' + c.nom).trim();
-    const rstdDays = [];
+    const workedDays = [];
     for (let d = 1; d <= nbDays; d++) {
-      if ((data[nom + '_' + d] || '').toUpperCase() === 'RSTD') rstdDays.push(d);
+      if (isWorkedCode(data[nom + '_' + d])) workedDays.push(d);
     }
 
     // 6 jours consécutifs
     let consecutive = 0;
     for (let d = 1; d <= nbDays; d++) {
-      if ((data[nom + '_' + d] || '').toUpperCase() === 'RSTD') {
+      if (isWorkedCode(data[nom + '_' + d])) {
         consecutive++;
         if (consecutive >= 6) {
           violations.push({ nom, detail: '6 jours consécutifs (jour ' + (d - 5) + '-' + d + ')' });
@@ -564,11 +572,11 @@ function getConstraintViolations(eligible, data, year, month, nbDays) {
     // Plus de 2 dimanches
     let sundayCount = 0;
     for (let d = 1; d <= nbDays; d++) {
-      if (new Date(year, month, d).getDay() === 0 && (data[nom + '_' + d] || '').toUpperCase() === 'RSTD') sundayCount++;
+      if (new Date(year, month, d).getDay() === 0 && isWorkedCode(data[nom + '_' + d])) sundayCount++;
     }
     if (sundayCount > 2) violations.push({ nom, detail: sundayCount + ' dimanches travaillés (max 2)' });
 
-    // Plus de 5 RSTD dans une semaine classique (lun-dim)
+    // Plus de 5 jours travaillés dans une semaine classique (lun-dim)
     let d = 1;
     while (d <= nbDays) {
       const date = new Date(year, month, d);
@@ -577,7 +585,7 @@ function getConstraintViolations(eligible, data, year, month, nbDays) {
       const monday = d + mondayOffset;
       let weekCount = 0;
       for (let i = monday; i < monday + 7; i++) {
-        if (i >= 1 && i <= nbDays && (data[nom + '_' + i] || '').toUpperCase() === 'RSTD') weekCount++;
+        if (i >= 1 && i <= nbDays && isWorkedCode(data[nom + '_' + i])) weekCount++;
       }
       if (weekCount > 5) {
         violations.push({ nom, detail: '6 jours en semaine (S' + getWeekNumber(date) + ')' });
@@ -592,9 +600,7 @@ function getConstraintViolations(eligible, data, year, month, nbDays) {
       if (new Date(year, month, dd).getDay() === 6 && dd + 1 <= nbDays) weekends.push({ sat: dd, sun: dd + 1 });
     }
     const hasFullWE = weekends.some(we => {
-      const satVal = (data[nom + '_' + we.sat] || '').toUpperCase();
-      const sunVal = (data[nom + '_' + we.sun] || '').toUpperCase();
-      return satVal !== 'RSTD' && sunVal !== 'RSTD';
+      return !isWorkedCode(data[nom + '_' + we.sat]) && !isWorkedCode(data[nom + '_' + we.sun]);
     });
     if (!hasFullWE && weekends.length > 0) violations.push({ nom, detail: 'Aucun week-end complet off' });
   });
@@ -660,10 +666,10 @@ function getSdrAlerts(eligible, data, year, month, nbDays) {
       d.setDate(mondayDate.getDate() + i);
       if (d.getFullYear() === year && d.getMonth() === month) {
         const dayNum = d.getDate();
-        if ((data[nom + '_' + dayNum] || '').toUpperCase() === 'RSTD') count++;
+        if (isWorkedCode(data[nom + '_' + dayNum])) count++;
       }
     }
-    if (count === 4) alerts.push({ nom, detail: '4 RSTD cette semaine' });
+    if (count === 4) alerts.push({ nom, detail: '4 jours cette semaine' });
   });
   return alerts;
 }

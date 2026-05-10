@@ -35,7 +35,7 @@ function generatePlanning(stationId, year, month, daysToGenerate) {
     const blocked = new Set();
     for (let d = 1; d <= nbDays; d++) {
       const val = (data[nom + '_' + d] || '').toUpperCase();
-      if (val === 'RSTD') assigned.add(d);
+      if (val === 'RSTD' || val === 'RLV1' || val === 'RLV2' || val === 'RLV3') assigned.add(d);
       else if (val) blocked.add(d);
     }
     return { nom, assigned, blocked };
