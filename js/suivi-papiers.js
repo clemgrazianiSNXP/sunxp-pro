@@ -309,8 +309,10 @@ function showPapierForm(papier, stationId, allPersons) {
     if (idx >= 0) all[idx] = entry; else all.push(entry);
     savePapiers(stationId, all);
 
-    // Appliquer au planning
-    applyPapierToPlanning(stationId, chauffeurNom, dateDebut, dateFin, type);
+    // Appliquer au planning (seulement AM et AT)
+    if (type === 'AM' || type === 'AT') {
+      applyPapierToPlanning(stationId, chauffeurNom, dateDebut, dateFin, type);
+    }
 
     overlay.remove();
     renderRH();
