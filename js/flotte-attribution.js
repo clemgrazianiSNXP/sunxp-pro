@@ -76,27 +76,32 @@ function renderAttribution() {
 
   const table = document.createElement('table');
   table.className = 'h-table';
-  table.style.cssText = 'font-size:11px;width:100%;border-collapse:collapse;';
+  table.style.cssText = 'font-size:11px;border-collapse:collapse;min-width:1200px;';
 
   // En-tête
   const thead = document.createElement('thead');
   thead.innerHTML = `<tr>
-    <th style="width:20px;"></th>
-    <th>Modèle</th>
-    <th>Agence</th>
-    <th style="width:30px;">CM</th>
-    <th>UTA</th>
-    <th>Télép.</th>
-    <th style="width:35px;">Statut</th>
-    <th>Plaque</th>
-    <th>Chauffeur</th>
-    <th>PDA</th>
-    <th>Trouss.</th>
-    <th>Licence</th>
-    <th>Clef</th>
-    <th>VIGIK</th>
-    <th colspan="6" style="background:var(--accent-dim);color:var(--accent);">RETOUR</th>
-    <th>Comment.</th>
+    <th style="width:24px;min-width:24px;"></th>
+    <th style="min-width:80px;">Modèle</th>
+    <th style="min-width:70px;">Agence</th>
+    <th style="min-width:28px;">CM</th>
+    <th style="min-width:36px;">UTA</th>
+    <th style="min-width:36px;">Télép.</th>
+    <th style="min-width:36px;">Statut</th>
+    <th style="min-width:70px;">Plaque</th>
+    <th style="min-width:90px;">Chauffeur</th>
+    <th style="min-width:36px;">PDA</th>
+    <th style="min-width:42px;">Trouss.</th>
+    <th style="min-width:36px;">Licence</th>
+    <th style="min-width:44px;">Clef</th>
+    <th style="min-width:60px;">VIGIK</th>
+    <th style="min-width:28px;background:var(--accent-dim);color:var(--accent);font-size:9px;">R.UTA</th>
+    <th style="min-width:28px;background:var(--accent-dim);color:var(--accent);font-size:9px;">R.PDA</th>
+    <th style="min-width:28px;background:var(--accent-dim);color:var(--accent);font-size:9px;">R.Trs</th>
+    <th style="min-width:28px;background:var(--accent-dim);color:var(--accent);font-size:9px;">R.Lic</th>
+    <th style="min-width:28px;background:var(--accent-dim);color:var(--accent);font-size:9px;">R.Clef</th>
+    <th style="min-width:36px;background:var(--accent-dim);color:var(--accent);font-size:9px;">R.VIG</th>
+    <th style="min-width:80px;">Comment.</th>
   </tr>`;
   table.appendChild(thead);
 
