@@ -288,20 +288,24 @@ function getPublishedWeeks(sid) {
 
 function publishWeek(sid, monday) {
   const weeks = getPublishedWeeks(sid);
-  const key = monday.toISOString().slice(0, 10);
+  const key = 'S' + getWeekNumPortal(monday);
   if (!weeks.includes(key)) {
     weeks.push(key);
-    localStorage.setItem(sid + '-planning-published', JSON.stringify(weeks));
-    // Sync vers Supabase
-    if (typeof dbSave === 'function') {
-      dbSave('planning_published', sid + '-planning-published', { station_id: sid }, weeks);
-    }
+  }
+  localStorage.setItem(sid + '-planning-published', JSON.stringify(weeks));
+  // Sync vers Supabase
+  if (typeof dbSave === 'function') {
+    dbSave('planning_published', sid + '-planning-published', { station_id: sid }, weeks);
   }
 }
 
 function isWeekPublished(publishedWeeks, monday) {
-  const key = monday.toISOString().slice(0, 10);
+  const key = 'S' + getWeekNumPortal(monday);
   return publishedWeeks.includes(key);
+}
+
+function mondayToKey(d) {
+  return 'S' + getWeekNumPortal(d);
 }
 
 /* ── Chargement publication depuis Supabase ───────────────── */

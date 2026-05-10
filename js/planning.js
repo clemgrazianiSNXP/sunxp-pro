@@ -226,7 +226,7 @@ function buildPlanningToolbar(year, month) {
   publishBtn.style.cssText = 'font-size:11px;padding:6px 12px;margin-left:auto;';
   const nextMonday = getMondayOfPortal ? getMondayOfPortal(new Date()) : new Date();
   nextMonday.setDate(nextMonday.getDate() + 7);
-  const nextWeekKey = nextMonday.toISOString().slice(0, 10);
+  const nextWeekKey = typeof mondayToKey === 'function' ? mondayToKey(nextMonday) : nextMonday.toISOString().slice(0, 10);
   const published = typeof getPublishedWeeks === 'function' ? getPublishedWeeks(stationId) : [];
   if (published.includes(nextWeekKey)) {
     publishBtn.textContent = '🔄 Re-publier S+1';
