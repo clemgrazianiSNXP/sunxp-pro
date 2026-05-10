@@ -35,6 +35,7 @@ function renderAccueil() {
   parcTitle.textContent = '🚛 PARC';
   colParc.appendChild(parcTitle);
   colParc.appendChild(buildProblemesCard(sid));
+  colParc.appendChild(buildCTExpirationCard(sid));
   grid.appendChild(colParc);
 
   // Colonne DSP/CE
@@ -56,6 +57,7 @@ function renderAccueil() {
   rhTitle.textContent = '👤 RH';
   colRh.appendChild(rhTitle);
   colRh.appendChild(buildDemandesCard(sid));
+  colRh.appendChild(buildVMExpirationCard(sid));
   grid.appendChild(colRh);
 
   container.appendChild(grid);
@@ -209,3 +211,125 @@ function createCard(icon, title) {
 
   return card;
 }
+
+/* ── Card VM expirantes (RH) ──────────────────────────────── */
+function buildVMExpirationCard(sid) {
+  const card = createCard('🩺', 'Visites médicales à renouveler');
+  const body = card.querySelector('.accueil-card-body');
+
+  const expiring = getVMExpiringSoon(sid);
+
+  if (!expiring.length) {
+    body.innerHTML = '<p style="color:var(--text-muted);font-size:12px;text-align:center;margin:8px 0;">✅ Toutes les VM sont à jour</p>';
+  } else {
+    let html = `<div style="display:flex;justify-content:center;margin:8px 0;"><span style="font-size:28px;font-weight:800;color:#f87171;">${expiring.length}</span></div>`;
+    html += '<div style="max-height:100px;overflow-y:auto;font-size:11px;">';
+    expiring.forEach(item => {
+      const color = item.expired ? '#f87171' : '#fbbf24';
+      const label = item.expired ? 'Expirée' : 'J-' + item.daysLeft;
+      html += `<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border);"><span>${item.nom}</span><span style="color:${color};font-weight:700;">${label}</span></div>`;
+    });
+    html += '</div>';
+    body.innerHTML = html;
+  }
+
+  card.style.cursor = 'pointer';
+  card.onclick = () => { showModule('rh'); setTimeout(() => { rhTab = 'suivi-papiers'; renderRH(); }, 50); };
+  return card;
+}
+
+/* ── Card CT expirantes (PARC) ────────────────────────────── */
+function buildCTExpirationCard(sid) {
+  const card = createCard('📋', 'CT à renouveler');
+  const body = card.querySelector('.accueil-card-body');
+
+  const expiring = getCTExpiringSoon(sid);
+
+  if (!expiring.length) {
+    body.innerHTML = '<p style="color:var(--text-muted);font-size:12px;text-align:center;margin:8px 0;">✅ Tous les CT sont à jour</p>';
+  } else {
+    let html = `<div style="display:flex;justify-content:center;margin:8px 0;"><span style="font-size:28px;font-weight:800;color:#f87171;">${expiring.length}</span></div>`;
+    html += '<div style="max-height:100px;overflow-y:auto;font-size:11px;">';
+    expiring.forEach(item => {
+      const color = item.expired ? '#f87171' : '#fbbf24';
+      const label = item.expired ? 'Expiré' : 'J-' + item.daysLeft;
+      html += `<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border);"><span>${item.plaque}</span><span style="color:${color};font-weight:700;">${label}</span></div>`;
+    });
+    html += '</div>';
+    body.innerHTML = html;
+  }
+
+  card.style.cursor = 'pointer';
+  card.onclick = () => { showModule('flotte'); setTimeout(() => { flotteTab = 'entretien'; renderFlotte(); }, 50); };
+  return card;
+}
+
+/* ── Helpers alertes VM et CT ─────────────────────────────── */
+function getVMExpiringSoon(sid) {
+  let papiers = [];
+  try { papiers = JSON.parse(localStorage.getItem(sid + '-suivi-papiers')) || []; } catch (_) {}
+  const now = new Date();
+  const in30 = new Date(); in30.setDate(in30.getDate() + 30);
+  return papiers
+    .filter(p => p.type === 'VM' && p.dateFin)
+    .map(p => {
+      const exp = new Date(p.dateFin);
+      const daysLeft = Math.ceil((exp - now) / (1000 * 60 * 60 * 24));
+      return { nom: p.chauffeurNom, dateFin: p.dateFin, daysLeft, expired: daysLeft <= 0 };
+    })
+    .filter(p => p.daysLeft <= 30)
+    .sort((a, b) => a.daysLeft - b.daysLeft);
+}
+
+function getCTExpiringSoon(sid) {
+  let entretiens = [];
+  try { entretiens = JSON.parse(localStorage.getItem(sid + '-suivi-entretien')) || []; } catch (_) {}
+  const now = new Date();
+  return entretiens
+    .filter(e => e.type === 'ct' && e.dateFin)
+    .map(e => {
+      const exp = new Date(e.dateFin);
+      const daysLeft = Math.ceil((exp - now) / (1000 * 60 * 60 * 24));
+      return { plaque: e.plaque, dateFin: e.dateFin, daysLeft, expired: daysLeft <= 0 };
+    })
+    .filter(e => e.daysLeft <= 30)
+    .sort((a, b) => a.daysLeft - b.daysLeft);
+}
+
+/* ── Badges de notification sur les onglets ───────────────── */
+function updateNavBadges() {
+  const sid = window.getActiveStationId ? window.getActiveStationId() : 'default';
+  const vmCount = getVMExpiringSoon(sid).length;
+  const ctCount = getCTExpiringSoon(sid).length;
+
+  // Badge sur onglet RH
+  const rhTab = document.querySelector('.nav-tab[data-module="rh"]');
+  if (rhTab) {
+    rhTab.querySelector('.nav-badge')?.remove();
+    if (vmCount > 0) {
+      const badge = document.createElement('span');
+      badge.className = 'nav-badge';
+      badge.style.cssText = 'position:absolute;top:2px;right:2px;background:#f87171;color:#fff;font-size:9px;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 4px;';
+      badge.textContent = vmCount;
+      rhTab.style.position = 'relative';
+      rhTab.appendChild(badge);
+    }
+  }
+
+  // Badge sur onglet Flotte
+  const flotteTabEl = document.querySelector('.nav-tab[data-module="flotte"]');
+  if (flotteTabEl) {
+    flotteTabEl.querySelector('.nav-badge')?.remove();
+    if (ctCount > 0) {
+      const badge = document.createElement('span');
+      badge.className = 'nav-badge';
+      badge.style.cssText = 'position:absolute;top:2px;right:2px;background:#f87171;color:#fff;font-size:9px;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 4px;';
+      badge.textContent = ctCount;
+      flotteTabEl.style.position = 'relative';
+      flotteTabEl.appendChild(badge);
+    }
+  }
+}
+
+// Mettre à jour les badges au chargement et à chaque changement de module
+document.addEventListener('DOMContentLoaded', () => setTimeout(updateNavBadges, 500));

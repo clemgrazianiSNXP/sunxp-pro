@@ -92,7 +92,17 @@ function renderSuiviPapiers() {
       byPerson[p.chauffeurNom].push(p);
     });
 
-    Object.keys(byPerson).forEach(nom => {
+    // Trier : chauffeurs avec VM expirante en haut
+    const now = new Date();
+    const personKeys = Object.keys(byPerson).sort((a, b) => {
+      const aVM = byPerson[a].filter(p => p.type === 'VM' && p.dateFin);
+      const bVM = byPerson[b].filter(p => p.type === 'VM' && p.dateFin);
+      const aMinDays = aVM.length ? Math.min(...aVM.map(p => Math.ceil((new Date(p.dateFin) - now) / 86400000))) : 9999;
+      const bMinDays = bVM.length ? Math.min(...bVM.map(p => Math.ceil((new Date(p.dateFin) - now) / 86400000))) : 9999;
+      return aMinDays - bMinDays;
+    });
+
+    personKeys.forEach(nom => {
       const section = document.createElement('div');
       section.style.cssText = 'background:var(--bg-sidebar);border:1px solid var(--border);border-radius:10px;padding:12px;';
 

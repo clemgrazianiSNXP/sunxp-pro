@@ -8,11 +8,20 @@ function initRH() {
   renderRH();
 }
 
+/* ── Badge VM expirantes pour sous-onglet Suivi Papiers ───── */
+function getVMBadgeHTML(sid) {
+  const vmCount = typeof getVMExpiringSoon === 'function' ? getVMExpiringSoon(sid).length : 0;
+  if (vmCount === 0) return '';
+  return ' <span style="background:#f87171;color:#fff;font-size:9px;font-weight:700;min-width:14px;height:14px;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;padding:0 3px;vertical-align:middle;">' + vmCount + '</span>';
+}
+
 function renderRH() {
   const container = document.getElementById('module-rh');
   if (!container) return;
   container.innerHTML = '';
   container.style.cssText = 'display:flex;flex-direction:column;align-items:stretch;padding:0;overflow:hidden;';
+
+  const sid = window.getActiveStationId ? window.getActiveStationId() : 'default';
 
   // Toolbar avec sous-onglets
   const toolbar = document.createElement('div');
@@ -21,7 +30,7 @@ function renderRH() {
     <div class="h-toolbar-left">
       <button class="h-btn rh-tab-btn ${rhTab === 'check-tsm' ? 'rh-tab-active' : ''}" data-rhtab="check-tsm">Check TSM</button>
       <button class="h-btn rh-tab-btn ${rhTab === 'extraction-paie' ? 'rh-tab-active' : ''}" data-rhtab="extraction-paie">Extraction de paie</button>
-      <button class="h-btn rh-tab-btn ${rhTab === 'suivi-papiers' ? 'rh-tab-active' : ''}" data-rhtab="suivi-papiers">📋 Suivi Papiers</button>
+      <button class="h-btn rh-tab-btn ${rhTab === 'suivi-papiers' ? 'rh-tab-active' : ''}" data-rhtab="suivi-papiers" style="position:relative;">📋 Suivi Papiers${getVMBadgeHTML(sid)}</button>
       <button class="h-btn rh-tab-btn ${rhTab === 'docs-employes' ? 'rh-tab-active' : ''}" data-rhtab="docs-employes">📄 Documents employés</button>
     </div>
     <div class="h-toolbar-center"></div>
