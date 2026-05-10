@@ -189,7 +189,11 @@ function buildPlanningToolbar(year, month) {
     astBtn.textContent = '✓ AST';
     astBtn.style.cssText += 'font-size:11px;opacity:0.4;';
   }
-  astBtn.onclick = () => showPlanningAlertPopup(astBtn, 'ASTREINTES POTENTIELLES (5j cette semaine)', astData, '#fbbf24');
+  astBtn.onclick = () => {
+    const freshData = loadPlanning(stationId, year, month);
+    const freshAst = getAstAlerts(eligible, freshData, year, month, nbDays);
+    showPlanningAlertPopup(astBtn, 'ASTREINTES POTENTIELLES (5j cette semaine)', freshAst, '#fbbf24');
+  };
   bar.querySelector('.h-toolbar-left').appendChild(astBtn);
 
   // Bulle Contraintes (violations détectées dans le planning actuel)
@@ -203,7 +207,11 @@ function buildPlanningToolbar(year, month) {
     violBtn.textContent = '✓ Contraintes';
     violBtn.style.cssText += 'font-size:11px;opacity:0.4;';
   }
-  violBtn.onclick = () => showPlanningAlertPopup(violBtn, 'CONTRAINTES NON RESPECTÉES', violations, '#f87171');
+  violBtn.onclick = () => {
+    const freshData = loadPlanning(stationId, year, month);
+    const freshViol = getConstraintViolations(eligible, freshData, year, month, nbDays);
+    showPlanningAlertPopup(violBtn, 'CONTRAINTES NON RESPECTÉES', freshViol, '#f87171');
+  };
   bar.querySelector('.h-toolbar-left').appendChild(violBtn);
 
   // Bulle SDR (chauffeurs à 4 RSTD cette semaine — disponibles pour un jour supplémentaire)
@@ -217,7 +225,11 @@ function buildPlanningToolbar(year, month) {
     sdrBtn.textContent = '✓ SDR';
     sdrBtn.style.cssText += 'font-size:11px;opacity:0.4;';
   }
-  sdrBtn.onclick = () => showPlanningAlertPopup(sdrBtn, 'SDR — 4 JOURS CETTE SEMAINE', sdrData, '#4ade80');
+  sdrBtn.onclick = () => {
+    const freshData = loadPlanning(stationId, year, month);
+    const freshSdr = getSdrAlerts(eligible, freshData, year, month, nbDays);
+    showPlanningAlertPopup(sdrBtn, 'SDR — 4 JOURS CETTE SEMAINE', freshSdr, '#4ade80');
+  };
   bar.querySelector('.h-toolbar-left').appendChild(sdrBtn);
 
   // Bouton Publier S+1 aux chauffeurs
