@@ -5,7 +5,8 @@ const PAPIERS_TYPES = [
   { code: 'AM', label: 'Arrêt Maladie' },
   { code: 'AT', label: 'Accident de Travail' },
   { code: 'MAT', label: 'Congé Maternité' },
-  { code: 'PAT', label: 'Congé Paternité' }
+  { code: 'PAT', label: 'Congé Paternité' },
+  { code: 'VM', label: 'Visite Médicale' }
 ];
 
 const STORAGE_BUCKET = 'papiers-rh';
@@ -105,12 +106,22 @@ function renderSuiviPapiers() {
         row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;';
 
         const typeLabel = PAPIERS_TYPES.find(t => t.code === p.type)?.label || p.type;
-        const color = p.type === 'AM' ? '#f472b6' : p.type === 'AT' ? '#9ca3af' : '#a78bfa';
+        const color = p.type === 'AM' ? '#f472b6' : p.type === 'AT' ? '#9ca3af' : p.type === 'VM' ? '#38bdf8' : '#a78bfa';
+
+        // Vérifier si VM expirée
+        let vmExpired = false;
+        if (p.type === 'VM' && p.dateFin) {
+          vmExpired = new Date(p.dateFin) < new Date();
+        }
+
+        const dateLabel = p.type === 'VM'
+          ? `Fait le ${new Date(p.dateDebut).toLocaleDateString('fr-FR')} · Expire le <span style="color:${vmExpired ? '#f87171' : '#4ade80'};font-weight:600;">${new Date(p.dateFin).toLocaleDateString('fr-FR')}</span>`
+          : `${new Date(p.dateDebut).toLocaleDateString('fr-FR')} → ${new Date(p.dateFin).toLocaleDateString('fr-FR')}`;
 
         row.innerHTML = `
           <span style="background:${color};color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700;">${p.type}</span>
           <span style="flex:1;color:var(--text-primary);">${typeLabel}</span>
-          <span style="color:var(--text-muted);font-size:11px;">${new Date(p.dateDebut).toLocaleDateString('fr-FR')} → ${new Date(p.dateFin).toLocaleDateString('fr-FR')}</span>
+          <span style="color:var(--text-muted);font-size:11px;">${dateLabel}</span>
         `;
 
         // Lien fichier
@@ -182,9 +193,9 @@ function showPapierForm(papier, stationId, allPersons) {
       <select id="sp-person" class="rep-input" style="padding:8px;">${personOptions}</select>
       <label style="font-size:11px;color:var(--text-muted);">Type de document</label>
       <select id="sp-type" class="rep-input" style="padding:8px;">${typeOptions}</select>
-      <label style="font-size:11px;color:var(--text-muted);">Date début</label>
+      <label style="font-size:11px;color:var(--text-muted);" id="sp-label-debut">Date début</label>
       <input type="date" id="sp-debut" class="rep-input" style="padding:8px;" value="${papier?.dateDebut || ''}">
-      <label style="font-size:11px;color:var(--text-muted);">Date fin</label>
+      <label style="font-size:11px;color:var(--text-muted);" id="sp-label-fin">Date fin</label>
       <input type="date" id="sp-fin" class="rep-input" style="padding:8px;" value="${papier?.dateFin || ''}">
       <label style="font-size:11px;color:var(--text-muted);">Fichier (PDF, image...)</label>
       <input type="file" id="sp-file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" style="font-size:12px;">
@@ -196,8 +207,23 @@ function showPapierForm(papier, stationId, allPersons) {
     </div>
   `;
 
+  // Adapter les labels selon le type sélectionné
+  function updateLabels() {
+    const type = modal.querySelector('#sp-type').value;
+    const lblDebut = modal.querySelector('#sp-label-debut');
+    const lblFin = modal.querySelector('#sp-label-fin');
+    if (type === 'VM') {
+      lblDebut.textContent = 'Date de réalisation';
+      lblFin.textContent = "Date d'expiration";
+    } else {
+      lblDebut.textContent = 'Date début';
+      lblFin.textContent = 'Date fin';
+    }
+  }
   overlay.appendChild(modal);
   document.body.appendChild(overlay);
+  modal.querySelector('#sp-type').addEventListener('change', updateLabels);
+  updateLabels();
   overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
   modal.querySelector('#sp-cancel').onclick = () => overlay.remove();
 
