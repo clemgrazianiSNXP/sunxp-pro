@@ -98,7 +98,7 @@ function parsePDFTextPOD(text, semaine) {
     const opportunities = candidates[0];
     const success       = candidates[1];
     const bypass        = candidates[2];
-    const rejects       = candidates[3];
+    const rejectsRaw    = candidates[3];
     // Détail des rejets (colonnes 5-9 dans le PDF)
     const blurryPhoto     = candidates[4] || 0;
     const noPackage       = candidates[5] || 0;
@@ -107,8 +107,10 @@ function parsePDFTextPOD(text, semaine) {
     const photoTooDark    = candidates[8] || 0;
 
     if (opportunities <= 0) continue;
+    // rejects = rejects PDF + bypass
+    const rejects = rejectsRaw + bypass;
     const podPct = Math.round((success / opportunities * 100) * 100) / 100;
-    rows.push({ semaine, idAmazon, opportunities, success, rejects, podPct, blurryPhoto, noPackage, packageInCar, packageTooClose, photoTooDark });
+    rows.push({ semaine, idAmazon, opportunities, success, bypass, rejects, podPct, blurryPhoto, noPackage, packageInCar, packageTooClose, photoTooDark });
   }
   return rows;
 }

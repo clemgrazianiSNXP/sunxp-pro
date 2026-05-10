@@ -681,14 +681,15 @@ function showPodRejectDetail(r) {
   const box = document.createElement('div');
   box.style.cssText = 'background:var(--bg-sidebar);border:1px solid var(--border);border-radius:12px;padding:24px;width:90%;max-width:360px;';
   const details = [
-    { label: 'No Package Detected', value: r.noPackage || 0, icon: '📦' },
-    { label: 'Package In Car', value: r.packageInCar || 0, icon: '🚛' },
-    { label: 'Blurry Photo', value: r.blurryPhoto || 0, icon: '🔍' },
-    { label: 'Package Too Close', value: r.packageTooClose || 0, icon: '📏' },
-    { label: 'Photo Too Dark', value: r.photoTooDark || 0, icon: '🌑' }
+    { label: 'Colis non visible', value: r.noPackage || 0, icon: '📦' },
+    { label: 'Colis dans le véhicule', value: r.packageInCar || 0, icon: '🚛' },
+    { label: 'Photo floue', value: r.blurryPhoto || 0, icon: '🔍' },
+    { label: 'Colis trop proche', value: r.packageTooClose || 0, icon: '📏' },
+    { label: 'Photo trop sombre', value: r.photoTooDark || 0, icon: '🌑' },
+    { label: 'Photo sautée (skip)', value: r.bypass || 0, icon: '⏭️' }
   ];
-  let html = '<h3 style="font-size:14px;color:var(--accent);margin:0 0 12px;">📸 Détail rejets POD — ' + nom + '</h3>';
-  html += '<div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">Total rejets : <strong style="color:#f87171;">' + r.rejects + '</strong></div>';
+  let html = '<h3 style="font-size:14px;color:var(--accent);margin:0 0 12px;">📸 Détail photos rejetées — ' + nom + '</h3>';
+  html += '<div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">Total rejetées : <strong style="color:#f87171;">' + r.rejects + '</strong></div>';
   details.forEach(d => {
     if (d.value > 0) {
       html += '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;">';
