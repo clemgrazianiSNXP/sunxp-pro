@@ -264,9 +264,15 @@ function buildPortalPause(sid, nom, now) {
 
 /* ── Enregistrer la pause dans Heures ─────────────────────── */
 async function savePauseToHeures(sid, nom, date) {
-  const dateStr = date.toISOString().slice(0, 10);
+  // Format date local (pas UTC)
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  const dateStr = y + '-' + m + '-' + d;
   const dk = sid + '-heures-' + dateStr;
   const pauseTime = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+  console.log('savePauseToHeures:', { sid, nom, dateStr, dk, pauseTime });
 
   // Essayer en local d'abord
   let data = null;
@@ -276,13 +282,14 @@ async function savePauseToHeures(sid, nom, date) {
   } catch (_) {}
 
   if (data && data.rows) {
-    const row = Object.values(data.rows).find(r => r.nom && r.nom.trim() === nom.trim());
-    if (row) {
-      row.pauseHeure = pauseTime;
+    const rowKey = Object.keys(data.rows).find(k => data.rows[k].nom && data.rows[k].nom.trim() === nom.trim());
+    if (rowKey) {
+      data.rows[rowKey].pauseHeure = pauseTime;
       localStorage.setItem(dk, JSON.stringify(data));
       if (typeof dbSave === 'function') {
         dbSave('heures', dk, { station_id: sid, date_jour: dateStr }, data);
       }
+      console.log('✅ Pause enregistrée en local + Supabase:', pauseTime);
       return;
     }
   }
@@ -290,16 +297,23 @@ async function savePauseToHeures(sid, nom, date) {
   // Si pas en local, charger depuis Supabase et modifier
   if (typeof sb === 'function' && sb()) {
     try {
+      console.log('Chargement heures depuis Supabase pour:', dateStr);
       const { data: sbData, error } = await sb().from('heures').select('data').eq('station_id', sid).eq('date_jour', dateStr).maybeSingle();
+      console.log('Supabase response:', { sbData, error });
       if (!error && sbData && sbData.data && sbData.data.rows) {
-        const row = Object.values(sbData.data.rows).find(r => r.nom && r.nom.trim() === nom.trim());
-        if (row) {
-          row.pauseHeure = pauseTime;
+        const rowKey = Object.keys(sbData.data.rows).find(k => sbData.data.rows[k].nom && sbData.data.rows[k].nom.trim() === nom.trim());
+        if (rowKey) {
+          sbData.data.rows[rowKey].pauseHeure = pauseTime;
           // Sauver en local + Supabase
           localStorage.setItem(dk, JSON.stringify(sbData.data));
-          await sb().from('heures').update({ data: sbData.data }).eq('station_id', sid).eq('date_jour', dateStr);
-          console.log('✅ Pause enregistrée via Supabase:', pauseTime);
+          const { error: upErr } = await sb().from('heures').update({ data: sbData.data }).eq('station_id', sid).eq('date_jour', dateStr);
+          if (upErr) console.error('Update error:', upErr.message);
+          else console.log('✅ Pause enregistrée via Supabase:', pauseTime);
+        } else {
+          console.warn('Chauffeur non trouvé dans rows:', nom);
         }
+      } else {
+        console.warn('Pas de données heures pour cette date dans Supabase');
       }
     } catch (e) { console.warn('savePauseToHeures Supabase error:', e.message); }
   }
