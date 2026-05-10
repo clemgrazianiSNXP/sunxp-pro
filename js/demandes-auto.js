@@ -41,15 +41,18 @@ function applyCongeToPlanning(stationId, demande) {
 
 /**
  * Calcule le total des acomptes acceptés pour un chauffeur sur un mois donné.
+ * Cherche par chauffeurId OU par chauffeurNom pour couvrir tous les cas.
  */
-function getAcomptesTotal(stationId, chauffeurId, year, month) {
+function getAcomptesTotal(stationId, chauffeurId, year, month, chauffeurNom) {
   let acomptes = [];
   try { acomptes = JSON.parse(localStorage.getItem(stationId + '-acomptes')) || []; } catch (_) {}
 
   return acomptes
     .filter(a => {
       if (a.statut !== 'acceptee') return false;
-      if (a.chauffeurId !== chauffeurId) return false;
+      const matchId = a.chauffeurId === chauffeurId;
+      const matchNom = chauffeurNom && a.chauffeurNom && a.chauffeurNom.trim() === chauffeurNom.trim();
+      if (!matchId && !matchNom) return false;
       const d = new Date(a.dateDemande || a.date);
       return d.getFullYear() === year && d.getMonth() === month;
     })

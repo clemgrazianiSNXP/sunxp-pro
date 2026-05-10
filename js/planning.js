@@ -7,7 +7,7 @@ const PLANNING_CODE_COLORS = {
   RSTD:'#4ade80', REP:'#f87171', CP:'#fbbf24', AT:'#9ca3af', ABS:'#7dd3fc',
   BU:'#f97316', AM:'#f472b6', AST:'#fbbf24', DSP:'#4b5563', CE:'#4b5563',
   MAT:'#a78bfa', PAT:'#a78bfa', GAR:'#1e3a8a', PARC:'#38bdf8', BUR:'#86efac',
-  HN:'#d1d5db', OFF:'#64748b', RD:'#2dd4bf', RDL:'#22d3ee', CSS:'#e879f9',
+  HN:'#d1d5db', OFF:'#64748b', RD:'#991b1b', RDL:'#22d3ee', CSS:'#e879f9',
   MAP:'#a8a29e', CHIME:'#3b82f6', SAFETY:'#06b6d4', DBL:'#1e3a8a',
   RLV1:'#22c55e', RLV2:'#16a34a', RLV3:'#15803d'
 };

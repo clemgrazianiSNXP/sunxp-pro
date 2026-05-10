@@ -214,7 +214,7 @@ function renderCongesManager() {
 
   setTimeout(() => {
     wrap.querySelectorAll('.conge-accept').forEach(btn => {
-      btn.onclick = () => { const d = demandes.find(x => x.id === btn.dataset.id); if (d) { d.statut = 'acceptee'; saveConges(sid, demandes); setMenuTab('demandes-mgr'); } };
+      btn.onclick = () => { const d = demandes.find(x => x.id === btn.dataset.id); if (d) { d.statut = 'acceptee'; if (typeof applyCongeToPlanning === 'function') applyCongeToPlanning(sid, d); saveConges(sid, demandes); setMenuTab('demandes-mgr'); } };
     });
     wrap.querySelectorAll('.conge-refuse').forEach(btn => {
       btn.onclick = () => { const d = demandes.find(x => x.id === btn.dataset.id); if (d) { d.statut = 'refusee'; saveConges(sid, demandes); setMenuTab('demandes-mgr'); } };
