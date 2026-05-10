@@ -44,6 +44,7 @@ function renderCamions() {
 
       card.innerHTML = `
         <div style="font-size:16px;font-weight:700;color:var(--accent);letter-spacing:0.05em;">${c.plaque}</div>
+        <div style="font-size:12px;color:var(--text-primary);">${c.marque || ''} ${c.modele || ''}${c.bva ? ' <span style="background:#fbbf24;color:#000;padding:1px 4px;border-radius:3px;font-size:9px;font-weight:700;">BVA</span>' : ''}</div>
         <div style="font-size:12px;color:var(--text-muted);">🏢 ${c.agence || '—'}</div>
         <div style="font-size:10px;font-family:monospace;color:var(--text-muted);word-break:break-all;">VIN: ${c.vin || '—'}</div>
       `;
@@ -98,8 +99,16 @@ function showCamionForm(camion) {
   };
 
   box.appendChild(mkField('Plaque d\'immatriculation', 'cf-plaque', camion?.plaque, 'AB-123-CD'));
+  box.appendChild(mkField('Marque', 'cf-marque', camion?.marque, 'Ex: Renault, Mercedes...'));
+  box.appendChild(mkField('Modèle', 'cf-modele', camion?.modele, 'Ex: Master, Sprinter...'));
   box.appendChild(mkField('Agence de location', 'cf-agence', camion?.agence, 'Ex: Europcar'));
   box.appendChild(mkField('Numéro VIN', 'cf-vin', camion?.vin, '17 caractères'));
+
+  // Case BVA
+  const bvaDiv = document.createElement('div');
+  bvaDiv.style.cssText = 'display:flex;align-items:center;gap:8px;';
+  bvaDiv.innerHTML = `<input type="checkbox" id="cf-bva" ${camion?.bva ? 'checked' : ''} style="accent-color:var(--accent);width:16px;height:16px;"><label for="cf-bva" style="font-size:12px;color:var(--text-primary);cursor:pointer;">Boîte automatique (BVA)</label>`;
+  box.appendChild(bvaDiv);
 
   const btns = document.createElement('div');
   btns.style.cssText = 'display:flex;gap:8px;margin-top:4px;';
@@ -114,14 +123,17 @@ function showCamionForm(camion) {
   saveBtn.onclick = () => {
     const plaque = box.querySelector('#cf-plaque').value.trim();
     if (!plaque) { alert('La plaque est obligatoire.'); return; }
+    const marque = box.querySelector('#cf-marque').value.trim();
+    const modele = box.querySelector('#cf-modele').value.trim();
     const agence = box.querySelector('#cf-agence').value.trim();
     const vin = box.querySelector('#cf-vin').value.trim();
+    const bva = box.querySelector('#cf-bva').checked;
     const list = loadCamions();
     if (isEdit) {
       const idx = list.findIndex(c => c.id === camion.id);
-      if (idx >= 0) list[idx] = { ...list[idx], plaque, agence, vin };
+      if (idx >= 0) list[idx] = { ...list[idx], plaque, marque, modele, agence, vin, bva };
     } else {
-      list.push({ id: 'v_' + Date.now(), plaque, agence, vin });
+      list.push({ id: 'v_' + Date.now(), plaque, marque, modele, agence, vin, bva });
     }
     saveCamions(list);
     overlay.remove();
