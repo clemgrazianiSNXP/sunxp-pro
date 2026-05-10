@@ -1,7 +1,7 @@
 /* js/flotte.js — Module Flotte (SunXP Pro) */
 console.log('flotte.js chargé');
 
-let flotteTab = 'camions'; // 'camions' | 'degats' | 'problemes' | 'entretien' | 'attribution'
+let flotteTab = 'camions'; // 'camions' | 'degats' | 'problemes' | 'entretien' | 'documents' | 'attribution'
 
 function initFlotte() { flotteTab = 'camions'; renderFlotte(); }
 
@@ -18,6 +18,7 @@ function renderFlotte() {
     <button class="h-btn rh-tab-btn ${flotteTab==='degats'?'rh-tab-active':''}" data-ft="degats">🔧 Dégâts</button>
     <button class="h-btn rh-tab-btn ${flotteTab==='problemes'?'rh-tab-active':''}" data-ft="problemes">⚠️ Problèmes</button>
     <button class="h-btn rh-tab-btn ${flotteTab==='entretien'?'rh-tab-active':''}" data-ft="entretien">🛠 Suivi Entretien</button>
+    <button class="h-btn rh-tab-btn ${flotteTab==='documents'?'rh-tab-active':''}" data-ft="documents">📄 Documents</button>
     <button class="h-btn rh-tab-btn ${flotteTab==='attribution'?'rh-tab-active':''}" data-ft="attribution">🔑 Attribution</button>
   </div><div class="h-toolbar-center"></div><div class="h-toolbar-right"></div>`;
   toolbar.querySelectorAll('.rh-tab-btn').forEach(b => { b.onclick = () => { flotteTab = b.dataset.ft; renderFlotte(); }; });
@@ -29,6 +30,7 @@ function renderFlotte() {
   else if (flotteTab === 'degats') content.appendChild(typeof renderDegats === 'function' ? renderDegats() : document.createElement('div'));
   else if (flotteTab === 'problemes') content.appendChild(typeof renderProblemesResponsable === 'function' ? renderProblemesResponsable() : document.createElement('div'));
   else if (flotteTab === 'entretien') { const p = document.createElement('p'); p.style.cssText = 'color:var(--text-muted);text-align:center;margin-top:40px;'; p.textContent = '🛠 Suivi Entretien — à venir'; content.appendChild(p); }
+  else if (flotteTab === 'documents') { const p = document.createElement('p'); p.style.cssText = 'color:var(--text-muted);text-align:center;margin-top:40px;'; p.textContent = '📄 Documents — à venir'; content.appendChild(p); }
   else if (flotteTab === 'attribution') { const p = document.createElement('p'); p.style.cssText = 'color:var(--text-muted);text-align:center;margin-top:40px;'; p.textContent = '🔑 Attribution — à venir'; content.appendChild(p); }
   container.appendChild(content);
 }
