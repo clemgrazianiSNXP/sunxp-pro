@@ -163,6 +163,15 @@ function buildPlanningToolbar(year, month) {
     addGenerateButton(bar, stationId, year, month);
   }
 
+  // Bulle Liste J+1 (entre "Mois en cours" et "Générer")
+  const stationId = window.getActiveStationId ? window.getActiveStationId() : 'default';
+  const j1Btn = document.createElement('button');
+  j1Btn.className = 'h-btn';
+  j1Btn.style.cssText = 'background:rgba(96,165,250,0.15);border-color:#60a5fa;color:#60a5fa;font-size:11px;font-weight:700;';
+  j1Btn.textContent = '📋 Liste J+1';
+  j1Btn.onclick = () => showListeJ1Popup(j1Btn, stationId);
+  bar.querySelector('.h-toolbar-center').appendChild(j1Btn);
+
   // Bulles d'alerte
   const stationId = window.getActiveStationId ? window.getActiveStationId() : 'default';
   const nbDays = getDaysInMonth(year, month);
@@ -676,4 +685,104 @@ function getSdrAlerts(eligible, data, year, month, nbDays) {
     if (count === 4) alerts.push({ nom, detail: '4 jours cette semaine' });
   });
   return alerts;
+}
+
+
+/**
+ * Popup Liste J+1 : chauffeurs prévus le lendemain.
+ * Codes comptés : RSTD, RLV1, RLV2, RLV3, BU, DBL
+ * Couleurs : rouge si travaille chaque jour de la semaine actuelle, orange si BU, bleu si DBL
+ */
+function showListeJ1Popup(button, stationId) {
+  document.querySelectorAll('.pl-j1-popup').forEach(p => p.remove());
+
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const year = tomorrow.getFullYear();
+  const month = tomorrow.getMonth();
+  const day = tomorrow.getDate();
+  const nbDays = getDaysInMonth(year, month);
+
+  if (day < 1 || day > nbDays) return;
+
+  const key = stationId + '-planning-' + year + '-' + String(month + 1).padStart(2, '0');
+  let data = {};
+  try { const raw = localStorage.getItem(key); if (raw) data = JSON.parse(raw); } catch (_) {}
+
+  const allPersons = getPlanningChauffeurs(stationId);
+  const J1_CODES = ['RSTD', 'RLV1', 'RLV2', 'RLV3', 'BU', 'DBL'];
+
+  // Trouver les chauffeurs prévus demain
+  const liste = [];
+  allPersons.forEach(c => {
+    const nom = (c.prenom + ' ' + c.nom).trim();
+    const val = (data[nom + '_' + day] || '').toUpperCase();
+    if (J1_CODES.includes(val)) {
+      liste.push({ nom, code: val });
+    }
+  });
+
+  // Déterminer qui travaille chaque jour de la semaine actuelle (lun→aujourd'hui)
+  const today = new Date();
+  const dow = today.getDay();
+  const mondayDate = new Date(today);
+  mondayDate.setDate(today.getDate() - (dow === 0 ? 6 : dow - 1));
+  const daysThisWeekSoFar = dow === 0 ? 7 : dow; // nombre de jours lun→aujourd'hui
+
+  function worksEveryDayThisWeek(nom) {
+    for (let i = 0; i < daysThisWeekSoFar; i++) {
+      const d = new Date(mondayDate);
+      d.setDate(mondayDate.getDate() + i);
+      if (d.getFullYear() !== year || d.getMonth() !== month) continue;
+      const dayNum = d.getDate();
+      const val = (data[nom + '_' + dayNum] || '').toUpperCase();
+      if (!isWorkedCode(val) && val !== 'BU' && val !== 'DBL') return false;
+    }
+    return daysThisWeekSoFar >= 5; // rouge seulement si déjà 5+ jours
+  }
+
+  // Popup
+  const popup = document.createElement('div');
+  popup.className = 'pl-j1-popup';
+  popup.style.cssText = 'position:fixed;z-index:9999;background:var(--bg-sidebar);border:1px solid var(--border);border-radius:8px;min-width:220px;max-height:400px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,0.45);padding:10px 0;font-size:12px;';
+
+  const rect = button.getBoundingClientRect();
+  popup.style.top = (rect.bottom + 4) + 'px';
+  popup.style.left = rect.left + 'px';
+
+  const titleEl = document.createElement('div');
+  titleEl.style.cssText = 'padding:4px 12px 8px;font-size:10px;font-weight:700;color:#60a5fa;text-transform:uppercase;letter-spacing:0.04em;border-bottom:1px solid var(--border);margin-bottom:4px;';
+  const tomorrowLabel = tomorrow.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+  titleEl.textContent = 'LISTE J+1 — ' + tomorrowLabel;
+  popup.appendChild(titleEl);
+
+  if (!liste.length) {
+    const empty = document.createElement('div');
+    empty.style.cssText = 'padding:10px 12px;color:var(--text-muted);text-align:center;';
+    empty.textContent = 'Personne de prévu demain.';
+    popup.appendChild(empty);
+  } else {
+    // Compteur
+    const countEl = document.createElement('div');
+    countEl.style.cssText = 'padding:2px 12px 6px;font-size:10px;color:var(--text-muted);';
+    countEl.textContent = liste.length + ' chauffeur' + (liste.length > 1 ? 's' : '');
+    popup.appendChild(countEl);
+
+    liste.forEach(item => {
+      let color = 'var(--text-primary)';
+      if (item.code === 'BU') color = '#f97316';
+      else if (item.code === 'DBL') color = '#60a5fa';
+      else if (worksEveryDayThisWeek(item.nom)) color = '#f87171';
+
+      const row = document.createElement('div');
+      row.style.cssText = `padding:4px 12px;color:${color};font-size:12px;`;
+      row.textContent = item.nom;
+      popup.appendChild(row);
+    });
+  }
+
+  document.body.appendChild(popup);
+  setTimeout(() => document.addEventListener('click', function handler(e) {
+    if (!popup.contains(e.target) && e.target !== button) { popup.remove(); document.removeEventListener('click', handler); }
+  }), 0);
 }
