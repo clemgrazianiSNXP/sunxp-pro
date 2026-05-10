@@ -160,6 +160,41 @@ function buildPlanningToolbar(year, month) {
     addGenerateButton(bar, stationId, year, month);
   }
 
+  // Bulles d'alerte
+  const stationId = window.getActiveStationId ? window.getActiveStationId() : 'default';
+  const nbDays = getDaysInMonth(year, month);
+  const data = loadPlanning(stationId, year, month);
+  const allPersons = getPlanningChauffeurs(stationId);
+  const eligible = allPersons.filter(c => ['Chauffeur', 'Formateur'].includes(c.role));
+
+  // Bulle AST (astreintes potentielles — chauffeurs à 5 RSTD cette semaine)
+  const astData = getAstAlerts(eligible, data, year, month, nbDays);
+  const astBtn = document.createElement('button');
+  astBtn.className = 'h-btn';
+  if (astData.length > 0) {
+    astBtn.textContent = `⚠ ${astData.length} AST`;
+    astBtn.style.cssText += 'background:rgba(251,191,36,0.15);border-color:#fbbf24;color:#fbbf24;font-size:11px;';
+  } else {
+    astBtn.textContent = '✓ AST';
+    astBtn.style.cssText += 'font-size:11px;opacity:0.4;';
+  }
+  astBtn.onclick = () => showPlanningAlertPopup(astBtn, 'ASTREINTES POTENTIELLES (5j cette semaine)', astData, '#fbbf24');
+  bar.querySelector('.h-toolbar-left').appendChild(astBtn);
+
+  // Bulle Contraintes (violations détectées dans le planning actuel)
+  const violations = getConstraintViolations(eligible, data, year, month, nbDays);
+  const violBtn = document.createElement('button');
+  violBtn.className = 'h-btn';
+  if (violations.length > 0) {
+    violBtn.textContent = `⚠ ${violations.length} Contraintes`;
+    violBtn.style.cssText += 'background:rgba(248,113,113,0.15);border-color:#f87171;color:#f87171;font-size:11px;';
+  } else {
+    violBtn.textContent = '✓ Contraintes';
+    violBtn.style.cssText += 'font-size:11px;opacity:0.4;';
+  }
+  violBtn.onclick = () => showPlanningAlertPopup(violBtn, 'CONTRAINTES NON RESPECTÉES', violations, '#f87171');
+  bar.querySelector('.h-toolbar-left').appendChild(violBtn);
+
   return bar;
 }
 
@@ -453,4 +488,141 @@ function hexToRgba(hex, alpha) {
   const g = parseInt(hex.slice(3, 5), 16);
   const b = parseInt(hex.slice(5, 7), 16);
   return `rgba(${r},${g},${b},${alpha})`;
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   ALERTES PLANNING (bulles toolbar)
+   ══════════════════════════════════════════════════════════════ */
+
+/**
+ * Détecte les chauffeurs à 5 RSTD dans la semaine courante (candidats astreinte).
+ */
+function getAstAlerts(eligible, data, year, month, nbDays) {
+  const today = new Date();
+  // Trouver le lundi de la semaine courante
+  const dow = today.getDay();
+  const mondayDate = new Date(today);
+  mondayDate.setDate(today.getDate() - (dow === 0 ? 6 : dow - 1));
+
+  const alerts = [];
+  eligible.forEach(c => {
+    const nom = (c.prenom + ' ' + c.nom).trim();
+    let count = 0;
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(mondayDate);
+      d.setDate(mondayDate.getDate() + i);
+      if (d.getFullYear() === year && d.getMonth() === month) {
+        const dayNum = d.getDate();
+        if ((data[nom + '_' + dayNum] || '').toUpperCase() === 'RSTD') count++;
+      }
+    }
+    if (count >= 5) alerts.push({ nom, detail: count + ' RSTD cette semaine' });
+  });
+  return alerts;
+}
+
+/**
+ * Détecte les violations de contraintes dans le planning actuel.
+ */
+function getConstraintViolations(eligible, data, year, month, nbDays) {
+  const violations = [];
+
+  eligible.forEach(c => {
+    const nom = (c.prenom + ' ' + c.nom).trim();
+    const rstdDays = [];
+    for (let d = 1; d <= nbDays; d++) {
+      if ((data[nom + '_' + d] || '').toUpperCase() === 'RSTD') rstdDays.push(d);
+    }
+
+    // 6 jours consécutifs
+    let consecutive = 0;
+    for (let d = 1; d <= nbDays; d++) {
+      if ((data[nom + '_' + d] || '').toUpperCase() === 'RSTD') {
+        consecutive++;
+        if (consecutive >= 6) {
+          violations.push({ nom, detail: '6 jours consécutifs (jour ' + (d - 5) + '-' + d + ')' });
+          break;
+        }
+      } else { consecutive = 0; }
+    }
+
+    // Plus de 2 dimanches
+    let sundayCount = 0;
+    for (let d = 1; d <= nbDays; d++) {
+      if (new Date(year, month, d).getDay() === 0 && (data[nom + '_' + d] || '').toUpperCase() === 'RSTD') sundayCount++;
+    }
+    if (sundayCount > 2) violations.push({ nom, detail: sundayCount + ' dimanches travaillés (max 2)' });
+
+    // Plus de 5 RSTD dans une semaine classique (lun-dim)
+    let d = 1;
+    while (d <= nbDays) {
+      const date = new Date(year, month, d);
+      const dayOfWeek = date.getDay();
+      const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+      const monday = d + mondayOffset;
+      let weekCount = 0;
+      for (let i = monday; i < monday + 7; i++) {
+        if (i >= 1 && i <= nbDays && (data[nom + '_' + i] || '').toUpperCase() === 'RSTD') weekCount++;
+      }
+      if (weekCount > 5) {
+        violations.push({ nom, detail: '6 jours en semaine (S' + getWeekNumber(date) + ')' });
+        break;
+      }
+      d = monday + 7;
+    }
+
+    // Pas de week-end complet off
+    const weekends = [];
+    for (let dd = 1; dd <= nbDays; dd++) {
+      if (new Date(year, month, dd).getDay() === 6 && dd + 1 <= nbDays) weekends.push({ sat: dd, sun: dd + 1 });
+    }
+    const hasFullWE = weekends.some(we => {
+      const satVal = (data[nom + '_' + we.sat] || '').toUpperCase();
+      const sunVal = (data[nom + '_' + we.sun] || '').toUpperCase();
+      return satVal !== 'RSTD' && sunVal !== 'RSTD';
+    });
+    if (!hasFullWE && weekends.length > 0) violations.push({ nom, detail: 'Aucun week-end complet off' });
+  });
+
+  return violations;
+}
+
+/**
+ * Popup d'alerte planning (même style que heures.js).
+ */
+function showPlanningAlertPopup(button, title, items, color) {
+  document.querySelectorAll('.pl-alert-popup').forEach(p => p.remove());
+
+  const popup = document.createElement('div');
+  popup.className = 'pl-alert-popup';
+  popup.style.cssText = 'position:fixed;z-index:9999;background:var(--bg-sidebar);border:1px solid var(--border);border-radius:8px;min-width:260px;max-height:320px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,0.45);padding:10px 0;font-size:12px;';
+
+  const rect = button.getBoundingClientRect();
+  popup.style.top = (rect.bottom + 4) + 'px';
+  popup.style.left = rect.left + 'px';
+
+  const titleEl = document.createElement('div');
+  titleEl.style.cssText = `padding:4px 12px 8px;font-size:10px;font-weight:700;color:${color};text-transform:uppercase;letter-spacing:0.04em;border-bottom:1px solid var(--border);margin-bottom:4px;`;
+  titleEl.textContent = title;
+  popup.appendChild(titleEl);
+
+  if (!items.length) {
+    const empty = document.createElement('div');
+    empty.style.cssText = 'padding:10px 12px;color:var(--text-muted);text-align:center;';
+    empty.textContent = 'Aucune alerte.';
+    popup.appendChild(empty);
+  } else {
+    items.forEach(item => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;justify-content:space-between;padding:5px 12px;gap:8px;';
+      row.innerHTML = `<span style="color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.nom}</span><span style="color:${color};font-size:11px;white-space:nowrap;">${item.detail}</span>`;
+      popup.appendChild(row);
+    });
+  }
+
+  document.body.appendChild(popup);
+  setTimeout(() => document.addEventListener('click', function handler(e) {
+    if (!popup.contains(e.target) && e.target !== button) { popup.remove(); document.removeEventListener('click', handler); }
+  }), 0);
 }
