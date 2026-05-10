@@ -1,7 +1,7 @@
 /* js/ressources-humaines.js — Module Ressources Humaines (SunXP Pro) */
 console.log('ressources-humaines.js chargé');
 
-let rhTab = 'check-tsm'; // 'check-tsm' | 'extraction-paie'
+let rhTab = 'check-tsm'; // 'check-tsm' | 'extraction-paie' | 'suivi-papiers' | 'docs-employes'
 
 function initRH() {
   rhTab = 'check-tsm';
@@ -21,6 +21,8 @@ function renderRH() {
     <div class="h-toolbar-left">
       <button class="h-btn rh-tab-btn ${rhTab === 'check-tsm' ? 'rh-tab-active' : ''}" data-rhtab="check-tsm">Check TSM</button>
       <button class="h-btn rh-tab-btn ${rhTab === 'extraction-paie' ? 'rh-tab-active' : ''}" data-rhtab="extraction-paie">Extraction de paie</button>
+      <button class="h-btn rh-tab-btn ${rhTab === 'suivi-papiers' ? 'rh-tab-active' : ''}" data-rhtab="suivi-papiers">📋 Suivi Papiers</button>
+      <button class="h-btn rh-tab-btn ${rhTab === 'docs-employes' ? 'rh-tab-active' : ''}" data-rhtab="docs-employes">📄 Documents employés</button>
     </div>
     <div class="h-toolbar-center"></div>
     <div class="h-toolbar-right"></div>
@@ -37,8 +39,14 @@ function renderRH() {
 
   if (rhTab === 'check-tsm') {
     content.appendChild(renderCheckTSM());
-  } else {
+  } else if (rhTab === 'extraction-paie') {
     content.appendChild(renderExtractionPaie());
+  } else if (rhTab === 'suivi-papiers') {
+    const p = document.createElement('p'); p.style.cssText = 'color:var(--text-muted);text-align:center;margin-top:40px;'; p.textContent = '📋 Suivi Papiers — à venir';
+    content.appendChild(p);
+  } else if (rhTab === 'docs-employes') {
+    const p = document.createElement('p'); p.style.cssText = 'color:var(--text-muted);text-align:center;margin-top:40px;'; p.textContent = '📄 Documents employés — à venir';
+    content.appendChild(p);
   }
 
   container.appendChild(content);
