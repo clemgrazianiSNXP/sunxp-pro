@@ -271,21 +271,13 @@ function buildCTExpirationCard(sid) {
 
 /* ── Card AST + Heures Supp (DSP/CE) ──────────────────────── */
 function buildASTCard(sid) {
-  const card = createCard('📞', 'AST + Heures Supp');
-  const body = card.querySelector('.accueil-card-body');
-
-  let html = '';
-
-  // AST : chauffeurs avec 5 RSTD cette semaine (depuis le planning)
+  // Calculer les données pour le badge
   const now = new Date();
   const year = now.getFullYear(), month = now.getMonth();
-  const nbDays = new Date(year, month + 1, 0).getDate();
   const data = typeof loadPlanning === 'function' ? loadPlanning(sid, year, month) : {};
   let chauffeurs = [];
   try { chauffeurs = JSON.parse(localStorage.getItem(sid + '-repertoire')) || []; } catch (_) {}
   const eligible = chauffeurs.filter(c => ['Chauffeur', 'Formateur'].includes(c.role));
-
-  // Trouver la semaine en cours (lundi → dimanche)
   const monday = new Date(now);
   const dow = monday.getDay() || 7;
   monday.setDate(monday.getDate() - dow + 1);
@@ -303,34 +295,49 @@ function buildASTCard(sid) {
     if (rstdCount >= 5) astList.push({ nom, rstdCount });
   });
 
+  let overtimeData = [];
+  if (typeof getOvertimeData === 'function') {
+    overtimeData = getOvertimeData(sid, now);
+  }
+  overtimeData.sort((a, b) => b.supMin - a.supMin);
+
+  const badgeCount = astList.length + overtimeData.length;
+  const card = createCard('📞', 'Chauffeurs à mettre en AST', badgeCount);
+  const body = card.querySelector('.accueil-card-body');
+
+  let html = '';
+
+  // AST
   if (astList.length) {
     html += '<div style="font-size:11px;font-weight:700;color:#f97316;margin-bottom:6px;">📞 Astreintes cette semaine (' + astList.length + ')</div>';
     astList.forEach(a => {
-      html += '<div style="font-size:11px;padding:2px 0;border-bottom:1px solid var(--border);">' + a.nom + ' <span style="color:#f97316;">(' + a.rstdCount + 'j)</span></div>';
+      // Chercher les HS de ce chauffeur
+      const hs = overtimeData.find(o => o.nom === a.nom);
+      html += '<div style="display:flex;justify-content:space-between;font-size:11px;padding:2px 0;border-bottom:1px solid var(--border);"><span>' + a.nom + ' <span style="color:#f97316;">(' + a.rstdCount + 'j)</span></span>';
+      if (hs) html += '<span style="color:#f87171;font-weight:700;">+' + (typeof minToTime === 'function' ? minToTime(hs.supMin) : hs.supMin + 'min') + '</span>';
+      html += '</div>';
     });
   } else {
     html += '<div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">✅ Aucune astreinte cette semaine</div>';
   }
 
-  // HS semaine -1 : heures supp triées décroissant
-  let overtimeData = [];
-  if (typeof getOvertimeData === 'function') {
-    overtimeData = getOvertimeData(sid, now);
-  }
-
-  if (overtimeData.length) {
-    html += '<div style="font-size:11px;font-weight:700;color:#f87171;margin:10px 0 6px;">⚠️ Heures supp. semaine -1 (' + overtimeData.length + ')</div>';
-    overtimeData.sort((a, b) => b.supMin - a.supMin).forEach(item => {
+  // HS semaine -1 (ceux qui ne sont pas déjà dans AST)
+  const hsOnly = overtimeData.filter(o => !astList.find(a => a.nom === o.nom));
+  if (hsOnly.length) {
+    html += '<div style="font-size:11px;font-weight:700;color:#f87171;margin:10px 0 6px;">⚠️ Heures supp. semaine -1</div>';
+    hsOnly.forEach(item => {
       html += '<div style="display:flex;justify-content:space-between;font-size:11px;padding:2px 0;border-bottom:1px solid var(--border);"><span>' + item.nom + '</span><span style="color:#f87171;font-weight:700;">+' + (typeof minToTime === 'function' ? minToTime(item.supMin) : item.supMin + 'min') + '</span></div>';
     });
-  } else {
-    html += '<div style="font-size:11px;color:var(--text-muted);margin-top:8px;">✅ Aucune heure supp. semaine -1</div>';
+  }
+
+  if (!astList.length && !overtimeData.length) {
+    html = '<div style="font-size:11px;color:var(--text-muted);text-align:center;">✅ RAS</div>';
   }
 
   body.innerHTML = html;
 
-  card.style.cursor = 'pointer';
-  card.querySelector('.accueil-card-body').onclick = (e) => { e.stopPropagation(); showModule('heures'); };
+  card.querySelector('.accueil-card-body').style.cursor = 'pointer';
+  card.querySelector('.accueil-card-body').onclick = () => { showModule('planning'); };
   return card;
 }
 
