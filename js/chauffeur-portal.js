@@ -3,7 +3,7 @@ console.log('chauffeur-portal.js chargé');
 
 let portalChauffeur = null;
 let portalStationId = null;
-let portalTab = 'heures';
+let portalTab = 'accueil';
 let portalMonth = new Date();
 let portalStatsWeekIndex = 0;
 
@@ -11,7 +11,7 @@ let portalStatsWeekIndex = 0;
 function initChauffeurPortal(chauffeur, stationId) {
   portalChauffeur = chauffeur;
   portalStationId = stationId;
-  portalTab = 'heures';
+  portalTab = 'accueil';
   portalMonth = new Date();
   portalStatsWeekIndex = 0;
   // Fermer le menu hamburger s'il était ouvert (évite d'afficher les onglets responsable)
@@ -40,32 +40,23 @@ function renderPortal() {
     <div style="font-size:11px;color:var(--text-muted);opacity:0.7;">Station ${escP(portalStationId)} · ${escP(portalChauffeur.id_amazon)}</div>`;
   c.appendChild(header);
 
-  // Onglets
-  const tabs = document.createElement('div');
-  tabs.style.cssText = 'display:flex;background:var(--bg-sidebar);border-bottom:1px solid var(--border);overflow-x:auto;';
-  const tabDefs = [
-    ['heures','⏱','Mes Heures'],
-    ['stats','📊','Mes Stats'],
-    ['prime','💰','Ma Prime'],
-    ['prod','📋','Ma Prod'],
-    ['degats','🔧','Mes Dégâts'],
-    ['rapport','📋','Mon Rapport'],
-    ['badges','🏆','Mes Badges']
-  ];
-  tabDefs.forEach(([id, icon, label]) => {
-    const btn = document.createElement('button');
-    const isActive = portalTab === id;
-    btn.style.cssText = `flex:1;padding:12px 6px 10px;border:none;border-bottom:3px solid ${isActive?'var(--accent)':'transparent'};background:${isActive?'var(--accent-dim)':'transparent'};color:${isActive?'var(--accent)':'var(--text-muted)'};font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;display:flex;flex-direction:column;align-items:center;gap:2px;transition:all 0.18s;`;
-    btn.innerHTML = `<span style="font-size:18px;">${icon}</span><span>${label}</span>`;
-    btn.onclick = () => { portalTab = id; renderPortal(); };
-    tabs.appendChild(btn);
-  });
-  c.appendChild(tabs);
+  // Onglets — seulement si pas sur l'accueil
+  if (portalTab !== 'accueil') {
+    const backBar = document.createElement('div');
+    backBar.style.cssText = 'padding:10px 16px;background:var(--bg-sidebar);border-bottom:1px solid var(--border);';
+    const backBtn = document.createElement('button');
+    backBtn.style.cssText = 'background:transparent;border:1px solid var(--border);border-radius:8px;padding:8px 14px;color:var(--text-primary);font-size:12px;font-weight:600;cursor:pointer;';
+    backBtn.textContent = '← Retour à l\'accueil';
+    backBtn.onclick = () => { portalTab = 'accueil'; renderPortal(); };
+    backBar.appendChild(backBtn);
+    c.appendChild(backBar);
+  }
 
   // Contenu
   const body = document.createElement('div');
   body.style.cssText = 'flex:1;overflow:auto;padding:16px;';
-  if (portalTab === 'heures') body.appendChild(portalHeures());
+  if (portalTab === 'accueil' && typeof portalAccueil === 'function') body.appendChild(portalAccueil());
+  else if (portalTab === 'heures') body.appendChild(portalHeures());
   else if (portalTab === 'stats') body.appendChild(portalStats());
   else if (portalTab === 'prime') body.appendChild(portalPrime());
   else if (portalTab === 'degats' && typeof portalDegats === 'function') body.appendChild(portalDegats());

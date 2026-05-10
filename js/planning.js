@@ -220,6 +220,31 @@ function buildPlanningToolbar(year, month) {
   sdrBtn.onclick = () => showPlanningAlertPopup(sdrBtn, 'SDR — 4 JOURS CETTE SEMAINE', sdrData, '#4ade80');
   bar.querySelector('.h-toolbar-left').appendChild(sdrBtn);
 
+  // Bouton Publier S+1 aux chauffeurs
+  const publishBtn = document.createElement('button');
+  publishBtn.className = 'rep-btn rep-btn-primary';
+  publishBtn.style.cssText = 'font-size:11px;padding:6px 12px;margin-left:auto;';
+  const nextMonday = getMondayOfPortal ? getMondayOfPortal(new Date()) : new Date();
+  nextMonday.setDate(nextMonday.getDate() + 7);
+  const nextWeekKey = nextMonday.toISOString().slice(0, 10);
+  const published = getPublishedWeeks ? getPublishedWeeks(stationId) : [];
+  if (published.includes(nextWeekKey)) {
+    publishBtn.textContent = '✅ S+1 publiée';
+    publishBtn.style.background = '#4ade80';
+    publishBtn.style.color = '#000';
+    publishBtn.disabled = true;
+  } else {
+    publishBtn.textContent = '📤 Publier S+1';
+    publishBtn.onclick = () => {
+      if (typeof publishWeek === 'function') publishWeek(stationId, nextMonday);
+      // Publier aussi la semaine en cours si pas encore fait
+      const curMonday = getMondayOfPortal ? getMondayOfPortal(new Date()) : new Date();
+      if (typeof publishWeek === 'function') publishWeek(stationId, curMonday);
+      renderPlanning();
+    };
+  }
+  bar.querySelector('.h-toolbar-right').appendChild(publishBtn);
+
   return bar;
 }
 
