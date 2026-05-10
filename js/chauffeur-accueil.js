@@ -237,7 +237,8 @@ function buildPortalPause(sid, nom, now) {
 
 /* ── Enregistrer la pause dans Heures ─────────────────────── */
 function savePauseToHeures(sid, nom, date) {
-  const dk = sid + '-heures-' + date.toISOString().slice(0, 10);
+  const dateStr = date.toISOString().slice(0, 10);
+  const dk = sid + '-heures-' + dateStr;
   try {
     const raw = localStorage.getItem(dk);
     if (!raw) return;
@@ -247,6 +248,10 @@ function savePauseToHeures(sid, nom, date) {
     if (row) {
       row.pauseHeure = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
       localStorage.setItem(dk, JSON.stringify(data));
+      // Sync vers Supabase
+      if (typeof dbSave === 'function') {
+        dbSave('heures', dk, { station_id: sid, date_jour: dateStr }, data);
+      }
     }
   } catch (_) {}
 }
