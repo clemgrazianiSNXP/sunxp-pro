@@ -121,14 +121,17 @@ function buildWeekRow(sid, nom, monday, weekNum, label, isPublished) {
 
     let statusColor = 'var(--text-muted)';
     let statusIcon = '—';
-    if (statut === 'P' || statut === 'Présent') { statusColor = '#4ade80'; statusIcon = '✓'; }
-    else if (statut === 'R' || statut === 'Repos') { statusColor = '#60a5fa'; statusIcon = 'R'; }
-    else if (statut === 'CP') { statusColor = '#fbbf24'; statusIcon = 'CP'; }
-    else if (statut === 'AM' || statut === 'AT') { statusColor = '#f87171'; statusIcon = statut; }
-    else if (statut === 'F') { statusColor = '#a78bfa'; statusIcon = 'F'; }
-    else if (statut) { statusColor = '#94a3b8'; statusIcon = statut; }
+    let statusBg = 'transparent';
+    if (statut === 'P' || statut === 'Présent') { statusColor = '#4ade80'; statusIcon = '✓'; statusBg = 'rgba(74,222,128,0.1)'; }
+    else if (statut === 'R' || statut === 'Repos' || statut === 'REP') { statusColor = '#60a5fa'; statusIcon = 'R'; statusBg = 'rgba(96,165,250,0.1)'; }
+    else if (statut === 'RSTD') { statusColor = '#60a5fa'; statusIcon = 'RS'; statusBg = 'rgba(96,165,250,0.1)'; }
+    else if (statut === 'CP') { statusColor = '#fbbf24'; statusIcon = 'CP'; statusBg = 'rgba(251,191,36,0.1)'; }
+    else if (statut === 'AM' || statut === 'AT') { statusColor = '#f87171'; statusIcon = statut; statusBg = 'rgba(248,113,113,0.1)'; }
+    else if (statut === 'F') { statusColor = '#a78bfa'; statusIcon = 'F'; statusBg = 'rgba(167,139,250,0.1)'; }
+    else if (statut === 'AST') { statusColor = '#f97316'; statusIcon = 'AST'; statusBg = 'rgba(249,115,22,0.1)'; }
+    else if (statut) { statusColor = '#94a3b8'; statusIcon = statut.length > 3 ? statut.slice(0,3) : statut; statusBg = 'rgba(148,163,184,0.08)'; }
 
-    dayEl.innerHTML = `<div style="font-weight:700;font-size:11px;color:${isToday ? 'var(--accent)' : 'var(--text-primary)'};">${dayName}</div><div style="font-size:9px;color:var(--text-muted);">${dayNum}</div><div style="font-size:14px;font-weight:800;color:${statusColor};margin-top:2px;">${statusIcon}</div>`;
+    dayEl.innerHTML = `<div style="font-weight:700;font-size:11px;color:${isToday ? 'var(--accent)' : 'var(--text-primary)'};">${dayName}</div><div style="font-size:9px;color:var(--text-muted);">${dayNum}</div><div style="font-size:10px;font-weight:800;color:${statusColor};margin-top:2px;background:${statusBg};border-radius:4px;padding:1px 2px;">${statusIcon}</div>`;
     days.appendChild(dayEl);
   }
 
