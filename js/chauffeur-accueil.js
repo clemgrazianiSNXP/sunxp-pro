@@ -202,15 +202,27 @@ function buildPortalPause(sid, nom, now) {
   if (statutPlanning !== 'RSTD') return section; // Pas de bouton si pas RSTD
 
   // Vérifier si le chauffeur est saisi dans Heures aujourd'hui
-  const dateStr = now.toISOString().slice(0, 10);
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  const dateStr = y + '-' + m + '-' + d;
   const dk = sid + '-heures-' + dateStr;
   let isInHeures = false;
+  let alreadyHasPause = false;
+  let existingPauseTime = '';
   try {
     const raw = localStorage.getItem(dk);
     if (raw) {
       const data = JSON.parse(raw);
       if (data.rows) {
-        isInHeures = Object.values(data.rows).some(r => r.nom && r.nom.trim() === nom.trim());
+        const row = Object.values(data.rows).find(r => r.nom && r.nom.trim() === nom.trim());
+        if (row) {
+          isInHeures = true;
+          if (row.pauseHeure) {
+            alreadyHasPause = true;
+            existingPauseTime = row.pauseHeure;
+          }
+        }
       }
     }
   } catch (_) {}
@@ -219,19 +231,23 @@ function buildPortalPause(sid, nom, now) {
 
   section.style.cssText = 'background:linear-gradient(135deg, rgba(96,165,250,0.1), rgba(74,222,128,0.1));border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center;';
 
-  // Vérifier si pause déjà prise aujourd'hui
-  const pauseKey = sid + '-pause-' + nom + '-' + now.toISOString().slice(0, 10);
+  // Vérifier aussi en localStorage (pour l'appareil actuel)
+  const pauseKey = sid + '-pause-' + nom + '-' + dateStr;
   const pauseData = localStorage.getItem(pauseKey);
 
-  if (pauseData) {
-    const pauseTime = JSON.parse(pauseData);
-    const reprise = new Date(pauseTime.start);
-    reprise.setMinutes(reprise.getMinutes() + 45);
+  if (alreadyHasPause || pauseData) {
+    const pauseTime = existingPauseTime || (pauseData ? new Date(JSON.parse(pauseData).start).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '');
+    const reprise = new Date();
+    // Calculer reprise depuis l'heure de pause
+    if (pauseTime) {
+      const parts = pauseTime.split(':');
+      reprise.setHours(parseInt(parts[0]), parseInt(parts[1]) + 45, 0);
+    }
     const repriseStr = reprise.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 
     section.innerHTML = `
       <div style="font-size:16px;margin-bottom:4px;">☕</div>
-      <div style="font-size:13px;font-weight:700;color:var(--text-primary);">Pause prise à ${new Date(pauseTime.start).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</div>
+      <div style="font-size:13px;font-weight:700;color:var(--text-primary);">Pause prise à ${pauseTime}</div>
       <div style="font-size:14px;font-weight:800;color:var(--accent);margin-top:4px;">Tu dois reprendre à ${repriseStr}</div>
       <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Bonne pause ! ☀️</div>
     `;
@@ -251,6 +267,7 @@ function buildPortalPause(sid, nom, now) {
       btn.disabled = true;
       btn.textContent = '⏳ Enregistrement...';
       const startTime = new Date().toISOString();
+      const pauseKey = sid + '-pause-' + nom + '-' + dateStr;
       localStorage.setItem(pauseKey, JSON.stringify({ start: startTime }));
 
       // Enregistrer dans les données Heures du responsable
