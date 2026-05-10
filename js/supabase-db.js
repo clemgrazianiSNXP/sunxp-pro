@@ -135,9 +135,10 @@ window.dbSaveResponsables = async function (stationId, responsables) {
 window.dbSavePlanning = async function (stationId, year, month, data) {
   if (!sb()) return;
   try {
-    const payload = { station_id: stationId, year: year, month: month + 1, data };
-    const { error } = await sb().from('planning').upsert(payload, { onConflict: 'station_id,year,month' });
-    if (error) console.error('dbSavePlanning error:', error.message, error.details, error.hint);
+    // Delete + insert (plus fiable que upsert avec mots réservés year/month)
+    await sb().from('planning').delete().eq('station_id', stationId).eq('year', year).eq('month', month + 1);
+    const { error } = await sb().from('planning').insert({ station_id: stationId, year: year, month: month + 1, data });
+    if (error) console.error('dbSavePlanning error:', error.message, error.details);
     else console.log('✅ Planning sauvé Supabase:', year + '-' + (month + 1));
   } catch (e) { console.warn('dbSavePlanning catch:', e.message); }
 };
@@ -145,9 +146,9 @@ window.dbSavePlanning = async function (stationId, year, month, data) {
 window.dbSavePlanningMeta = async function (stationId, year, month, meta) {
   if (!sb()) return;
   try {
-    const payload = { station_id: stationId, year: year, month: month + 1, data: meta };
-    const { error } = await sb().from('planning_meta').upsert(payload, { onConflict: 'station_id,year,month' });
-    if (error) console.error('dbSavePlanningMeta error:', error.message, error.details, error.hint);
+    await sb().from('planning_meta').delete().eq('station_id', stationId).eq('year', year).eq('month', month + 1);
+    const { error } = await sb().from('planning_meta').insert({ station_id: stationId, year: year, month: month + 1, data: meta });
+    if (error) console.error('dbSavePlanningMeta error:', error.message, error.details);
     else console.log('✅ Planning meta sauvé Supabase:', year + '-' + (month + 1));
   } catch (e) { console.warn('dbSavePlanningMeta catch:', e.message); }
 };
