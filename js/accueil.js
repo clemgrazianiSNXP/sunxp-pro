@@ -58,6 +58,7 @@ function renderAccueil() {
   colRh.appendChild(rhTitle);
   colRh.appendChild(buildDemandesCard(sid));
   colRh.appendChild(buildVMExpirationCard(sid));
+  colRh.appendChild(buildAcomptesVirementCard(sid));
   grid.appendChild(colRh);
 
   container.appendChild(grid);
@@ -262,6 +263,75 @@ function buildCTExpirationCard(sid) {
   card.style.cursor = 'pointer';
   card.onclick = () => { showModule('flotte'); setTimeout(() => { flotteTab = 'entretien'; renderFlotte(); }, 50); };
   return card;
+}
+
+/* ── Card Virements acomptes (RH) ─────────────────────────── */
+function buildAcomptesVirementCard(sid) {
+  const card = createCard('💶', 'Virements acomptes');
+  const body = card.querySelector('.accueil-card-body');
+
+  const virements = getAcomptesVirements(sid);
+
+  if (!virements.virement15.length && !virements.virement22.length) {
+    body.innerHTML = '<p style="color:var(--text-muted);font-size:12px;text-align:center;margin:8px 0;">✅ Aucun virement à faire</p>';
+  } else {
+    let html = '';
+    if (virements.virement15.length) {
+      const total15 = virements.virement15.reduce((s, v) => s + v.montant, 0);
+      html += '<div style="font-size:11px;font-weight:700;color:#f59e0b;margin:6px 0 4px;">💸 Virement le 15 — ' + total15 + '€</div>';
+      html += '<div style="max-height:60px;overflow-y:auto;font-size:11px;">';
+      virements.virement15.forEach(v => {
+        html += '<div style="display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid var(--border);"><span>' + v.nom + '</span><span style="font-weight:700;color:#f59e0b;">' + v.montant + '€</span></div>';
+      });
+      html += '</div>';
+    }
+    if (virements.virement22.length) {
+      const total22 = virements.virement22.reduce((s, v) => s + v.montant, 0);
+      html += '<div style="font-size:11px;font-weight:700;color:#f59e0b;margin:6px 0 4px;">💸 Virement le 22 — ' + total22 + '€</div>';
+      html += '<div style="max-height:60px;overflow-y:auto;font-size:11px;">';
+      virements.virement22.forEach(v => {
+        html += '<div style="display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid var(--border);"><span>' + v.nom + '</span><span style="font-weight:700;color:#f59e0b;">' + v.montant + '€</span></div>';
+      });
+      html += '</div>';
+    }
+    body.innerHTML = html;
+  }
+
+  card.style.cursor = 'pointer';
+  card.onclick = () => { showModule('heures'); setTimeout(() => { const btn = document.getElementById('hamburger-btn'); if (btn) btn.click(); setTimeout(() => { if (typeof setMenuTab === 'function') setMenuTab('demandes-mgr'); }, 100); }, 100); };
+  return card;
+}
+
+/* ── Helper virements acomptes ────────────────────────────── */
+function getAcomptesVirements(sid) {
+  let acomptes = [];
+  try { acomptes = JSON.parse(localStorage.getItem(sid + '-acomptes')) || []; } catch (_) {}
+
+  const now = new Date();
+  const currentMonth = now.getMonth();
+  const currentYear = now.getFullYear();
+
+  // Filtrer les acomptes acceptés du mois en cours
+  const accepted = acomptes.filter(a => {
+    if (a.statut !== 'acceptee') return false;
+    const d = new Date(a.dateDemande || a.date);
+    return d.getFullYear() === currentYear && d.getMonth() === currentMonth;
+  });
+
+  const virement15 = []; // demandes du 1 au 14
+  const virement22 = []; // demandes du 15 au 22
+
+  accepted.forEach(a => {
+    const d = new Date(a.dateDemande || a.date);
+    const day = d.getDate();
+    const montant = parseFloat(a.montant) || 0;
+    if (montant <= 0) return;
+    const nom = a.chauffeurNom || '?';
+    if (day >= 1 && day <= 14) virement15.push({ nom, montant });
+    else if (day >= 15 && day <= 22) virement22.push({ nom, montant });
+  });
+
+  return { virement15, virement22 };
 }
 
 /* ── Helpers alertes VM et CT ─────────────────────────────── */
