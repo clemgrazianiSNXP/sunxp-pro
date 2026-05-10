@@ -131,6 +131,13 @@ function buildPlanningToolbar(year, month) {
   bar.querySelector('#pl-prev').onclick = () => { planningCurrentDate.setMonth(planningCurrentDate.getMonth() - 1); renderPlanning(); };
   bar.querySelector('#pl-next').onclick = () => { planningCurrentDate.setMonth(planningCurrentDate.getMonth() + 1); renderPlanning(); };
   bar.querySelector('#pl-today').onclick = () => { planningCurrentDate = new Date(); renderPlanning(); };
+
+  // Bouton Générer (depuis planning-generator.js)
+  if (typeof addGenerateButton === 'function') {
+    const stationId = window.getActiveStationId ? window.getActiveStationId() : 'default';
+    addGenerateButton(bar, stationId, year, month);
+  }
+
   return bar;
 }
 
