@@ -22,7 +22,7 @@ const PLANNING_SUMMARY_ROWS = [
   { key: 'routes',     label: 'Routes réalisées',  color: '#4ade80', editable: true },
   { key: 'cut',        label: 'Cut',               color: '#f87171', editable: true },
   { key: 'bu_paye',    label: 'BU payé',           color: '#f97316', editable: true },
-  { key: 'nb_chauffeurs', label: 'Nb chauffeurs',  color: '#fbbf24', auto: 'RSTD' },
+  { key: 'nb_chauffeurs', label: 'Nb chauffeurs',  color: '#fbbf24', auto: 'WORKED' },
   { key: 'bu_planifie',   label: 'BU planifié',    color: '#f97316', auto: 'BU' }
 ];
 
@@ -255,7 +255,7 @@ function buildFixedLeft(chauffeurs, data, meta, nbDays, year, month) {
   chauffeurs.forEach(c => {
     const nom = (c.prenom + ' ' + c.nom).trim();
     const role = c.role || '';
-    const rstdCount = countCodeForDriver(data, nom, 'RSTD', nbDays);
+    const rstdCount = countCodeForDriver(data, nom, 'WORKED', nbDays);
     const tr = document.createElement('tr');
     tr.style.cssText = 'height:26px;';
     tr.innerHTML = `
@@ -452,7 +452,7 @@ function updateFixedLeftCounts(chauffeurs, data, nbDays) {
   if (!container) return;
   chauffeurs.forEach(c => {
     const nom = (c.prenom + ' ' + c.nom).trim();
-    const count = countCodeForDriver(data, nom, 'RSTD', nbDays);
+    const count = countCodeForDriver(data, nom, 'WORKED', nbDays);
     const cell = container.querySelector(`.pl-rstd-count[data-nom="${CSS.escape(nom)}"]`);
     if (cell) cell.textContent = count;
   });
@@ -463,7 +463,9 @@ function countCodeForDay(data, chauffeurs, day, code) {
   let count = 0;
   chauffeurs.forEach(c => {
     const nom = (c.prenom + ' ' + c.nom).trim();
-    if ((data[nom + '_' + day] || '').toUpperCase() === code) count++;
+    const val = (data[nom + '_' + day] || '').toUpperCase();
+    if (code === 'WORKED') { if (isWorkedCode(val)) count++; }
+    else { if (val === code) count++; }
   });
   return count;
 }
@@ -471,7 +473,9 @@ function countCodeForDay(data, chauffeurs, day, code) {
 function countCodeForDriver(data, nom, code, nbDays) {
   let count = 0;
   for (let d = 1; d <= nbDays; d++) {
-    if ((data[nom + '_' + d] || '').toUpperCase() === code) count++;
+    const val = (data[nom + '_' + d] || '').toUpperCase();
+    if (code === 'WORKED') { if (isWorkedCode(val)) count++; }
+    else { if (val === code) count++; }
   }
   return count;
 }
