@@ -235,4 +235,87 @@ function showAddProblemeModal(problemes, onDone) {
 
 /* ── Fonctions exposées ───────────────────────────────────── */
 function renderProblemesResponsable() { return renderProblemes(true); }
-function renderProblemesChauffeur() { return renderProblemes(false); }
+function renderProblemesChauffeur() {
+  // Filtrer par le camion attribué au chauffeur aujourd'hui
+  if (typeof portalChauffeur !== 'undefined' && portalChauffeur && typeof portalStationId !== 'undefined') {
+    const nom = ((portalChauffeur.prenom || '') + ' ' + (portalChauffeur.nom || '')).trim();
+    const sid = portalStationId;
+    const today = new Date();
+    const attrKey = sid + '-attribution-' + today.toISOString().slice(0, 10);
+    let myPlaque = null;
+    try {
+      const attrData = JSON.parse(localStorage.getItem(attrKey));
+      if (attrData) {
+        const myRow = attrData.find(r => r.chauffeur && r.chauffeur.trim().toLowerCase() === nom.toLowerCase());
+        if (myRow) myPlaque = myRow.plaque;
+      }
+    } catch (_) {}
+
+    if (myPlaque) {
+      return renderProblemesChauffeurFiltered(myPlaque, nom);
+    }
+  }
+  return renderProblemes(false);
+}
+
+function renderProblemesChauffeurFiltered(plaque, chauffeurNom) {
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'padding:16px;display:flex;flex-direction:column;gap:14px;overflow-y:auto;';
+  wrap.innerHTML = '<h3 style="font-size:14px;color:var(--accent);margin:0;">🚛 Problèmes — ' + plaque + '</h3>';
+
+  let problemes = loadProblemes();
+
+  // Bouton ajouter
+  const addBtn = document.createElement('button');
+  addBtn.className = 'rep-btn rep-btn-primary';
+  addBtn.style.cssText = 'align-self:flex-start;';
+  addBtn.textContent = '+ Signaler un problème';
+  addBtn.onclick = () => {
+    showAddProblemeModalForPlaque(plaque, chauffeurNom, () => {
+      problemes = loadProblemes();
+      renderList();
+    });
+  };
+  wrap.appendChild(addBtn);
+
+  const listDiv = document.createElement('div');
+  wrap.appendChild(listDiv);
+
+  function renderList() {
+    listDiv.innerHTML = '';
+    const myProblemes = problemes.filter(p => p.plaque === plaque);
+    if (!myProblemes.length) {
+      listDiv.innerHTML = '<p style="color:var(--text-muted);font-size:12px;text-align:center;margin-top:12px;">✅ Aucun problème signalé pour ' + plaque + '</p>';
+      return;
+    }
+    myProblemes.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(p => {
+      const card = document.createElement('div');
+      card.style.cssText = 'background:var(--bg-primary);border:1px solid var(--border);border-left:3px solid #f97316;border-radius:8px;padding:10px;font-size:12px;';
+      card.innerHTML = '<div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-weight:600;color:var(--accent);">' + plaque + '</span><span style="font-size:10px;color:var(--text-muted);">' + new Date(p.date).toLocaleDateString('fr-FR') + '</span></div><div style="color:var(--text-primary);">' + (p.note || '') + '</div><div style="font-size:10px;color:var(--text-muted);margin-top:4px;">Par : ' + (p.auteur || '?') + '</div>';
+      listDiv.appendChild(card);
+    });
+  }
+  renderList();
+  return wrap;
+}
+
+function showAddProblemeModalForPlaque(plaque, auteurNom, onDone) {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99999;display:flex;align-items:center;justify-content:center;';
+  const modal = document.createElement('div');
+  modal.style.cssText = 'background:var(--bg-sidebar);border-radius:14px;padding:24px;width:90%;max-width:360px;';
+  modal.innerHTML = '<div style="font-size:15px;font-weight:700;margin-bottom:14px;color:var(--text-primary);">🚛 Signaler un problème — ' + plaque + '</div><textarea id="prob-note-ch" style="width:100%;min-height:80px;padding:10px;font-size:13px;border:1px solid var(--border);border-radius:8px;background:var(--bg-primary);color:var(--text-primary);resize:vertical;font-family:var(--font-family);" placeholder="Décrivez le problème..."></textarea><div style="display:flex;gap:10px;margin-top:14px;"><button id="prob-ok-ch" style="flex:1;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;">Envoyer</button><button id="prob-cancel-ch" style="background:transparent;border:1px solid var(--border);color:var(--text-muted);border-radius:8px;padding:10px;font-size:13px;cursor:pointer;">Annuler</button></div>';
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+  overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
+  modal.querySelector('#prob-cancel-ch').onclick = () => overlay.remove();
+  modal.querySelector('#prob-ok-ch').onclick = () => {
+    const note = modal.querySelector('#prob-note-ch').value.trim();
+    if (!note) { alert('Décrivez le problème.'); return; }
+    const problemes = loadProblemes();
+    problemes.push({ plaque, note, auteur: auteurNom, date: new Date().toISOString() });
+    saveProblemes(problemes);
+    overlay.remove();
+    if (onDone) onDone();
+  };
+}
