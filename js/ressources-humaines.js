@@ -178,7 +178,7 @@ function renderExtractionPaie() {
       <td>${mkInp(cId, 'heureNormal', d.heureNormal, paieKey)}</td>
       <td style="padding:2px;text-align:center;font-weight:600;color:#fbbf24;font-size:10px;">${getCpFromPlanning(stationId, nom, year, month) || '0'}</td>
       <td>${mkInp(cId, 'avancePrime', d.avancePrime, paieKey)}</td>
-      <td>${mkInp(cId, 'acompte', d.acompte, paieKey)}</td>
+      <td style="padding:2px;text-align:center;font-weight:600;color:#f97316;font-size:10px;">${typeof getAcomptesTotal === 'function' ? (getAcomptesTotal(stationId, cId, year, month) || '0') + '€' : (d.acompte || '')}</td>
       <td>${mkInp(cId, 'atd', d.atd, paieKey)}</td>
       <td>${mkInp(cId, 'absAnticipees', d.absAnticipees, paieKey)}</td>
       <td>${mkInp(cId, 'evenements', d.evenements, paieKey)}</td>
@@ -296,7 +296,7 @@ function exportPaieExcel(chauffeurs, stationId, year, month, monthLabel) {
       d.heureNormal || '',
       getCpFromPlanning(stationId, nom, year, month) || 0,
       d.avancePrime || '',
-      d.acompte || '',
+      typeof getAcomptesTotal === 'function' ? getAcomptesTotal(stationId, cId, year, month) : (d.acompte || ''),
       d.atd || '',
       d.absAnticipees || '',
       d.evenements || '',
