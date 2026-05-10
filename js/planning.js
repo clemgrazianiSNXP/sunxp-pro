@@ -721,22 +721,30 @@ function showListeJ1Popup(button, stationId) {
     }
   });
 
-  // Déterminer qui travaille les 5 jours de la semaine du J+1
-  // Si on est dimanche, J+1 = lundi → semaine d'après
+  // Déterminer qui travaille les 5 jours (lun-ven) de la semaine du J+1
   const tomorrowDow = tomorrow.getDay(); // 0=dim, 1=lun...
   const mondayOfJ1 = new Date(tomorrow);
   mondayOfJ1.setDate(tomorrow.getDate() - (tomorrowDow === 0 ? 6 : tomorrowDow - 1));
 
+  // Cache des plannings par mois pour éviter de recharger
+  const planningCache = {};
+  function getPlanningData(y, m) {
+    const cacheKey = y + '-' + m;
+    if (!planningCache[cacheKey]) {
+      const k = stationId + '-planning-' + y + '-' + String(m + 1).padStart(2, '0');
+      try { const raw = localStorage.getItem(k); planningCache[cacheKey] = raw ? JSON.parse(raw) : {}; }
+      catch (_) { planningCache[cacheKey] = {}; }
+    }
+    return planningCache[cacheKey];
+  }
+
   function worksEveryDayJ1Week(nom) {
     let workedCount = 0;
-    for (let i = 0; i < 5; i++) { // lun à ven de la semaine J+1
+    for (let i = 0; i < 5; i++) { // lun à ven
       const d = new Date(mondayOfJ1);
       d.setDate(mondayOfJ1.getDate() + i);
-      const dYear = d.getFullYear(), dMonth = d.getMonth(), dDay = d.getDate();
-      const k = stationId + '-planning-' + dYear + '-' + String(dMonth + 1).padStart(2, '0');
-      let pData = {};
-      try { const raw = localStorage.getItem(k); if (raw) pData = JSON.parse(raw); } catch (_) {}
-      const val = (pData[nom + '_' + dDay] || '').toUpperCase();
+      const pData = getPlanningData(d.getFullYear(), d.getMonth());
+      const val = (pData[nom + '_' + d.getDate()] || '').toUpperCase();
       if (isWorkedCode(val) || val === 'BU' || val === 'DBL') workedCount++;
     }
     return workedCount >= 5;
@@ -766,7 +774,14 @@ function showListeJ1Popup(button, stationId) {
     // Compteur
     const countEl = document.createElement('div');
     countEl.style.cssText = 'padding:2px 12px 6px;font-size:10px;color:var(--text-muted);';
-    countEl.textContent = liste.length + ' chauffeur' + (liste.length > 1 ? 's' : '');
+    const buCount = liste.filter(x => x.code === 'BU').length;
+    const dblCount = liste.filter(x => x.code === 'DBL').length;
+    const rstdCount = liste.length - buCount - dblCount;
+    const parts = [];
+    if (rstdCount > 0) parts.push(rstdCount + ' chauffeur' + (rstdCount > 1 ? 's' : ''));
+    if (buCount > 0) parts.push(buCount + ' BU');
+    if (dblCount > 0) parts.push(dblCount + ' DBL');
+    countEl.textContent = parts.join(', ');
     popup.appendChild(countEl);
 
     liste.forEach(item => {
