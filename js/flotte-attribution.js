@@ -58,7 +58,7 @@ function renderAttribution() {
   tableWrap.style.cssText = 'flex:1;overflow:auto;';
 
   const table = document.createElement('table');
-  table.style.cssText = 'font-size:10px;border-collapse:collapse;min-width:1050px;';
+  table.style.cssText = 'font-size:10px;border-collapse:collapse;width:100%;';
 
   // Header
   const thead = document.createElement('thead');
@@ -83,7 +83,7 @@ function renderAttribution() {
     <th style="padding:3px 2px;width:18px;background:rgba(74,222,128,0.1);">L</th>
     <th style="padding:3px 2px;width:18px;background:rgba(74,222,128,0.1);">C</th>
     <th style="padding:3px 2px;width:24px;background:rgba(74,222,128,0.1);">V</th>
-    <th style="padding:3px 3px;width:80px;">Com.</th>
+    <th style="padding:3px 6px;">Com.</th>
   </tr>`;
   table.appendChild(thead);
 
