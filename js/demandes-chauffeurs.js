@@ -355,35 +355,4 @@ function renderCongesChauffeur() {
   return wrap;
 }
 
-/* ── Modal de confirmation stylée ─────────────────────────── */
-function showConfirmModal(message, onConfirm) {
-  const overlay = document.createElement('div');
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99999;display:flex;align-items:center;justify-content:center;';
-  const modal = document.createElement('div');
-  modal.style.cssText = 'background:var(--bg-card,var(--bg-sidebar));border-radius:12px;padding:24px;max-width:360px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.4);text-align:center;';
-  modal.innerHTML = `
-    <div style="font-size:24px;margin-bottom:12px;">⚠️</div>
-    <div style="font-size:14px;font-weight:600;margin-bottom:8px;color:var(--text-primary);">${message}</div>
-    <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">Cette action est irréversible.</div>
-    <div style="display:flex;gap:10px;justify-content:center;">
-      <button class="h-btn" id="confirm-cancel" style="flex:1;padding:8px;">Annuler</button>
-      <button class="h-btn" id="confirm-ok" style="flex:1;padding:8px;background:#f87171;color:#fff;border-color:#f87171;">Supprimer</button>
-    </div>`;
-  overlay.appendChild(modal);
-  document.body.appendChild(overlay);
-  overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
-  modal.querySelector('#confirm-cancel').onclick = () => overlay.remove();
-  modal.querySelector('#confirm-ok').onclick = () => { overlay.remove(); onConfirm(); };
-}
-
-/* ── Toast de succès stylé ────────────────────────────────── */
-function showSuccessToast(message) {
-  const toast = document.createElement('div');
-  toast.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:99999;background:var(--bg-card,var(--bg-sidebar));border:2px solid #4ade80;border-radius:14px;padding:28px 36px;box-shadow:0 12px 40px rgba(0,0,0,0.5);text-align:center;animation:toastPop 0.3s ease;';
-  toast.innerHTML = `
-    <div style="font-size:36px;margin-bottom:10px;">✅</div>
-    <div style="font-size:15px;font-weight:700;color:var(--text-primary);">${message}</div>
-    <div style="font-size:12px;color:var(--text-muted);margin-top:6px;">Votre responsable sera notifié.</div>`;
-  document.body.appendChild(toast);
-  setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.4s'; setTimeout(() => toast.remove(), 400); }, 2000);
-}
+// showConfirmModal et showSuccessToast sont définis dans utils.js

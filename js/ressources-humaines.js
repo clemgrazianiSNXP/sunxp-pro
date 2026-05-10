@@ -178,7 +178,7 @@ function renderExtractionPaie() {
       <td>${mkInp(cId, 'heureNormal', d.heureNormal, paieKey)}</td>
       <td style="padding:2px;text-align:center;font-weight:600;color:#fbbf24;font-size:10px;">${getCpFromPlanning(stationId, nom, year, month) || '0'}</td>
       <td>${mkInp(cId, 'avancePrime', d.avancePrime, paieKey)}</td>
-      <td style="padding:2px;text-align:center;font-weight:600;color:#f97316;font-size:10px;">${typeof getAcomptesTotal === 'function' ? (getAcomptesTotal(stationId, cId, year, month, nom) || '0') + '€' : '0€'}</td>
+      <td>${mkInpAcompte(cId, stationId, year, month, nom, d.acompte, paieKey)}</td>
       <td>${mkInp(cId, 'atd', d.atd, paieKey)}</td>
       <td>${mkInp(cId, 'absAnticipees', d.absAnticipees, paieKey)}</td>
       <td>${mkInp(cId, 'evenements', d.evenements, paieKey)}</td>
@@ -212,6 +212,13 @@ function renderExtractionPaie() {
 
 function mkInp(cId, field, val, paieKey) {
   return `<input class="h-inp paie-inp" data-cid="${cId}" data-field="${field}" data-key="${paieKey}" value="${val || ''}" style="width:100%;font-size:10px;padding:2px 3px;">`;
+}
+
+function mkInpAcompte(cId, stationId, year, month, nom, manualVal, paieKey) {
+  // Auto-calculé depuis les demandes acceptées, éditable pour override
+  const autoVal = typeof getAcomptesTotal === 'function' ? getAcomptesTotal(stationId, cId, year, month, nom) : 0;
+  const displayVal = manualVal || (autoVal > 0 ? autoVal : '');
+  return `<input class="h-inp paie-inp" data-cid="${cId}" data-field="acompte" data-key="${paieKey}" value="${displayVal}" style="width:100%;font-size:10px;padding:2px 3px;color:#f97316;font-weight:600;" placeholder="${autoVal || '0'}">`;
 }
 
 function getPaieAutoData(stationId, chauffeurNom, year, month, chauffeur) {
@@ -296,7 +303,7 @@ function exportPaieExcel(chauffeurs, stationId, year, month, monthLabel) {
       d.heureNormal || '',
       getCpFromPlanning(stationId, nom, year, month) || 0,
       d.avancePrime || '',
-      typeof getAcomptesTotal === 'function' ? getAcomptesTotal(stationId, cId, year, month, nom) : 0,
+      typeof getAcomptesTotal === 'function' ? (d.acompte || getAcomptesTotal(stationId, cId, year, month, nom) || 0) : (d.acompte || 0),
       d.atd || '',
       d.absAnticipees || '',
       d.evenements || '',
