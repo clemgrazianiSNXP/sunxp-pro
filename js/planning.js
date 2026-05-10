@@ -87,12 +87,7 @@ function renderPlanning() {
   // Toolbar
   container.appendChild(buildPlanningToolbar(year, month));
 
-  // Titre mois/paie
-  const titleBar = document.createElement('div');
-  titleBar.style.cssText = 'padding:6px 16px;font-size:11px;color:var(--text-muted);background:var(--bg-sidebar);border-bottom:1px solid var(--border);display:flex;gap:20px;';
-  const monthLabel = planningCurrentDate.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
-  titleBar.innerHTML = `<span style="font-weight:700;color:var(--text-primary);text-transform:uppercase;">${monthLabel}</span><span>Paie : ${planningCurrentDate.toLocaleDateString('fr-FR', { month: 'long' }).toUpperCase()}</span>`;
-  container.appendChild(titleBar);
+
 
   // Corps
   const body = document.createElement('div');
@@ -225,16 +220,17 @@ function buildScrollableRight(chauffeurs, data, meta, nbDays, year, month, stati
   }
   rowJours += '</tr>';
 
-  // Ligne 3 : Numéro de semaine
+  // Ligne 3 : Numéro de semaine (une seule fois par semaine, centré via colspan)
   let rowWeek = '<tr>';
-  for (let d = 1; d <= nbDays; d++) {
+  let d = 1;
+  while (d <= nbDays) {
     const wn = getWeekNumber(new Date(year, month, d));
-    const dow = new Date(year, month, d).getDay();
-    const isMonday = dow === 1;
-    const isWeekend = [0, 6].includes(dow);
-    const bg = isWeekend ? 'background:rgba(255,255,255,0.05);' : '';
-    const border = isMonday ? 'border-left:2px solid var(--accent);' : '';
-    rowWeek += `<td style="min-width:38px;width:38px;height:22px;text-align:center;font-size:9px;color:var(--accent);font-weight:700;border-bottom:1px solid var(--border);${bg}${border}">S${wn}</td>`;
+    // Compter combien de jours consécutifs ont le même numéro de semaine
+    let span = 0;
+    let dd = d;
+    while (dd <= nbDays && getWeekNumber(new Date(year, month, dd)) === wn) { span++; dd++; }
+    rowWeek += `<td colspan="${span}" style="height:22px;text-align:center;font-size:9px;color:var(--accent);font-weight:700;border-bottom:1px solid var(--border);border-left:2px solid var(--accent);background:var(--bg-sidebar);">S${wn}</td>`;
+    d += span;
   }
   rowWeek += '</tr>';
 
