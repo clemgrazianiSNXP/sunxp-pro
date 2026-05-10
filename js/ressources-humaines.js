@@ -155,7 +155,7 @@ function renderExtractionPaie() {
       <td style="padding:2px;text-align:center;font-size:10px;">${prime.backupsH}</td>
       <td style="padding:2px;text-align:center;font-size:10px;">${prime.panierRepas}</td>
       <td>${mkInp(cId, 'heureNormal', d.heureNormal, paieKey)}</td>
-      <td>${mkInp(cId, 'cp', d.cp, paieKey)}</td>
+      <td style="padding:2px;text-align:center;font-weight:600;color:#fbbf24;font-size:10px;">${getCpFromPlanning(stationId, nom, year, month) || '0'}</td>
       <td>${mkInp(cId, 'avancePrime', d.avancePrime, paieKey)}</td>
       <td>${mkInp(cId, 'acompte', d.acompte, paieKey)}</td>
       <td>${mkInp(cId, 'atd', d.atd, paieKey)}</td>
@@ -273,7 +273,7 @@ function exportPaieExcel(chauffeurs, stationId, year, month, monthLabel) {
       Math.round(timeToDecimal(auto.backupsH) * 100) / 100,
       auto.panierRepas,
       d.heureNormal || '',
-      d.cp || '',
+      getCpFromPlanning(stationId, nom, year, month) || 0,
       d.avancePrime || '',
       d.acompte || '',
       d.atd || '',
@@ -295,4 +295,21 @@ function exportPaieExcel(chauffeurs, stationId, year, month, monthLabel) {
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Extraction Paie');
   XLSX.writeFile(wb, `extraction-paie-${monthLabel.replace(/\s/g, '-')}.xlsx`);
+}
+
+
+/* ── CP depuis le planning ────────────────────────────────── */
+function getCpFromPlanning(stationId, chauffeurNom, year, month) {
+  const key = stationId + '-planning-' + year + '-' + String(month + 1).padStart(2, '0');
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return 0;
+    const data = JSON.parse(raw);
+    const nbDays = new Date(year, month + 1, 0).getDate();
+    let count = 0;
+    for (let d = 1; d <= nbDays; d++) {
+      if ((data[chauffeurNom + '_' + d] || '').toUpperCase() === 'CP') count++;
+    }
+    return count;
+  } catch (_) { return 0; }
 }
