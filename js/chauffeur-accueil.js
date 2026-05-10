@@ -248,13 +248,23 @@ function buildPortalPause(sid, nom, now) {
     btn.onmouseenter = () => btn.style.transform = 'scale(1.02)';
     btn.onmouseleave = () => btn.style.transform = '';
     btn.onclick = async () => {
+      btn.disabled = true;
+      btn.textContent = '⏳ Enregistrement...';
       const startTime = new Date().toISOString();
       localStorage.setItem(pauseKey, JSON.stringify({ start: startTime }));
 
       // Enregistrer dans les données Heures du responsable
-      await savePauseToHeures(sid, nom, now);
+      const result = await savePauseToHeures(sid, nom, now);
 
-      renderPortal();
+      // Afficher le résultat pour debug
+      if (result) {
+        btn.textContent = '✅ Pause enregistrée !';
+        btn.style.background = '#4ade80';
+      } else {
+        btn.textContent = '⚠️ Pause locale uniquement';
+        btn.style.background = '#fbbf24';
+      }
+      setTimeout(() => renderPortal(), 1500);
     };
     section.appendChild(btn);
   }
@@ -290,7 +300,7 @@ async function savePauseToHeures(sid, nom, date) {
         dbSave('heures', dk, { station_id: sid, date_jour: dateStr }, data);
       }
       console.log('✅ Pause enregistrée en local + Supabase:', pauseTime);
-      return;
+      return true;
     }
   }
 
@@ -309,14 +319,18 @@ async function savePauseToHeures(sid, nom, date) {
           const { error: upErr } = await sb().from('heures').update({ data: sbData.data }).eq('station_id', sid).eq('date_jour', dateStr);
           if (upErr) console.error('Update error:', upErr.message);
           else console.log('✅ Pause enregistrée via Supabase:', pauseTime);
+          return !upErr;
         } else {
           console.warn('Chauffeur non trouvé dans rows:', nom);
+          return false;
         }
       } else {
         console.warn('Pas de données heures pour cette date dans Supabase');
+        return false;
       }
-    } catch (e) { console.warn('savePauseToHeures Supabase error:', e.message); }
+    } catch (e) { console.warn('savePauseToHeures Supabase error:', e.message); return false; }
   }
+  return false;
 }
 
 /* ── Helpers ──────────────────────────────────────────────── */
