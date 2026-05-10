@@ -248,7 +248,7 @@ function renderReposResponsable() {
       btn.onclick = () => {
         const id = btn.dataset.id;
         const d = demandes.find(x => x.id === id);
-        if (d) { d.statut = 'acceptee'; d.reponse = 'Demande acceptée.'; saveReposDemandes(stationId, demandes); renderReposModule(); }
+        if (d) { d.statut = 'acceptee'; d.reponse = 'Demande acceptée.'; if (d.date1 && typeof applyDemandeToPlanning === 'function') applyDemandeToPlanning(stationId, d.chauffeurNom, d.date1, 'RD'); if (d.date2 && typeof applyDemandeToPlanning === 'function') applyDemandeToPlanning(stationId, d.chauffeurNom, d.date2, 'RD'); saveReposDemandes(stationId, demandes); renderReposModule(); }
       };
     });
     wrap.querySelectorAll('.repos-refuse').forEach(btn => {
@@ -393,7 +393,7 @@ function toggleBellPopup() {
   // Bind
   setTimeout(() => {
     popup.querySelectorAll('.bell-accept-repos').forEach(btn => {
-      btn.onclick = (e) => { e.stopPropagation(); const all = loadReposDemandes(stationId); const d = all.find(x => x.id === btn.dataset.id); if (d) { d.statut = 'acceptee'; saveReposDemandes(stationId, all); } popup.remove(); toggleBellPopup(); updateReposBell(); };
+      btn.onclick = (e) => { e.stopPropagation(); const all = loadReposDemandes(stationId); const d = all.find(x => x.id === btn.dataset.id); if (d) { d.statut = 'acceptee'; if (d.date1 && typeof applyDemandeToPlanning === 'function') applyDemandeToPlanning(stationId, d.chauffeurNom, d.date1, 'RD'); if (d.date2 && typeof applyDemandeToPlanning === 'function') applyDemandeToPlanning(stationId, d.chauffeurNom, d.date2, 'RD'); saveReposDemandes(stationId, all); } popup.remove(); toggleBellPopup(); updateReposBell(); };
     });
     popup.querySelectorAll('.bell-refuse-repos').forEach(btn => {
       btn.onclick = (e) => { e.stopPropagation(); const all = loadReposDemandes(stationId); const d = all.find(x => x.id === btn.dataset.id); if (d) { d.statut = 'refusee'; saveReposDemandes(stationId, all); } popup.remove(); toggleBellPopup(); updateReposBell(); };
@@ -405,7 +405,7 @@ function toggleBellPopup() {
       btn.onclick = (e) => { e.stopPropagation(); const all = loadAcomptes(stationId); const d = all.find(x => x.id === btn.dataset.id); if (d) { d.statut = 'refusee'; saveAcomptes(stationId, all); } popup.remove(); toggleBellPopup(); updateReposBell(); };
     });
     popup.querySelectorAll('.bell-accept-conge').forEach(btn => {
-      btn.onclick = (e) => { e.stopPropagation(); const all = loadConges(stationId); const d = all.find(x => x.id === btn.dataset.id); if (d) { d.statut = 'acceptee'; saveConges(stationId, all); } popup.remove(); toggleBellPopup(); updateReposBell(); };
+      btn.onclick = (e) => { e.stopPropagation(); const all = loadConges(stationId); const d = all.find(x => x.id === btn.dataset.id); if (d) { d.statut = 'acceptee'; if (typeof applyCongeToPlanning === 'function') applyCongeToPlanning(stationId, d); saveConges(stationId, all); } popup.remove(); toggleBellPopup(); updateReposBell(); };
     });
     popup.querySelectorAll('.bell-refuse-conge').forEach(btn => {
       btn.onclick = (e) => { e.stopPropagation(); const all = loadConges(stationId); const d = all.find(x => x.id === btn.dataset.id); if (d) { d.statut = 'refusee'; saveConges(stationId, all); } popup.remove(); toggleBellPopup(); updateReposBell(); };
