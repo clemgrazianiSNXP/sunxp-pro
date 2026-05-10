@@ -253,7 +253,7 @@ function addGenerateButton(toolbar, stationId, year, month) {
 function showGenerateModal(stationId, year, month) {
   const nbDays = getDaysInMonth(year, month);
   const meta = loadPlanningMeta(stationId, year, month);
-  const weeks = getWeeksOfMonth(year, month);
+  const weeks = getGeneratorWeeksOfMonth(year, month);
 
   const overlay = document.createElement('div');
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99999;display:flex;align-items:center;justify-content:center;';
@@ -425,8 +425,8 @@ function showGenerateResult(result, year, month) {
   modal.querySelector('#genresult-close').onclick = () => overlay.remove();
 }
 
-/* ── Semaines du mois ─────────────────────────────────────── */
-function getWeeksOfMonth(year, month) {
+/* ── Semaines du mois (pour le générateur) ────────────────── */
+function getGeneratorWeeksOfMonth(year, month) {
   const nbDays = getDaysInMonth(year, month);
   const weeks = [];
   let d = 1;
