@@ -43,6 +43,19 @@ function portalDegats() {
     card.className = 'portal-card';
     card.style.cssText += 'text-align:left;align-items:stretch;gap:8px;border-left:3px solid #f87171;';
 
+    const isValide = d.montant_valide === true;
+    const montantColor = isValide ? '#4ade80' : '#fbbf24';
+    const montantBg = isValide ? 'rgba(74,222,128,0.15)' : 'rgba(251,191,36,0.15)';
+    const montantStatus = isValide ? 'Validé' : 'En attente';
+
+    let montantHtml;
+    if (d.montant) {
+      montantHtml = '<span style="font-size:14px;font-weight:700;color:' + montantColor + ';">' + d.montant + '€</span> ' +
+        '<span style="font-size:10px;padding:2px 6px;border-radius:4px;background:' + montantBg + ';color:' + montantColor + ';">' + montantStatus + '</span>';
+    } else {
+      montantHtml = '<span style="font-size:12px;color:#fbbf24;font-style:italic;">En attente</span>';
+    }
+
     let html = `
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <span style="font-weight:700;font-size:14px;color:var(--accent);">🚛 ${esc(d.plaque)}</span>
@@ -50,8 +63,7 @@ function portalDegats() {
       </div>
       <div style="display:flex;align-items:center;gap:6px;margin-top:4px;">
         <span style="font-size:12px;font-weight:600;">💶 Montant :</span>
-        ${d.montant ? `<span style="font-size:14px;font-weight:700;color:${d.montant_valide ? '#4ade80' : '#fbbf24'};">${d.montant}€</span>
-        <span style="font-size:10px;padding:2px 6px;border-radius:4px;background:${d.montant_valide ? 'rgba(74,222,128,0.15)' : 'rgba(251,191,36,0.15)'};color:${d.montant_valide ? '#4ade80' : '#fbbf24'};">${d.montant_valide ? 'Validé' : 'En attente'}</span>` : `<span style="font-size:12px;color:#fbbf24;font-style:italic;">En attente</span>`}
+        ${montantHtml}
       </div>
       <div style="font-size:13px;font-weight:600;margin-top:6px;">Description du dégât :</div>
       <div style="font-size:13px;color:var(--text-primary);padding:8px;background:var(--bg-tab-hover);border-radius:6px;">${esc(d.description || 'Pas de description fournie')}</div>`;
