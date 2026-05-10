@@ -130,7 +130,7 @@ function renderDegats() {
     const table = document.createElement('table');
     table.className = 'h-table';
     table.style.cssText = 'font-size:12px;';
-    table.innerHTML = '<thead><tr><th style="text-align:left;padding:6px 8px;">Chauffeur</th><th>Ce mois</th><th>Total</th><th>Dernier incident</th><th style="text-align:center;">Montant validé</th><th style="text-align:center;">Montant en attente</th><th></th></tr></thead>';
+    table.innerHTML = '<thead><tr><th style="text-align:left;padding:6px 8px;">Chauffeur</th><th>Ce mois</th><th>Total</th><th>Dernier incident</th><th style="text-align:center;">Validé ✓</th><th style="text-align:center;">En attente</th><th></th></tr></thead>';
     const tbody = document.createElement('tbody');
 
     Object.entries(byChauffeur)
@@ -142,15 +142,12 @@ function renderDegats() {
         const total = incidents.length;
         const last = incidents.sort((a, b) => new Date(b.date) - new Date(a.date))[0];
 
-        // Calcul montants validés et en attente pour ce mois
+        // Compter les dégâts validés (avec montant) et en attente (sans montant) pour ce mois
         const moisIncidents = incidents.filter(d => { const dt = new Date(d.date); return dt.getMonth() === curMonth && dt.getFullYear() === curYear; });
-        let montantValide = 0, montantAttente = 0;
+        let nbValide = 0, nbAttente = 0;
         moisIncidents.forEach(d => {
-          const m = parseFloat(d.montant) || 0;
-          if (m > 0) {
-            if (d.montant_valide) montantValide += m;
-            else montantAttente += m;
-          }
+          if (d.montant_valide) nbValide++;
+          else nbAttente++;
         });
 
         const tr = document.createElement('tr');
@@ -160,8 +157,8 @@ function renderDegats() {
           <td style="text-align:center;color:${moisCount>0?'#f87171':'var(--text-muted)'};">${moisCount}</td>
           <td style="text-align:center;font-weight:700;color:${total>0?'#f97316':'var(--text-muted)'};">${total}</td>
           <td style="text-align:center;font-size:10px;color:var(--text-muted);">${last ? new Date(last.date).toLocaleDateString('fr-FR') + ' — ' + last.plaque : '—'}</td>
-          <td style="text-align:center;font-weight:700;color:#4ade80;">${montantValide > 0 ? montantValide + '€' : '—'}</td>
-          <td style="text-align:center;font-weight:700;color:#fbbf24;">${montantAttente > 0 ? montantAttente + '€' : '—'}</td>
+          <td style="text-align:center;font-weight:700;color:#4ade80;">${nbValide > 0 ? nbValide : '—'}</td>
+          <td style="text-align:center;font-weight:700;color:#fbbf24;">${nbAttente > 0 ? nbAttente : '—'}</td>
           <td style="text-align:center;"></td>
         `;
 
