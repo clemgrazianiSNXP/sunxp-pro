@@ -136,12 +136,12 @@ window.dbSavePlanning = async function (stationId, year, month, data) {
   if (!sb()) return;
   try {
     const key = year + '-' + String(month + 1).padStart(2, '0');
-    const { data: existing } = await sb().from('planning').select('id').eq('station_id', stationId).eq('mois_key', key).maybeSingle();
-    if (existing) {
-      await sb().from('planning').update({ data, updated_at: new Date().toISOString() }).eq('station_id', stationId).eq('mois_key', key);
-    } else {
-      await sb().from('planning').insert({ station_id: stationId, mois_key: key, annee: year, mois: month + 1, data });
-    }
+    const { error } = await sb().from('planning').upsert(
+      { station_id: stationId, mois_key: key, annee: year, mois: month + 1, data, updated_at: new Date().toISOString() },
+      { onConflict: 'station_id,mois_key' }
+    );
+    if (error) console.error('dbSavePlanning error:', error.message, error);
+    else console.log('✅ Planning sauvé Supabase:', key);
   } catch (e) { console.warn('dbSavePlanning error:', e.message); }
 };
 
@@ -149,12 +149,12 @@ window.dbSavePlanningMeta = async function (stationId, year, month, meta) {
   if (!sb()) return;
   try {
     const key = year + '-' + String(month + 1).padStart(2, '0');
-    const { data: existing } = await sb().from('planning_meta').select('id').eq('station_id', stationId).eq('mois_key', key).maybeSingle();
-    if (existing) {
-      await sb().from('planning_meta').update({ data: meta, updated_at: new Date().toISOString() }).eq('station_id', stationId).eq('mois_key', key);
-    } else {
-      await sb().from('planning_meta').insert({ station_id: stationId, mois_key: key, annee: year, mois: month + 1, data: meta });
-    }
+    const { error } = await sb().from('planning_meta').upsert(
+      { station_id: stationId, mois_key: key, annee: year, mois: month + 1, data: meta, updated_at: new Date().toISOString() },
+      { onConflict: 'station_id,mois_key' }
+    );
+    if (error) console.error('dbSavePlanningMeta error:', error.message, error);
+    else console.log('✅ Planning meta sauvé Supabase:', key);
   } catch (e) { console.warn('dbSavePlanningMeta error:', e.message); }
 };
 
