@@ -698,7 +698,9 @@ function getConstraintViolations(eligible, data, year, month, nbDays) {
         if (i >= 1 && i <= nbDays && isWorkedCode(data[nom + '_' + i])) amazonWeekCount++;
       }
       if (amazonWeekCount > 5) {
-        const wn = getWeekNumber(new Date(year, month, sunday > 0 ? sunday : 1));
+        // Semaine Amazon = numéro de semaine ISO du lundi suivant le dimanche de début
+        const mondayAfter = new Date(year, month, (sunday > 0 ? sunday : 1) + 1);
+        const wn = getWeekNumber(mondayAfter);
         violations.push({ nom, detail: '6 jours semaine Amazon (dim-sam, S' + wn + ')' });
         break;
       }
