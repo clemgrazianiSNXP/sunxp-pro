@@ -125,14 +125,58 @@ function renderSuiviPapiers() {
         }
 
         const dateLabel = p.type === 'VM'
-          ? `Fait le ${new Date(p.dateDebut).toLocaleDateString('fr-FR')} · Expire le <span style="color:#f87171;font-weight:600;">${new Date(p.dateFin).toLocaleDateString('fr-FR')}</span>${vmExpired ? ' <span style="color:#f87171;font-weight:700;font-size:10px;">⚠️ EXPIRÉE</span>' : (new Date(p.dateFin) - new Date() < 30*86400000 ? ' <span style="color:#f87171;font-weight:700;font-size:10px;">⚠️ ' + Math.ceil((new Date(p.dateFin) - new Date()) / 86400000) + 'j</span>' : '')}`
+          ? `Fait le ${new Date(p.dateDebut).toLocaleDateString('fr-FR')} · Expire le <span style="color:#f87171;font-weight:600;">${new Date(p.dateFin).toLocaleDateString('fr-FR')}</span>`
           : `${new Date(p.dateDebut).toLocaleDateString('fr-FR')} → ${new Date(p.dateFin).toLocaleDateString('fr-FR')}`;
+
+        // Alerte VM
+        let vmAlertHtml = '';
+        if (p.type === 'VM' && p.dateFin) {
+          const daysLeft = Math.ceil((new Date(p.dateFin) - new Date()) / 86400000);
+          if (p.rdvPris) {
+            vmAlertHtml = ' <span style="color:#38bdf8;font-weight:700;font-size:10px;">📅 RDV pris</span>';
+          } else if (daysLeft <= 0) {
+            vmAlertHtml = ' <span style="color:#f87171;font-weight:700;font-size:10px;">⚠️ EXPIRÉE</span>';
+          } else if (daysLeft <= 30) {
+            vmAlertHtml = ' <span style="color:#f87171;font-weight:700;font-size:10px;">⚠️ ' + daysLeft + 'j</span>';
+          }
+        }
 
         row.innerHTML = `
           <span style="background:${color};color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700;">${p.type}</span>
           <span style="flex:1;color:var(--text-primary);">${typeLabel}</span>
-          <span style="color:var(--text-muted);font-size:11px;">${dateLabel}</span>
+          <span style="color:var(--text-muted);font-size:11px;">${dateLabel}${vmAlertHtml}</span>
         `;
+
+        // Bouton RDV pris / Annuler RDV pour VM en alerte
+        if (p.type === 'VM' && p.dateFin) {
+          const daysLeft = Math.ceil((new Date(p.dateFin) - new Date()) / 86400000);
+          if (daysLeft <= 30) {
+            const rdvBtn = document.createElement('button');
+            rdvBtn.className = 'h-btn';
+            if (p.rdvPris) {
+              rdvBtn.style.cssText = 'font-size:9px;padding:2px 6px;color:#38bdf8;border-color:#38bdf8;';
+              rdvBtn.textContent = '↩ Annuler';
+              rdvBtn.onclick = () => {
+                const all = loadPapiers(stationId);
+                const item = all.find(x => x.id === p.id);
+                if (item) { delete item.rdvPris; savePapiers(stationId, all); }
+                renderRH();
+                if (typeof updateNavBadges === 'function') updateNavBadges();
+              };
+            } else {
+              rdvBtn.style.cssText = 'font-size:9px;padding:2px 6px;background:#38bdf8;color:#000;border:none;font-weight:700;';
+              rdvBtn.textContent = '📅 RDV pris';
+              rdvBtn.onclick = () => {
+                const all = loadPapiers(stationId);
+                const item = all.find(x => x.id === p.id);
+                if (item) { item.rdvPris = true; savePapiers(stationId, all); }
+                renderRH();
+                if (typeof updateNavBadges === 'function') updateNavBadges();
+              };
+            }
+            row.appendChild(rdvBtn);
+          }
+        }
 
         // Lien fichier
         if (p.fileUrl) {

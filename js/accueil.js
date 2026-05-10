@@ -269,9 +269,8 @@ function getVMExpiringSoon(sid) {
   let papiers = [];
   try { papiers = JSON.parse(localStorage.getItem(sid + '-suivi-papiers')) || []; } catch (_) {}
   const now = new Date();
-  const in30 = new Date(); in30.setDate(in30.getDate() + 30);
   return papiers
-    .filter(p => p.type === 'VM' && p.dateFin)
+    .filter(p => p.type === 'VM' && p.dateFin && !p.rdvPris)
     .map(p => {
       const exp = new Date(p.dateFin);
       const daysLeft = Math.ceil((exp - now) / (1000 * 60 * 60 * 24));
@@ -286,7 +285,7 @@ function getCTExpiringSoon(sid) {
   try { entretiens = JSON.parse(localStorage.getItem(sid + '-suivi-entretien')) || []; } catch (_) {}
   const now = new Date();
   return entretiens
-    .filter(e => e.type === 'ct' && e.dateFin)
+    .filter(e => e.type === 'ct' && e.dateFin && !e.rdvPris)
     .map(e => {
       const exp = new Date(e.dateFin);
       const daysLeft = Math.ceil((exp - now) / (1000 * 60 * 60 * 24));

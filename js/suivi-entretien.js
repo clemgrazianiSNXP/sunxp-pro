@@ -93,7 +93,8 @@ function renderSuiviEntretien() {
             const now = new Date();
             const exp = new Date(e.dateFin);
             const daysLeft = Math.ceil((exp - now) / (1000 * 60 * 60 * 24));
-            if (daysLeft <= 0) ctExpireLabel = '<span style="color:#f87171;font-weight:700;font-size:10px;margin-left:6px;">⚠️ EXPIRÉ</span>';
+            if (e.rdvPris) ctExpireLabel = '<span style="color:#38bdf8;font-weight:700;font-size:10px;margin-left:6px;">📅 RDV pris</span>';
+            else if (daysLeft <= 0) ctExpireLabel = '<span style="color:#f87171;font-weight:700;font-size:10px;margin-left:6px;">⚠️ EXPIRÉ</span>';
             else if (daysLeft <= 30) ctExpireLabel = '<span style="color:#f87171;font-weight:700;font-size:10px;margin-left:6px;">⚠️ Expire dans ' + daysLeft + 'j</span>';
           }
           row.innerHTML = `
@@ -102,6 +103,38 @@ function renderSuiviEntretien() {
             <span style="color:var(--text-muted);font-size:11px;">Fait le ${e.dateDebut ? new Date(e.dateDebut).toLocaleDateString('fr-FR') : '?'} · Expire le <span style="color:#f87171;font-weight:600;">${e.dateFin ? new Date(e.dateFin).toLocaleDateString('fr-FR') : '?'}</span></span>
             ${ctExpireLabel}
           `;
+
+          // Bouton RDV pris / Annuler RDV pour CT en alerte
+          if (e.dateFin) {
+            const now = new Date();
+            const daysLeft = Math.ceil((new Date(e.dateFin) - now) / (1000 * 60 * 60 * 24));
+            if (daysLeft <= 30) {
+              const rdvBtn = document.createElement('button');
+              rdvBtn.className = 'h-btn';
+              if (e.rdvPris) {
+                rdvBtn.style.cssText = 'font-size:9px;padding:2px 6px;color:#38bdf8;border-color:#38bdf8;';
+                rdvBtn.textContent = '↩ Annuler';
+                rdvBtn.onclick = () => {
+                  const all = loadEntretien(stationId);
+                  const item = all.find(x => x.id === e.id);
+                  if (item) { delete item.rdvPris; saveEntretien(stationId, all); }
+                  renderFlotte();
+                  if (typeof updateNavBadges === 'function') updateNavBadges();
+                };
+              } else {
+                rdvBtn.style.cssText = 'font-size:9px;padding:2px 6px;background:#38bdf8;color:#000;border:none;font-weight:700;';
+                rdvBtn.textContent = '📅 RDV pris';
+                rdvBtn.onclick = () => {
+                  const all = loadEntretien(stationId);
+                  const item = all.find(x => x.id === e.id);
+                  if (item) { item.rdvPris = true; saveEntretien(stationId, all); }
+                  renderFlotte();
+                  if (typeof updateNavBadges === 'function') updateNavBadges();
+                };
+              }
+              row.appendChild(rdvBtn);
+            }
+          }
           if (e.fileUrl) {
             const link = document.createElement('a');
             link.href = e.fileUrl; link.target = '_blank';
