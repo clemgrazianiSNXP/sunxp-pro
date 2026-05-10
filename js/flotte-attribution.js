@@ -3,7 +3,8 @@ console.log('flotte-attribution.js chargé');
 
 let attrDate = new Date();
 const ATTR_COLS = ['CM','UTA','Tél','St','Chauffeur','PDA','Trs','Lic','Clef','VIGIK','rU','rP','rT','rL','rC','rV','✓','Com'];
-const ATTR_W = [28, 36, 36, 32, 100, 36, 36, 36, 38, 60, 22, 22, 22, 22, 22, 22, 22, 120];
+const ATTR_W = [34, 44, 44, 40, 130, 44, 44, 44, 44, 70, 28, 28, 28, 28, 28, 28, 28, 160];
+const ATTR_PALETTE = ['#f87171','#fb923c','#fbbf24','#4ade80','#60a5fa','#a78bfa','#f472b6','#94a3b8'];
 
 /* ── Persistance ──────────────────────────────────────────── */
 function attrKey(sid, d) { return sid + '-attribution-' + d.toISOString().slice(0,10); }
@@ -80,13 +81,14 @@ function renderAttribution() {
     tr.style.cssText = `height:26px;${r.statut==='X'?'background:'+(r.fusionColor||'rgba(248,113,113,0.1)')+';':''}`;
 
     if (r.statut === 'X') {
-      // Fusionné à droite
-      tr.innerHTML = `<td style="border:1px solid var(--border);text-align:center;"><select class="attr-sel" data-i="${idx}" data-f="statut" style="width:100%;border:none;background:transparent;color:var(--text-primary);font-size:9px;text-align:center;"><option value="OK">OK</option><option value="BU">BU</option><option value="X" selected>✕</option></select></td><td colspan="17" style="border:1px solid var(--border);padding:2px 6px;"><input class="attr-inp" data-i="${idx}" data-f="fusionTitle" value="${r.fusionTitle||''}" placeholder="Raison..." style="width:100%;border:none;background:transparent;color:${r.fusionColor||'#f87171'};font-size:10px;font-weight:600;outline:none;"><input type="color" class="attr-color" data-i="${idx}" value="${r.fusionColor||'#f87171'}" style="width:14px;height:14px;border:none;padding:0;cursor:pointer;vertical-align:middle;margin-left:4px;"></td>`;
+      // Fusionné : CM, UTA, Tél restent, fusion à partir de Chauffeur
+      const paletteBtns = ATTR_PALETTE.map(c => `<span class="attr-pal" data-i="${idx}" data-c="${c}" style="display:inline-block;width:14px;height:14px;border-radius:3px;background:${c};cursor:pointer;border:${r.fusionColor===c?'2px solid #fff':'1px solid transparent'};"></span>`).join('');
+      tr.innerHTML = `<td style="border:1px solid var(--border);text-align:center;min-width:${ATTR_W[0]}px;"><input type="checkbox" class="attr-cb" data-i="${idx}" data-f="cm" ${r.cm?'checked':''} style="width:14px;height:14px;"></td><td style="border:1px solid var(--border);text-align:center;min-width:${ATTR_W[1]}px;"><input class="attr-inp" data-i="${idx}" data-f="uta" value="${r.uta||''}" style="width:100%;border:none;background:transparent;color:var(--text-primary);font-size:10px;outline:none;text-align:center;"></td><td style="border:1px solid var(--border);text-align:center;min-width:${ATTR_W[2]}px;"><input class="attr-inp" data-i="${idx}" data-f="tel" value="${r.tel||''}" style="width:100%;border:none;background:transparent;color:var(--text-primary);font-size:10px;outline:none;text-align:center;"></td><td style="border:1px solid var(--border);text-align:center;min-width:${ATTR_W[3]}px;"><select class="attr-sel" data-i="${idx}" data-f="statut" style="width:100%;border:none;background:var(--bg-tab-active);color:var(--text-primary);font-size:9px;text-align:center;outline:none;border-radius:3px;padding:2px;"><option value="OK">OK</option><option value="BU">BU</option><option value="X" selected>✕</option></select></td><td colspan="14" style="border:1px solid var(--border);padding:2px 6px;display:flex;align-items:center;gap:6px;"><input class="attr-inp" data-i="${idx}" data-f="fusionTitle" value="${r.fusionTitle||''}" placeholder="Raison..." style="flex:1;border:none;background:transparent;color:${r.fusionColor||'#f87171'};font-size:10px;font-weight:600;outline:none;">${paletteBtns}</td>`;
     } else {
       const cell = (val, f, w, type) => {
         const s = `min-width:${w}px;width:${w}px;border:1px solid var(--border);padding:1px;text-align:center;`;
         if (type === 'check') return `<td style="${s}${f.startsWith('r')?'background:rgba(74,222,128,0.04);':''}"><input type="checkbox" class="attr-cb" data-i="${idx}" data-f="${f}" ${val?'checked':''} style="width:13px;height:13px;"></td>`;
-        if (type === 'select-st') return `<td style="${s}"><select class="attr-sel" data-i="${idx}" data-f="statut" style="width:100%;border:none;background:transparent;color:var(--text-primary);font-size:9px;text-align:center;outline:none;"><option value="OK" ${r.statut==='OK'?'selected':''}>OK</option><option value="BU" ${r.statut==='BU'?'selected':''}>BU</option><option value="X">✕</option></select></td>`;
+        if (type === 'select-st') return `<td style="${s}"><select class="attr-sel" data-i="${idx}" data-f="statut" style="width:100%;border:none;background:var(--bg-tab-active);color:var(--text-primary);font-size:10px;text-align:center;outline:none;border-radius:3px;padding:2px;"><option value="OK" ${r.statut==='OK'?'selected':''}>OK</option><option value="BU" ${r.statut==='BU'?'selected':''}>BU</option><option value="X">✕</option></select></td>`;
         if (type === 'select-clef') return `<td style="${s}"><select class="attr-sel" data-i="${idx}" data-f="clef" style="width:100%;border:none;background:transparent;color:var(--text-primary);font-size:9px;text-align:center;outline:none;"><option value="">—</option><option value="PERSO" ${val==='PERSO'?'selected':''}>P</option><option value="C21" ${val==='C21'?'selected':''}>C21</option></select></td>`;
         if (type === 'btn') return `<td style="${s}background:rgba(74,222,128,0.04);"><button class="attr-allok" data-i="${idx}" style="font-size:8px;background:none;border:none;color:var(--accent);cursor:pointer;font-weight:700;">✓</button></td>`;
         if (f === 'chauffeur') return `<td style="${s}"><input class="attr-inp attr-ch" data-i="${idx}" data-f="${f}" value="${val||''}" style="width:100%;border:none;background:transparent;color:var(--text-primary);font-size:9px;outline:none;text-align:left;padding:0 3px;" placeholder="—"></td>`;
@@ -135,8 +137,8 @@ function bindAttr(container, rows, sid, chauffeurs) {
   container.querySelectorAll('.attr-cb').forEach(el => {
     el.addEventListener('change', () => { rows[+el.dataset.i][el.dataset.f]=el.checked; saveAttr(sid,attrDate,rows); });
   });
-  container.querySelectorAll('.attr-color').forEach(el => {
-    el.addEventListener('change', () => { rows[+el.dataset.i].fusionColor=el.value; saveAttr(sid,attrDate,rows); renderFlotte(); });
+  container.querySelectorAll('.attr-pal').forEach(el => {
+    el.onclick = () => { rows[+el.dataset.i].fusionColor=el.dataset.c; saveAttr(sid,attrDate,rows); renderFlotte(); };
   });
   container.querySelectorAll('.attr-allok').forEach(btn => {
     btn.onclick = () => { const r=rows[+btn.dataset.i]; r.rU=r.rP=r.rT=r.rL=r.rC=r.rV=true; saveAttr(sid,attrDate,rows); renderFlotte(); };
