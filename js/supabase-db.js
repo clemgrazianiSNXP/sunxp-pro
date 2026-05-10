@@ -135,22 +135,20 @@ window.dbSaveResponsables = async function (stationId, responsables) {
 window.dbSavePlanning = async function (stationId, year, month, data) {
   if (!sb()) return;
   try {
-    const key = year + '-' + String(month + 1).padStart(2, '0');
-    const payload = { station_id: stationId, mois_key: key, annee: year, mois: month + 1, data };
-    const { error } = await sb().from('planning').upsert(payload, { onConflict: 'station_id,mois_key' });
+    const payload = { station_id: stationId, year: year, month: month + 1, data };
+    const { error } = await sb().from('planning').upsert(payload, { onConflict: 'station_id,year,month' });
     if (error) console.error('dbSavePlanning error:', error.message, error.details, error.hint);
-    else console.log('✅ Planning sauvé Supabase:', key);
+    else console.log('✅ Planning sauvé Supabase:', year + '-' + (month + 1));
   } catch (e) { console.warn('dbSavePlanning catch:', e.message); }
 };
 
 window.dbSavePlanningMeta = async function (stationId, year, month, meta) {
   if (!sb()) return;
   try {
-    const key = year + '-' + String(month + 1).padStart(2, '0');
-    const payload = { station_id: stationId, mois_key: key, annee: year, mois: month + 1, data: meta };
-    const { error } = await sb().from('planning_meta').upsert(payload, { onConflict: 'station_id,mois_key' });
+    const payload = { station_id: stationId, year: year, month: month + 1, data: meta };
+    const { error } = await sb().from('planning_meta').upsert(payload, { onConflict: 'station_id,year,month' });
     if (error) console.error('dbSavePlanningMeta error:', error.message, error.details, error.hint);
-    else console.log('✅ Planning meta sauvé Supabase:', key);
+    else console.log('✅ Planning meta sauvé Supabase:', year + '-' + (month + 1));
   } catch (e) { console.warn('dbSavePlanningMeta catch:', e.message); }
 };
 
@@ -633,19 +631,21 @@ window.preloadStationData = async function (stationId) {
     }
 
     // Planning
-    const { data: planData } = await sb().from('planning').select('mois_key, data').eq('station_id', stationId);
+    const { data: planData } = await sb().from('planning').select('year, month, data').eq('station_id', stationId);
     if (planData && planData.length) {
       planData.forEach(p => {
-        localStorage.setItem(stationId + '-planning-' + p.mois_key, JSON.stringify(p.data));
+        const key = stationId + '-planning-' + p.year + '-' + String(p.month).padStart(2, '0');
+        localStorage.setItem(key, JSON.stringify(p.data));
       });
       console.log(`  Planning: ${planData.length} mois`);
     }
 
     // Planning Meta
-    const { data: planMetaData } = await sb().from('planning_meta').select('mois_key, data').eq('station_id', stationId);
+    const { data: planMetaData } = await sb().from('planning_meta').select('year, month, data').eq('station_id', stationId);
     if (planMetaData && planMetaData.length) {
       planMetaData.forEach(p => {
-        localStorage.setItem(stationId + '-planning-meta-' + p.mois_key, JSON.stringify(p.data));
+        const key = stationId + '-planning-meta-' + p.year + '-' + String(p.month).padStart(2, '0');
+        localStorage.setItem(key, JSON.stringify(p.data));
       });
     }
 
