@@ -125,7 +125,7 @@ function renderSuiviPapiers() {
         }
 
         const dateLabel = p.type === 'VM'
-          ? `Fait le ${new Date(p.dateDebut).toLocaleDateString('fr-FR')} · Expire le <span style="color:${vmExpired ? '#f87171' : '#4ade80'};font-weight:600;">${new Date(p.dateFin).toLocaleDateString('fr-FR')}</span>`
+          ? `Fait le ${new Date(p.dateDebut).toLocaleDateString('fr-FR')} · Expire le <span style="color:#f87171;font-weight:600;">${new Date(p.dateFin).toLocaleDateString('fr-FR')}</span>${vmExpired ? ' <span style="color:#f87171;font-weight:700;font-size:10px;">⚠️ EXPIRÉE</span>' : (new Date(p.dateFin) - new Date() < 30*86400000 ? ' <span style="color:#f87171;font-weight:700;font-size:10px;">⚠️ ' + Math.ceil((new Date(p.dateFin) - new Date()) / 86400000) + 'j</span>' : '')}`
           : `${new Date(p.dateDebut).toLocaleDateString('fr-FR')} → ${new Date(p.dateFin).toLocaleDateString('fr-FR')}`;
 
         row.innerHTML = `

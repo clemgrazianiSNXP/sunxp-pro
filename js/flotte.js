@@ -5,11 +5,20 @@ let flotteTab = 'camions'; // 'camions' | 'degats' | 'problemes' | 'entretien' |
 
 function initFlotte() { flotteTab = 'camions'; renderFlotte(); }
 
+/* ── Badge CT expirantes pour sous-onglet Suivi Entretien ── */
+function getCTBadgeHTML(sid) {
+  const ctCount = typeof getCTExpiringSoon === 'function' ? getCTExpiringSoon(sid).length : 0;
+  if (ctCount === 0) return '';
+  return ' <span style="background:#f87171;color:#fff;font-size:9px;font-weight:700;min-width:14px;height:14px;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;padding:0 3px;vertical-align:middle;">' + ctCount + '</span>';
+}
+
 function renderFlotte() {
   const container = document.getElementById('module-flotte');
   if (!container) return;
   container.innerHTML = '';
   container.style.cssText = 'display:flex;flex-direction:column;align-items:stretch;padding:0;overflow:hidden;';
+
+  const sid = window.getActiveStationId ? window.getActiveStationId() : 'default';
 
   const toolbar = document.createElement('div');
   toolbar.className = 'h-toolbar';
@@ -17,7 +26,7 @@ function renderFlotte() {
     <button class="h-btn rh-tab-btn ${flotteTab==='camions'?'rh-tab-active':''}" data-ft="camions">🚛 Camions</button>
     <button class="h-btn rh-tab-btn ${flotteTab==='degats'?'rh-tab-active':''}" data-ft="degats">🔧 Dégâts</button>
     <button class="h-btn rh-tab-btn ${flotteTab==='problemes'?'rh-tab-active':''}" data-ft="problemes">⚠️ Problèmes</button>
-    <button class="h-btn rh-tab-btn ${flotteTab==='entretien'?'rh-tab-active':''}" data-ft="entretien">🛠 Suivi Entretien</button>
+    <button class="h-btn rh-tab-btn ${flotteTab==='entretien'?'rh-tab-active':''}" data-ft="entretien" style="position:relative;">🛠 Suivi Entretien${getCTBadgeHTML(sid)}</button>
     <button class="h-btn rh-tab-btn ${flotteTab==='documents'?'rh-tab-active':''}" data-ft="documents">📄 Documents</button>
     <button class="h-btn rh-tab-btn ${flotteTab==='attribution'?'rh-tab-active':''}" data-ft="attribution">🔑 Attribution</button>
   </div><div class="h-toolbar-center"></div><div class="h-toolbar-right"></div>`;

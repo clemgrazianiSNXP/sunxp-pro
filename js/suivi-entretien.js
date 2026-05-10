@@ -87,10 +87,20 @@ function renderSuiviEntretien() {
             <span style="color:var(--text-muted);font-size:11px;">${e.date ? new Date(e.date).toLocaleDateString('fr-FR') : '—'}</span>
           `;
         } else {
+          // Vérifier si CT expire dans 30 jours ou est expiré
+          let ctExpireLabel = '';
+          if (e.dateFin) {
+            const now = new Date();
+            const exp = new Date(e.dateFin);
+            const daysLeft = Math.ceil((exp - now) / (1000 * 60 * 60 * 24));
+            if (daysLeft <= 0) ctExpireLabel = '<span style="color:#f87171;font-weight:700;font-size:10px;margin-left:6px;">⚠️ EXPIRÉ</span>';
+            else if (daysLeft <= 30) ctExpireLabel = '<span style="color:#f87171;font-weight:700;font-size:10px;margin-left:6px;">⚠️ Expire dans ' + daysLeft + 'j</span>';
+          }
           row.innerHTML = `
             <span style="background:#4ade80;color:#000;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700;">CT</span>
             <span style="flex:1;color:var(--text-primary);">Contrôle technique</span>
-            <span style="color:var(--text-muted);font-size:11px;">${e.dateDebut ? new Date(e.dateDebut).toLocaleDateString('fr-FR') : '?'} → ${e.dateFin ? new Date(e.dateFin).toLocaleDateString('fr-FR') : '?'}</span>
+            <span style="color:var(--text-muted);font-size:11px;">Fait le ${e.dateDebut ? new Date(e.dateDebut).toLocaleDateString('fr-FR') : '?'} · Expire le <span style="color:#f87171;font-weight:600;">${e.dateFin ? new Date(e.dateFin).toLocaleDateString('fr-FR') : '?'}</span></span>
+            ${ctExpireLabel}
           `;
           if (e.fileUrl) {
             const link = document.createElement('a');
