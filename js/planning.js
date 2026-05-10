@@ -195,6 +195,20 @@ function buildPlanningToolbar(year, month) {
   violBtn.onclick = () => showPlanningAlertPopup(violBtn, 'CONTRAINTES NON RESPECTÉES', violations, '#f87171');
   bar.querySelector('.h-toolbar-left').appendChild(violBtn);
 
+  // Bulle SDR (chauffeurs à 4 RSTD cette semaine — disponibles pour un jour supplémentaire)
+  const sdrData = getSdrAlerts(eligible, data, year, month, nbDays);
+  const sdrBtn = document.createElement('button');
+  sdrBtn.className = 'h-btn';
+  if (sdrData.length > 0) {
+    sdrBtn.textContent = `${sdrData.length} SDR`;
+    sdrBtn.style.cssText += 'background:rgba(74,222,128,0.15);border-color:#4ade80;color:#4ade80;font-size:11px;';
+  } else {
+    sdrBtn.textContent = '✓ SDR';
+    sdrBtn.style.cssText += 'font-size:11px;opacity:0.4;';
+  }
+  sdrBtn.onclick = () => showPlanningAlertPopup(sdrBtn, 'SDR — 4 JOURS CETTE SEMAINE', sdrData, '#4ade80');
+  bar.querySelector('.h-toolbar-left').appendChild(sdrBtn);
+
   return bar;
 }
 
@@ -625,4 +639,31 @@ function showPlanningAlertPopup(button, title, items, color) {
   setTimeout(() => document.addEventListener('click', function handler(e) {
     if (!popup.contains(e.target) && e.target !== button) { popup.remove(); document.removeEventListener('click', handler); }
   }), 0);
+}
+
+
+/**
+ * Détecte les chauffeurs à 4 RSTD dans la semaine courante (disponibles pour un 5ème jour).
+ */
+function getSdrAlerts(eligible, data, year, month, nbDays) {
+  const today = new Date();
+  const dow = today.getDay();
+  const mondayDate = new Date(today);
+  mondayDate.setDate(today.getDate() - (dow === 0 ? 6 : dow - 1));
+
+  const alerts = [];
+  eligible.forEach(c => {
+    const nom = (c.prenom + ' ' + c.nom).trim();
+    let count = 0;
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(mondayDate);
+      d.setDate(mondayDate.getDate() + i);
+      if (d.getFullYear() === year && d.getMonth() === month) {
+        const dayNum = d.getDate();
+        if ((data[nom + '_' + dayNum] || '').toUpperCase() === 'RSTD') count++;
+      }
+    }
+    if (count === 4) alerts.push({ nom, detail: '4 RSTD cette semaine' });
+  });
+  return alerts;
 }
