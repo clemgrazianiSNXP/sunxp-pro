@@ -686,6 +686,26 @@ function getConstraintViolations(eligible, data, year, month, nbDays) {
       d = monday + 7;
     }
 
+    // Plus de 5 jours travaillés dans une semaine Amazon (dim-sam)
+    let da = 1;
+    while (da <= nbDays) {
+      const date = new Date(year, month, da);
+      const dayOfWeek = date.getDay(); // 0=dim
+      const sundayOffset = -dayOfWeek; // reculer au dimanche
+      const sunday = da + sundayOffset;
+      let amazonWeekCount = 0;
+      for (let i = sunday; i < sunday + 7; i++) {
+        if (i >= 1 && i <= nbDays && isWorkedCode(data[nom + '_' + i])) amazonWeekCount++;
+      }
+      if (amazonWeekCount > 5) {
+        const wn = getWeekNumber(new Date(year, month, sunday > 0 ? sunday : 1));
+        violations.push({ nom, detail: '6 jours semaine Amazon (dim-sam, S' + wn + ')' });
+        break;
+      }
+      da = sunday + 7;
+      if (da <= 0) da = 1;
+    }
+
     // Pas de week-end complet off
     const weekends = [];
     for (let dd = 1; dd <= nbDays; dd++) {
