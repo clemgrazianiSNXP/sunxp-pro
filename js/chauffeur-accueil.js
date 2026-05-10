@@ -214,6 +214,12 @@ function buildPortalPause(sid, nom, now) {
       <div style="font-size:14px;font-weight:800;color:var(--accent);margin-top:4px;">Tu dois reprendre à ${repriseStr}</div>
       <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Bonne pause ! ☀️</div>
     `;
+    // Bouton annuler pause (test)
+    const cancelBtn = document.createElement('button');
+    cancelBtn.style.cssText = 'margin-top:8px;background:transparent;border:1px solid #f87171;color:#f87171;border-radius:8px;padding:6px 12px;font-size:10px;cursor:pointer;';
+    cancelBtn.textContent = '🔄 Annuler pause (test)';
+    cancelBtn.onclick = () => { localStorage.removeItem(pauseKey); renderPortal(); };
+    section.appendChild(cancelBtn);
   } else {
     const btn = document.createElement('button');
     btn.style.cssText = 'background:var(--accent);color:#fff;border:none;border-radius:12px;padding:14px 28px;font-size:15px;font-weight:700;cursor:pointer;transition:transform 0.15s;width:100%;';
