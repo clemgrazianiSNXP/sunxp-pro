@@ -196,6 +196,27 @@ function buildPortalMateriel(sid, nom, now) {
 /* ── Bouton Pause ─────────────────────────────────────────── */
 function buildPortalPause(sid, nom, now) {
   const section = document.createElement('div');
+
+  // Vérifier si le chauffeur est en RSTD au planning aujourd'hui
+  const statutPlanning = getPlanningStatut(sid, nom, now);
+  if (statutPlanning !== 'RSTD') return section; // Pas de bouton si pas RSTD
+
+  // Vérifier si le chauffeur est saisi dans Heures aujourd'hui
+  const dateStr = now.toISOString().slice(0, 10);
+  const dk = sid + '-heures-' + dateStr;
+  let isInHeures = false;
+  try {
+    const raw = localStorage.getItem(dk);
+    if (raw) {
+      const data = JSON.parse(raw);
+      if (data.rows) {
+        isInHeures = Object.values(data.rows).some(r => r.nom && r.nom.trim() === nom.trim());
+      }
+    }
+  } catch (_) {}
+
+  if (!isInHeures) return section; // Pas de bouton si pas dans Heures
+
   section.style.cssText = 'background:linear-gradient(135deg, rgba(96,165,250,0.1), rgba(74,222,128,0.1));border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center;';
 
   // Vérifier si pause déjà prise aujourd'hui
