@@ -249,6 +249,46 @@ function buildPlanningToolbar(year, month) {
   return bar;
 }
 
+/* ── Mise à jour des bulles AST/Contraintes/SDR en temps réel ── */
+function updatePlanningBubbles(stationId, eligible, data, year, month, nbDays) {
+  // AST
+  const astData = typeof getAstAlerts === 'function' ? getAstAlerts(eligible, data, year, month, nbDays) : [];
+  const astBtn = document.querySelector('.h-toolbar-left button:nth-child(1)');
+  if (astBtn) {
+    if (astData.length > 0) {
+      astBtn.textContent = '\u26A0 ' + astData.length + ' AST';
+      astBtn.style.cssText += 'background:rgba(251,191,36,0.15);border-color:#fbbf24;color:#fbbf24;font-size:11px;opacity:1;';
+    } else {
+      astBtn.textContent = '\u2713 AST';
+      astBtn.style.cssText += 'font-size:11px;opacity:0.4;background:transparent;border-color:var(--border);color:var(--text-muted);';
+    }
+  }
+  // Contraintes
+  const violations = typeof getConstraintViolations === 'function' ? getConstraintViolations(eligible, data, year, month, nbDays) : [];
+  const violBtn = document.querySelector('.h-toolbar-left button:nth-child(2)');
+  if (violBtn) {
+    if (violations.length > 0) {
+      violBtn.textContent = '\u26A0 ' + violations.length + ' Contraintes';
+      violBtn.style.cssText += 'background:rgba(248,113,113,0.15);border-color:#f87171;color:#f87171;font-size:11px;opacity:1;';
+    } else {
+      violBtn.textContent = '\u2713 Contraintes';
+      violBtn.style.cssText += 'font-size:11px;opacity:0.4;background:transparent;border-color:var(--border);color:var(--text-muted);';
+    }
+  }
+  // SDR
+  const sdrData = typeof getSdrAlerts === 'function' ? getSdrAlerts(eligible, data, year, month, nbDays) : [];
+  const sdrBtn = document.querySelector('.h-toolbar-left button:nth-child(3)');
+  if (sdrBtn) {
+    if (sdrData.length > 0) {
+      sdrBtn.textContent = sdrData.length + ' SDR';
+      sdrBtn.style.cssText += 'background:rgba(74,222,128,0.15);border-color:#4ade80;color:#4ade80;font-size:11px;opacity:1;';
+    } else {
+      sdrBtn.textContent = '\u2713 SDR';
+      sdrBtn.style.cssText += 'font-size:11px;opacity:0.4;background:transparent;border-color:var(--border);color:var(--text-muted);';
+    }
+  }
+}
+
 /* ── Partie fixe gauche ───────────────────────────────────── */
 function buildFixedLeft(chauffeurs, data, meta, nbDays, year, month) {
   const wrap = document.createElement('div');
@@ -432,6 +472,8 @@ function buildScrollableRight(chauffeurs, data, meta, nbDays, year, month, stati
         savePlanning(stationId, year, month, data);
         updateAutoRows(data, chauffeurs, nbDays);
         updateFixedLeftCounts(chauffeurs, data, nbDays);
+        var eligibleForBubbles = chauffeurs.filter(function(c) { return ['Chauffeur', 'Formateur'].includes(c.role); });
+        updatePlanningBubbles(stationId, eligibleForBubbles, data, year, month, nbDays);
       });
 
       inp.addEventListener('keydown', e => {
