@@ -146,10 +146,11 @@ window.dbSavePlanning = async function (stationId, year, month, data) {
 window.dbSavePlanningMeta = async function (stationId, year, month, meta) {
   if (!sb()) return;
   try {
-    await sb().from('planning_meta').delete().eq('station_id', stationId).eq('year', year).eq('month', month + 1);
-    const { error } = await sb().from('planning_meta').insert({ station_id: stationId, year: year, month: month + 1, data: meta });
+    const key = year + '-' + String(month + 1).padStart(2, '0');
+    await sb().from('planning_meta').delete().eq('station_id', stationId).eq('mois_key', key);
+    const { error } = await sb().from('planning_meta').insert({ station_id: stationId, mois_key: key, annee: year, mois: month + 1, data: meta });
     if (error) console.error('dbSavePlanningMeta error:', error.message, error.details);
-    else console.log('✅ Planning meta sauvé Supabase:', year + '-' + (month + 1));
+    else console.log('✅ Planning meta sauvé Supabase:', key);
   } catch (e) { console.warn('dbSavePlanningMeta catch:', e.message); }
 };
 
@@ -642,10 +643,10 @@ window.preloadStationData = async function (stationId) {
     }
 
     // Planning Meta
-    const { data: planMetaData } = await sb().from('planning_meta').select('year, month, data').eq('station_id', stationId);
+    const { data: planMetaData } = await sb().from('planning_meta').select('mois_key, data').eq('station_id', stationId);
     if (planMetaData && planMetaData.length) {
       planMetaData.forEach(p => {
-        const key = stationId + '-planning-meta-' + p.year + '-' + String(p.month).padStart(2, '0');
+        const key = stationId + '-planning-meta-' + p.mois_key;
         localStorage.setItem(key, JSON.stringify(p.data));
       });
     }

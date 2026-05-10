@@ -46,7 +46,7 @@ async function loadPlanningFromSupabase(stationId, year, month) {
       localStorage.setItem(planningKey(stationId, year, month), JSON.stringify(data.data));
       console.log('📥 Planning chargé depuis Supabase:', year + '-' + (month + 1));
     }
-    const { data: metaData, error: metaErr } = await sb().from('planning_meta').select('data').eq('station_id', stationId).eq('year', year).eq('month', month + 1).maybeSingle();
+    const { data: metaData, error: metaErr } = await sb().from('planning_meta').select('data').eq('station_id', stationId).eq('mois_key', year + '-' + String(month + 1).padStart(2, '0')).maybeSingle();
     if (!metaErr && metaData && metaData.data) {
       localStorage.setItem(planningMetaKey(stationId, year, month), JSON.stringify(metaData.data));
     }
