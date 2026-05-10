@@ -255,7 +255,35 @@ function buildPortalPause(sid, nom, now) {
     const cancelBtn = document.createElement('button');
     cancelBtn.style.cssText = 'margin-top:8px;background:transparent;border:1px solid #f87171;color:#f87171;border-radius:8px;padding:6px 12px;font-size:10px;cursor:pointer;';
     cancelBtn.textContent = '🔄 Annuler pause (test)';
-    cancelBtn.onclick = () => { localStorage.removeItem(pauseKey); renderPortal(); };
+    cancelBtn.onclick = async () => {
+      const pauseKey = sid + '-pause-' + nom + '-' + dateStr;
+      localStorage.removeItem(pauseKey);
+      // Effacer pauseHeure dans les données Heures (local + Supabase)
+      try {
+        const raw = localStorage.getItem(dk);
+        if (raw) {
+          const data = JSON.parse(raw);
+          if (data.rows) {
+            const rowKey = Object.keys(data.rows).find(k => data.rows[k].nom && data.rows[k].nom.trim() === nom.trim());
+            if (rowKey) { delete data.rows[rowKey].pauseHeure; localStorage.setItem(dk, JSON.stringify(data)); }
+          }
+        }
+      } catch (_) {}
+      // Effacer dans Supabase aussi
+      if (typeof sb === 'function' && sb()) {
+        try {
+          const { data: sbData } = await sb().from('heures').select('data').eq('station_id', sid).eq('date_jour', dateStr).maybeSingle();
+          if (sbData && sbData.data && sbData.data.rows) {
+            const rowKey = Object.keys(sbData.data.rows).find(k => sbData.data.rows[k].nom && sbData.data.rows[k].nom.trim() === nom.trim());
+            if (rowKey) {
+              delete sbData.data.rows[rowKey].pauseHeure;
+              await sb().from('heures').update({ data: sbData.data }).eq('station_id', sid).eq('date_jour', dateStr);
+            }
+          }
+        } catch (_) {}
+      }
+      renderPortal();
+    };
     section.appendChild(cancelBtn);
   } else {
     const btn = document.createElement('button');
