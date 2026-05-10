@@ -63,15 +63,15 @@ function renderAttribution() {
   // Header
   const thead = document.createElement('thead');
   thead.innerHTML = `<tr style="background:var(--bg-sidebar);">
-    <th style="width:18px;padding:3px 2px;"></th>
-    <th style="padding:3px 4px;text-align:center;">Modèle</th>
-    <th style="padding:3px 4px;text-align:center;">Agence</th>
-    <th style="padding:3px 2px;width:22px;">CM</th>
-    <th style="padding:3px 3px;width:28px;">UTA</th>
-    <th style="padding:3px 3px;width:28px;">Tél.</th>
-    <th style="padding:3px 2px;width:26px;">St.</th>
-    <th style="padding:3px 4px;text-align:center;">Plaque</th>
-    <th style="padding:3px 4px;text-align:left;min-width:72px;">Chauffeur</th>
+    <th style="width:18px;padding:3px 1px;"></th>
+    <th style="padding:3px 2px;text-align:left;">Modèle</th>
+    <th style="padding:3px 2px;text-align:left;">Agence</th>
+    <th style="padding:3px 1px;width:20px;text-align:left;">CM</th>
+    <th style="padding:3px 4px;width:30px;">UTA</th>
+    <th style="padding:3px 4px;width:30px;">Tél.</th>
+    <th style="padding:3px 3px;width:30px;">St.</th>
+    <th style="padding:3px 3px;text-align:left;">Plaque</th>
+    <th style="padding:3px 4px;text-align:left;min-width:90px;">Chauffeur</th>
     <th style="padding:3px 3px;width:28px;">PDA</th>
     <th style="padding:3px 3px;width:32px;">Trs.</th>
     <th style="padding:3px 3px;width:28px;">Lic.</th>
@@ -83,7 +83,7 @@ function renderAttribution() {
     <th style="padding:3px 2px;width:18px;background:rgba(74,222,128,0.1);">L</th>
     <th style="padding:3px 2px;width:18px;background:rgba(74,222,128,0.1);">C</th>
     <th style="padding:3px 2px;width:24px;background:rgba(74,222,128,0.1);">V</th>
-    <th style="padding:3px 4px;min-width:90px;">Commentaires</th>
+    <th style="padding:3px 3px;width:80px;">Com.</th>
   </tr>`;
   table.appendChild(thead);
 
@@ -108,14 +108,14 @@ function renderAttribution() {
     } else {
       tr.innerHTML = `
         <td style="padding:1px;">${mvBtns(idx, rows.length)}</td>
-        <td style="padding:1px 2px;font-size:9px;white-space:nowrap;overflow:hidden;max-width:60px;text-align:center;">${row.modele}</td>
-        <td style="padding:1px 2px;font-size:9px;text-align:center;">${row.agence}${row.bva?' BVA':''}</td>
-        <td style="padding:1px;text-align:center;"><input type="checkbox" ${row.checkMensuel?'checked':''} data-idx="${idx}" data-f="checkMensuel" style="width:12px;height:12px;"></td>
-        <td><input class="h-inp" value="${row.uta}" data-idx="${idx}" data-f="uta" style="width:26px;font-size:9px;padding:1px;"></td>
-        <td><input class="h-inp" value="${row.telepeages}" data-idx="${idx}" data-f="telepeages" style="width:26px;font-size:9px;padding:1px;"></td>
-        <td style="padding:1px;"><select class="h-inp" data-idx="${idx}" data-f="statut" style="width:28px;font-size:9px;padding:0;"><option value="OK" ${row.statut==='OK'?'selected':''}>OK</option><option value="BU" ${row.statut==='BU'?'selected':''}>BU</option><option value="X" ${row.statut==='X'?'selected':''}>✕</option></select></td>
-        <td style="padding:1px 3px;font-weight:700;color:var(--accent);font-size:9px;">${row.plaque}</td>
-        <td style="padding:1px;position:relative;"><input class="h-inp attr-chauffeur-inp" value="${row.chauffeur}" data-idx="${idx}" data-f="chauffeur" style="width:68px;font-size:9px;padding:1px 3px;text-align:left;" placeholder="—"></td>
+        <td style="padding:1px 2px;font-size:9px;white-space:nowrap;overflow:hidden;max-width:60px;text-align:left;">${row.modele}</td>
+        <td style="padding:1px 2px;font-size:9px;text-align:left;">${row.agence}${row.bva?' BVA':''}</td>
+        <td style="padding:1px;text-align:left;"><input type="checkbox" ${row.checkMensuel?'checked':''} data-idx="${idx}" data-f="checkMensuel" style="width:12px;height:12px;"></td>
+        <td style="padding:1px 3px;"><input class="h-inp" value="${row.uta}" data-idx="${idx}" data-f="uta" style="width:28px;font-size:9px;padding:1px;"></td>
+        <td style="padding:1px 3px;"><input class="h-inp" value="${row.telepeages}" data-idx="${idx}" data-f="telepeages" style="width:28px;font-size:9px;padding:1px;"></td>
+        <td style="padding:1px;"><select class="h-inp" data-idx="${idx}" data-f="statut" style="width:30px;font-size:9px;padding:1px;background:var(--bg-tab-active);color:var(--text-primary);border:1px solid var(--border);border-radius:3px;"><option value="OK" ${row.statut==='OK'?'selected':''}>OK</option><option value="BU" ${row.statut==='BU'?'selected':''}>BU</option><option value="X" ${row.statut==='X'?'selected':''}>✕</option></select></td>
+        <td style="padding:1px 3px;font-weight:700;color:var(--accent);font-size:9px;text-align:left;">${row.plaque}</td>
+        <td style="padding:1px;position:relative;"><input class="h-inp attr-chauffeur-inp" value="${row.chauffeur}" data-idx="${idx}" data-f="chauffeur" style="width:88px;font-size:9px;padding:1px 3px;text-align:left;" placeholder="—"></td>
         <td><input class="h-inp" value="${row.pda}" data-idx="${idx}" data-f="pda" style="width:26px;font-size:9px;padding:1px;"></td>
         <td><input class="h-inp" value="${row.trousseau}" data-idx="${idx}" data-f="trousseau" style="width:30px;font-size:9px;padding:1px;"></td>
         <td><input class="h-inp" value="${row.licence}" data-idx="${idx}" data-f="licence" style="width:26px;font-size:9px;padding:1px;"></td>
@@ -127,7 +127,7 @@ function renderAttribution() {
         <td style="text-align:center;background:rgba(74,222,128,0.03);"><input type="checkbox" ${row.retourLicence?'checked':''} data-idx="${idx}" data-f="retourLicence" style="width:12px;height:12px;"></td>
         <td style="text-align:center;background:rgba(74,222,128,0.03);"><input type="checkbox" ${row.retourClefBal?'checked':''} data-idx="${idx}" data-f="retourClefBal" style="width:12px;height:12px;"></td>
         <td style="text-align:center;background:rgba(74,222,128,0.03);"><input type="checkbox" ${row.retourVigik?'checked':''} data-idx="${idx}" data-f="retourVigik" style="width:12px;height:12px;"><button class="h-btn" style="font-size:7px;padding:0 2px;margin-left:1px;" title="Tout OK" data-idx="${idx}" data-action="allok">✓</button></td>
-        <td><input class="h-inp" value="${row.commentaire}" data-idx="${idx}" data-f="commentaire" style="width:88px;font-size:9px;padding:1px;"></td>
+        <td><input class="h-inp" value="${row.commentaire}" data-idx="${idx}" data-f="commentaire" style="width:100%;font-size:9px;padding:1px 3px;"></td>
       `;
     }
     tbody.appendChild(tr);
