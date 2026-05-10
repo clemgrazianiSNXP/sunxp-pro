@@ -218,9 +218,9 @@ function buildPortalPause(sid, nom, now) {
         const row = Object.values(data.rows).find(r => r.nom && r.nom.trim() === nom.trim());
         if (row) {
           isInHeures = true;
-          if (row.pauseHeure) {
+          if (row.heurePause) {
             alreadyHasPause = true;
-            existingPauseTime = row.pauseHeure;
+            existingPauseTime = row.heurePause;
           }
         }
       }
@@ -265,7 +265,7 @@ function buildPortalPause(sid, nom, now) {
           const data = JSON.parse(raw);
           if (data.rows) {
             const rowKey = Object.keys(data.rows).find(k => data.rows[k].nom && data.rows[k].nom.trim() === nom.trim());
-            if (rowKey) { delete data.rows[rowKey].pauseHeure; localStorage.setItem(dk, JSON.stringify(data)); }
+            if (rowKey) { delete data.rows[rowKey].heurePause; localStorage.setItem(dk, JSON.stringify(data)); }
           }
         }
       } catch (_) {}
@@ -276,7 +276,7 @@ function buildPortalPause(sid, nom, now) {
           if (sbData && sbData.data && sbData.data.rows) {
             const rowKey = Object.keys(sbData.data.rows).find(k => sbData.data.rows[k].nom && sbData.data.rows[k].nom.trim() === nom.trim());
             if (rowKey) {
-              delete sbData.data.rows[rowKey].pauseHeure;
+              delete sbData.data.rows[rowKey].heurePause;
               await sb().from('heures').update({ data: sbData.data }).eq('station_id', sid).eq('date_jour', dateStr);
             }
           }
@@ -339,7 +339,7 @@ async function savePauseToHeures(sid, nom, date) {
   if (data && data.rows) {
     const rowKey = Object.keys(data.rows).find(k => data.rows[k].nom && data.rows[k].nom.trim() === nom.trim());
     if (rowKey) {
-      data.rows[rowKey].pauseHeure = pauseTime;
+      data.rows[rowKey].heurePause = pauseTime;
       localStorage.setItem(dk, JSON.stringify(data));
       if (typeof dbSave === 'function') {
         dbSave('heures', dk, { station_id: sid, date_jour: dateStr }, data);
@@ -358,7 +358,7 @@ async function savePauseToHeures(sid, nom, date) {
       if (!error && sbData && sbData.data && sbData.data.rows) {
         const rowKey = Object.keys(sbData.data.rows).find(k => sbData.data.rows[k].nom && sbData.data.rows[k].nom.trim() === nom.trim());
         if (rowKey) {
-          sbData.data.rows[rowKey].pauseHeure = pauseTime;
+          sbData.data.rows[rowKey].heurePause = pauseTime;
           // Sauver en local + Supabase
           localStorage.setItem(dk, JSON.stringify(sbData.data));
           const { error: upErr } = await sb().from('heures').update({ data: sbData.data }).eq('station_id', sid).eq('date_jour', dateStr);
