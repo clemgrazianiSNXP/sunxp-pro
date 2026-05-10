@@ -189,7 +189,10 @@ function showChauffeurDegats(nom, incidents) {
   box.style.cssText = 'background:var(--bg-sidebar);border:1px solid var(--border);border-radius:12px;padding:20px;width:90%;max-width:500px;max-height:80vh;overflow-y:auto;';
   box.innerHTML = `<h3 style="font-size:14px;color:var(--accent);margin:0 0 12px;">🔧 Dégâts — ${nom}</h3>`;
 
-  incidents.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(d => {
+  // Relire les données fraîches depuis localStorage
+  const freshDegats = loadDegats().filter(x => x.chauffeur === nom);
+
+  freshDegats.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(d => {
     const card = document.createElement('div');
     card.style.cssText = 'background:var(--bg-primary);border:1px solid var(--border);border-left:3px solid #f87171;border-radius:6px;padding:10px;margin-bottom:8px;font-size:12px;';
     card.innerHTML = `
