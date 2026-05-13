@@ -64,6 +64,14 @@ function renderCamions() {
       editBtn.onclick = () => showCamionForm(c);
       actions.appendChild(editBtn);
 
+      // Transférer vers autre station
+      const transferBtn = document.createElement('button');
+      transferBtn.className = 'h-btn'; transferBtn.style.cssText = 'font-size:10px;padding:3px 8px;';
+      transferBtn.textContent = '↗️';
+      transferBtn.title = 'Transférer vers une autre station';
+      transferBtn.onclick = () => showTransferCamionModal(c);
+      actions.appendChild(transferBtn);
+
       // Supprimer
       const delBtn = document.createElement('button');
       delBtn.className = 'rep-btn rep-btn-delete'; delBtn.textContent = '🗑';
@@ -163,5 +171,81 @@ function showQRCode(vin, plaque) {
   `;
   overlay.appendChild(box);
   overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
+  document.body.appendChild(overlay);
+}
+
+
+/* ── Transférer un camion vers une autre station ──────────── */
+function showTransferCamionModal(camion) {
+  const currentSid = window.getActiveStationId ? window.getActiveStationId() : null;
+  if (!currentSid) return;
+
+  // Charger la liste des stations
+  let stations = [];
+  try { stations = JSON.parse(localStorage.getItem('sunxp_stations')) || []; } catch (_) {}
+  const otherStations = stations.filter(function(s) { return s.id !== currentSid; });
+
+  if (!otherStations.length) { alert('Aucune autre station disponible.'); return; }
+
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99999;display:flex;align-items:center;justify-content:center;';
+
+  const modal = document.createElement('div');
+  modal.style.cssText = 'background:var(--bg-sidebar);border-radius:14px;padding:24px;width:90%;max-width:340px;display:flex;flex-direction:column;gap:12px;';
+  modal.innerHTML = '<h3 style="margin:0;font-size:15px;color:var(--accent);">↗️ Transférer ' + camion.plaque + '</h3><p style="margin:0;font-size:12px;color:var(--text-muted);">Le camion sera supprimé de cette station et ajouté à la station cible.</p>';
+
+  var label = document.createElement('label');
+  label.style.cssText = 'font-size:11px;color:var(--text-muted);';
+  label.textContent = 'Station de destination';
+  modal.appendChild(label);
+
+  var sel = document.createElement('select');
+  sel.className = 'rep-input';
+  sel.style.cssText = 'padding:8px;font-size:12px;background:var(--bg-primary);color:var(--text-primary);border:1px solid var(--border);border-radius:6px;';
+  otherStations.forEach(function(s) {
+    var opt = document.createElement('option');
+    opt.value = s.id; opt.textContent = s.nom + ' (' + s.id + ')';
+    sel.appendChild(opt);
+  });
+  modal.appendChild(sel);
+
+  var btns = document.createElement('div');
+  btns.style.cssText = 'display:flex;gap:8px;margin-top:8px;';
+  var okBtn = document.createElement('button');
+  okBtn.className = 'rep-btn rep-btn-primary'; okBtn.style.cssText = 'flex:1;';
+  okBtn.textContent = 'Transférer';
+  var cancelBtn = document.createElement('button');
+  cancelBtn.className = 'h-btn'; cancelBtn.style.cssText = 'flex:1;';
+  cancelBtn.textContent = 'Annuler';
+  cancelBtn.onclick = function() { overlay.remove(); };
+
+  okBtn.onclick = function() {
+    var targetSid = sel.value;
+    if (!targetSid) return;
+
+    // Supprimer de la station actuelle
+    var currentList = loadCamions().filter(function(c) { return c.id !== camion.id; });
+    saveCamions(currentList);
+
+    // Ajouter à la station cible
+    var targetKey = targetSid + '-camions';
+    var targetList = [];
+    try { var raw = localStorage.getItem(targetKey); if (raw) targetList = JSON.parse(raw); } catch (_) {}
+    targetList.push(camion);
+    try { localStorage.setItem(targetKey, JSON.stringify(targetList)); } catch (_) {}
+
+    // Sync Supabase pour la station cible
+    if (typeof dbSave === 'function') {
+      dbSave('camions', targetKey, { station_id: targetSid }, targetList);
+    }
+
+    overlay.remove();
+    if (typeof renderFlotte === 'function') renderFlotte();
+  };
+
+  btns.appendChild(okBtn); btns.appendChild(cancelBtn);
+  modal.appendChild(btns);
+  overlay.appendChild(modal);
+  overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
   document.body.appendChild(overlay);
 }
