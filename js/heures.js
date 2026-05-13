@@ -50,10 +50,38 @@ function renderHeures() {
   tableWrap.appendChild(buildTable(rows, key, stationId));
   body.appendChild(tableWrap);
 
+  // Dashboard latéral avec toggle
+  const dashWrap = document.createElement('div');
+  dashWrap.style.cssText = 'display:flex;flex-shrink:0;';
+
+  const toggleBtn = document.createElement('button');
+  toggleBtn.style.cssText = 'width:20px;background:var(--bg-sidebar);border:none;border-left:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:10px;';
+  toggleBtn.textContent = '◀';
+  toggleBtn.title = 'Masquer/Afficher le dashboard';
+
   const dash = document.createElement('div');
   dash.style.cssText = 'width:260px;overflow-y:auto;border-left:1px solid var(--border);flex-shrink:0;';
   dash.innerHTML = renderDashboard(saved && saved.dashboard, rows);
-  body.appendChild(dash);
+
+  // Restaurer l'état depuis localStorage
+  var dashHidden = localStorage.getItem('heures-dash-hidden') === '1';
+  if (dashHidden) { dash.style.display = 'none'; toggleBtn.textContent = '▶'; }
+
+  toggleBtn.onclick = function() {
+    if (dash.style.display === 'none') {
+      dash.style.display = '';
+      toggleBtn.textContent = '◀';
+      localStorage.setItem('heures-dash-hidden', '0');
+    } else {
+      dash.style.display = 'none';
+      toggleBtn.textContent = '▶';
+      localStorage.setItem('heures-dash-hidden', '1');
+    }
+  };
+
+  dashWrap.appendChild(toggleBtn);
+  dashWrap.appendChild(dash);
+  body.appendChild(dashWrap);
 
   container.appendChild(body);
 
