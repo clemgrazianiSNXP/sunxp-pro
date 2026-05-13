@@ -108,16 +108,16 @@ function showRepertoireForm(container, person, type, onSave, onCancel) {
           console.log('📧 SignUp result:', JSON.stringify(result));
           if (result.error) {
             console.error('❌ SignUp error:', result.error.message);
-            alert('❌ Erreur création compte: ' + result.error.message);
+            showToast('Erreur création compte: ' + result.error.message, 'error');
           } else {
             var userId = result.data && result.data.user ? result.data.user.id : null;
             console.log('✅ Compte créé — userId:', userId, '| identities:', result.data.user ? result.data.user.identities : 'N/A');
             // Si identities est vide, le compte existait déjà
             if (result.data.user && result.data.user.identities && result.data.user.identities.length === 0) {
-              alert('⚠️ Ce compte existe déjà: ' + email);
+              showToast('Ce compte existe déjà: ' + email, 'warning');
               return;
             }
-            alert('✅ Compte créé pour ' + email);
+            showToast('Compte créé pour ' + email, 'success');
             // Insérer dans user_profiles
             if (userId && stationId && typeof sb === 'function' && sb()) {
               sb().from('user_profiles').upsert({
@@ -130,7 +130,7 @@ function showRepertoireForm(container, person, type, onSave, onCancel) {
               }).then(function(res) {
                 if (res.error) {
                   console.error('❌ user_profiles error:', res.error.message);
-                  alert('⚠️ Profil non créé: ' + res.error.message);
+                  showToast('Profil non créé: ' + res.error.message, 'error');
                 } else {
                   console.log('✅ Profil chauffeur inséré dans user_profiles');
                 }
@@ -141,17 +141,39 @@ function showRepertoireForm(container, person, type, onSave, onCancel) {
           }
         }).catch(function(err) {
           console.error('❌ SignUp catch:', err);
-          alert('❌ Erreur réseau: ' + err.message);
+          showToast('Erreur réseau: ' + err.message, 'error');
         });
       } else {
         var reason = !window.supabase ? 'SDK non chargé' : (!window.supabase.createClient ? 'createClient absent' : 'mdp trop court (' + mdp.length + ' chars)');
         console.warn('⚠️ Compte non créé:', reason);
-        alert('⚠️ Impossible de créer le compte: ' + reason);
+        showToast('Impossible de créer le compte: ' + reason, 'warning');
       }
     }
 
     onSave(personData);
   });
+}
+
+/* ── Toast notification stylée ─────────────────────────────── */
+function showToast(msg, type) {
+  // type: 'success' | 'error' | 'warning'
+  var colors = { success: '#10b981', error: '#ef4444', warning: '#f59e0b' };
+  var icons = { success: '✅', error: '❌', warning: '⚠️' };
+  var toast = document.createElement('div');
+  toast.style.cssText = 'position:fixed;top:20px;right:20px;z-index:999999;background:var(--bg-sidebar,#1e1e2e);border:1px solid ' + (colors[type] || colors.success) + ';border-radius:10px;padding:14px 20px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 24px rgba(0,0,0,0.3);animation:toastIn 0.3s ease;max-width:340px;';
+  toast.innerHTML = '<span style="font-size:18px;">' + (icons[type] || '✅') + '</span><span style="font-size:13px;color:var(--text-primary,#fff);line-height:1.4;">' + msg + '</span>';
+  document.body.appendChild(toast);
+  // Ajouter animation CSS si pas déjà présente
+  if (!document.getElementById('toast-anim-style')) {
+    var s = document.createElement('style');
+    s.id = 'toast-anim-style';
+    s.textContent = '@keyframes toastIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}@keyframes toastOut{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(40px)}}';
+    document.head.appendChild(s);
+  }
+  setTimeout(function() {
+    toast.style.animation = 'toastOut 0.3s ease forwards';
+    setTimeout(function() { toast.remove(); }, 300);
+  }, 3500);
 }
 
 function esc(str) {
