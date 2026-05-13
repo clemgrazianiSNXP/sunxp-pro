@@ -46,6 +46,10 @@ function showRepertoireForm(container, person, type, onSave, onCancel) {
           <label>Email <small>(pour accès espace chauffeur)</small></label>
           <input id="rf-email" type="email" class="rep-input" value="${esc(person?.email || '')}" placeholder="chauffeur@email.com">
         </div>
+        <div class="rep-field">
+          <label>Téléphone <small>(pour WhatsApp)</small></label>
+          <input id="rf-telephone" type="tel" class="rep-input" value="${esc(person?.telephone || '')}" placeholder="06 12 34 56 78">
+        </div>
 
         <div class="rep-form-actions">
           <button class="rep-btn rep-btn-primary" id="rf-save">Enregistrer</button>
@@ -63,6 +67,7 @@ function showRepertoireForm(container, person, type, onSave, onCancel) {
     const matricule = container.querySelector('#rf-matricule').value.trim();
     const id_amazon = container.querySelector('#rf-amazon').value.trim().toUpperCase();
     const email = container.querySelector('#rf-email') ? container.querySelector('#rf-email').value.trim() : '';
+    const telephone = container.querySelector('#rf-telephone') ? container.querySelector('#rf-telephone').value.trim() : '';
     let valid = true;
 
     const setErr = (id, msg) => {
@@ -77,7 +82,7 @@ function showRepertoireForm(container, person, type, onSave, onCancel) {
 
     const personData = {
       id: person?.id || ('p_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7)),
-      prenom, nom, role, matricule, id_amazon, email
+      prenom, nom, role, matricule, id_amazon, email, telephone
     };
 
     onSave(personData);

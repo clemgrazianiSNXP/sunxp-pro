@@ -173,6 +173,10 @@ function buildPersonGrid(list, stationId, type) {
     amazonLine.style.cssText = 'font-size:10px;font-family:monospace;color:var(--text-muted);';
     amazonLine.textContent = c.id_amazon ? '📦 ' + c.id_amazon : '';
 
+    const telLine = document.createElement('div');
+    telLine.style.cssText = 'font-size:10px;color:var(--text-muted);';
+    telLine.textContent = c.telephone ? '📱 ' + c.telephone : '';
+
     const actions = document.createElement('div');
     actions.style.cssText = 'display:flex;gap:8px;margin-top:6px;';
 
@@ -189,7 +193,7 @@ function buildPersonGrid(list, stationId, type) {
     actions.appendChild(editBtn);
 
     // Bouton envoyer mot de passe via WhatsApp
-    if (c.telephone && c.email) {
+    if (c.telephone) {
       var waPassBtn = document.createElement('button');
       waPassBtn.className = 'h-btn';
       waPassBtn.style.cssText = 'font-size:10px;padding:3px 7px;background:#25d366;color:#fff;border:none;';
@@ -216,6 +220,7 @@ function buildPersonGrid(list, stationId, type) {
     card.appendChild(role);
     if (c.matricule) card.appendChild(matricule);
     if (c.id_amazon) card.appendChild(amazonLine);
+    if (c.telephone) card.appendChild(telLine);
     card.appendChild(actions);
     grid.appendChild(card);
   });
