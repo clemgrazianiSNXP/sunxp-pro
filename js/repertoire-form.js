@@ -85,6 +85,20 @@ function showRepertoireForm(container, person, type, onSave, onCancel) {
       prenom, nom, role, matricule, id_amazon, email, telephone
     };
 
+    // Créer un compte Supabase Auth si email renseigné et nouveau (pas en édition avec même email)
+    if (email && (!person || person.email !== email)) {
+      var amazonPart = (id_amazon || '').slice(0, 4);
+      var telDigits = telephone.replace(/\D/g, '');
+      var telPart = telDigits.slice(-4);
+      var mdp = amazonPart + telPart;
+      if (mdp.length >= 6 && typeof sb === 'function' && sb()) {
+        sb().auth.signUp({ email: email, password: mdp }).then(function(result) {
+          if (result.error) console.warn('SignUp error:', result.error.message);
+          else console.log('✅ Compte Supabase créé pour:', email);
+        });
+      }
+    }
+
     onSave(personData);
   });
 }
