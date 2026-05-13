@@ -42,7 +42,7 @@ function renderAttribution() {
 
   // Header
   const thead = document.createElement('thead');
-  thead.innerHTML = '<tr><th style="padding:6px 4px;text-align:left;min-width:80px;">Plaque</th><th style="padding:6px 4px;text-align:left;min-width:120px;">Chauffeur</th><th style="padding:6px 4px;min-width:50px;">PDA</th><th style="padding:6px 4px;min-width:50px;">Clef</th><th style="padding:6px 4px;min-width:60px;">VIGIK</th><th style="padding:6px 4px;min-width:40px;">Trs</th><th style="padding:6px 4px;min-width:40px;">Lic</th><th style="padding:6px 4px;min-width:24px;font-size:9px;" title="Retour PDA">rP</th><th style="padding:6px 4px;min-width:24px;font-size:9px;" title="Retour Trousseau">rT</th><th style="padding:6px 4px;min-width:24px;font-size:9px;" title="Retour Licence">rL</th><th style="padding:6px 4px;min-width:24px;font-size:9px;" title="Retour Clef">rC</th><th style="padding:6px 4px;min-width:24px;font-size:9px;" title="Retour VIGIK">rV</th><th style="padding:6px 4px;min-width:24px;font-size:9px;" title="Validé">✓</th><th style="padding:6px 4px;min-width:100px;">Com.</th></tr>';
+  thead.innerHTML = '<tr><th style="padding:6px 4px;text-align:left;min-width:80px;">Plaque</th><th style="padding:6px 4px;min-width:36px;">St</th><th style="padding:6px 4px;text-align:left;min-width:120px;">Chauffeur</th><th style="padding:6px 4px;min-width:50px;">PDA</th><th style="padding:6px 4px;min-width:50px;">Clef</th><th style="padding:6px 4px;min-width:60px;">VIGIK</th><th style="padding:6px 4px;min-width:40px;">Trs</th><th style="padding:6px 4px;min-width:40px;">Lic</th><th style="padding:6px 4px;min-width:24px;font-size:9px;" title="Retour PDA">rP</th><th style="padding:6px 4px;min-width:24px;font-size:9px;" title="Retour Trousseau">rT</th><th style="padding:6px 4px;min-width:24px;font-size:9px;" title="Retour Licence">rL</th><th style="padding:6px 4px;min-width:24px;font-size:9px;" title="Retour Clef">rC</th><th style="padding:6px 4px;min-width:24px;font-size:9px;" title="Retour VIGIK">rV</th><th style="padding:6px 4px;min-width:24px;font-size:9px;" title="Validé">✓</th><th style="padding:6px 4px;min-width:100px;">Com.</th></tr>';
   table.appendChild(thead);
 
   // Body
@@ -56,6 +56,31 @@ function renderAttribution() {
     tdPlaque.style.cssText = 'padding:4px;font-weight:700;color:var(--accent);white-space:nowrap;';
     tdPlaque.textContent = r.plaque + (r.bva ? ' BVA' : '');
     tr.appendChild(tdPlaque);
+
+    // Statut (OK / BU / X)
+    var tdSt = document.createElement('td');
+    tdSt.style.cssText = 'padding:2px;text-align:center;';
+    var selSt = document.createElement('select');
+    selSt.className = 'h-inp';
+    selSt.style.cssText = 'width:36px;font-size:10px;padding:2px;font-weight:700;';
+    ['OK', 'BU', 'X'].forEach(function(opt) {
+      var o = document.createElement('option');
+      o.value = opt; o.textContent = opt;
+      if ((r.statut || 'OK') === opt) o.selected = true;
+      selSt.appendChild(o);
+    });
+    var stColors = { OK: '#4ade80', BU: '#60a5fa', X: '#f87171' };
+    selSt.style.color = stColors[r.statut || 'OK'] || '';
+    selSt.onchange = function() {
+      r.statut = selSt.value;
+      selSt.style.color = stColors[selSt.value] || '';
+      if (selSt.value === 'X') tr.style.opacity = '0.4';
+      else tr.style.opacity = '';
+      saveAttr(sid, attrDate, rows);
+    };
+    if ((r.statut || 'OK') === 'X') tr.style.opacity = '0.4';
+    tdSt.appendChild(selSt);
+    tr.appendChild(tdSt);
 
     // Chauffeur (select)
     const tdChauffeur = document.createElement('td');
