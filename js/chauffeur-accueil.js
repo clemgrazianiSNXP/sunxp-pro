@@ -468,5 +468,16 @@ async function loadPublishedFromSupabase(sid) {
     if (!error && data && data.data) {
       localStorage.setItem(sid + '-planning-published', JSON.stringify(data.data));
     }
+    // Recharger aussi les données planning (mois en cours et suivant)
+    const now = new Date();
+    for (let offset = 0; offset <= 1; offset++) {
+      const d = new Date(now.getFullYear(), now.getMonth() + offset, 1);
+      const y = d.getFullYear();
+      const m = d.getMonth() + 1;
+      const { data: planData } = await sb().from('planning').select('data').eq('station_id', sid).eq('year', y).eq('month', m).maybeSingle();
+      if (planData && planData.data) {
+        localStorage.setItem(sid + '-planning-' + y + '-' + String(m).padStart(2, '0'), JSON.stringify(planData.data));
+      }
+    }
   } catch (_) {}
 }
