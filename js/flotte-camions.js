@@ -182,7 +182,7 @@ function showTransferCamionModal(camion) {
 
   // Charger la liste des stations
   let stations = [];
-  try { stations = JSON.parse(localStorage.getItem('sunxp_stations')) || []; } catch (_) {}
+  try { stations = JSON.parse(localStorage.getItem('stations')) || []; } catch (_) {}
   const otherStations = stations.filter(function(s) { return s.id !== currentSid; });
 
   if (!otherStations.length) { alert('Aucune autre station disponible.'); return; }
