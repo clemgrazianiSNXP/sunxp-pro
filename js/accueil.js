@@ -48,6 +48,7 @@ function renderAccueil() {
   colDsp.appendChild(buildHSCard(sid));
   colDsp.appendChild(buildNear35hCard(sid));
   colDsp.appendChild(buildASTCard(sid));
+  colDsp.appendChild(buildRecentBadgesCard(sid));
   grid.appendChild(colDsp);
 
   // Colonne RH
@@ -351,6 +352,56 @@ function buildASTCard(sid) {
 
   card.querySelector('.accueil-card-body').style.cursor = 'pointer';
   card.querySelector('.accueil-card-body').onclick = () => { showModule('planning'); };
+  return card;
+}
+
+/* ── Card Badges récents (DSP/CE) ─────────────────────────── */
+function buildRecentBadgesCard(sid) {
+  // Scanner les badges récemment débloqués (7 derniers jours)
+  let chauffeurs = [];
+  try { chauffeurs = JSON.parse(localStorage.getItem(sid + '-repertoire')) || []; } catch (_) {}
+
+  const now = new Date();
+  const sevenDaysAgo = new Date(now); sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  const recentBadges = [];
+
+  chauffeurs.forEach(c => {
+    const cId = (c.id_amazon || '').replace(/\s/g, '').toUpperCase();
+    if (!cId) return;
+    const badgeKey = sid + '-badges-' + cId;
+    try {
+      const raw = localStorage.getItem(badgeKey);
+      if (!raw) return;
+      const saved = JSON.parse(raw);
+      const nom = ((c.prenom || '') + ' ' + (c.nom || '')).trim();
+      Object.entries(saved).forEach(function(entry) {
+        var id = entry[0], state = entry[1];
+        if (state.unlocked && state.date) {
+          var d = new Date(state.date);
+          if (d >= sevenDaysAgo) {
+            var def = typeof BADGE_DEFS !== 'undefined' ? BADGE_DEFS.find(function(b) { return b.id === id; }) : null;
+            recentBadges.push({ nom: nom, badge: def ? def.name : id, icon: def ? def.icon : '🏆', date: state.date });
+          }
+        }
+      });
+    } catch (_) {}
+  });
+
+  recentBadges.sort(function(a, b) { return new Date(b.date) - new Date(a.date); });
+
+  const card = createCard('🏆', 'Badges récents', recentBadges.length);
+  const body = card.querySelector('.accueil-card-body');
+
+  if (!recentBadges.length) {
+    body.innerHTML = '<div style="font-size:11px;color:var(--text-muted);text-align:center;">Aucun badge débloqué cette semaine</div>';
+  } else {
+    var html = '';
+    recentBadges.slice(0, 8).forEach(function(b) {
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;padding:3px 0;border-bottom:1px solid var(--border);"><span>' + b.icon + ' ' + b.nom + ' — <strong>' + b.badge + '</strong></span><span style="color:var(--text-muted);font-size:9px;">' + b.date + '</span></div>';
+    });
+    body.innerHTML = html;
+  }
+
   return card;
 }
 
