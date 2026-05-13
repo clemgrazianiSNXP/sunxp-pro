@@ -42,7 +42,7 @@ function renderAttribution() {
 
   // Header
   const thead = document.createElement('thead');
-  thead.innerHTML = '<tr><th style="padding:6px 4px;text-align:left;min-width:80px;">Plaque</th><th style="padding:6px 4px;text-align:left;min-width:120px;">Chauffeur</th><th style="padding:6px 4px;min-width:50px;">PDA</th><th style="padding:6px 4px;min-width:50px;">Clef</th><th style="padding:6px 4px;min-width:60px;">VIGIK</th><th style="padding:6px 4px;min-width:40px;">Trs</th><th style="padding:6px 4px;min-width:40px;">Lic</th><th style="padding:6px 4px;min-width:100px;">Commentaire</th></tr>';
+  thead.innerHTML = '<tr><th style="padding:6px 4px;text-align:left;min-width:80px;">Plaque</th><th style="padding:6px 4px;text-align:left;min-width:120px;">Chauffeur</th><th style="padding:6px 4px;min-width:50px;">PDA</th><th style="padding:6px 4px;min-width:50px;">Clef</th><th style="padding:6px 4px;min-width:60px;">VIGIK</th><th style="padding:6px 4px;min-width:40px;">Trs</th><th style="padding:6px 4px;min-width:40px;">Lic</th><th style="padding:6px 4px;min-width:24px;font-size:9px;" title="Retour PDA">rP</th><th style="padding:6px 4px;min-width:24px;font-size:9px;" title="Retour Trousseau">rT</th><th style="padding:6px 4px;min-width:24px;font-size:9px;" title="Retour Licence">rL</th><th style="padding:6px 4px;min-width:24px;font-size:9px;" title="Retour Clef">rC</th><th style="padding:6px 4px;min-width:24px;font-size:9px;" title="Retour VIGIK">rV</th><th style="padding:6px 4px;min-width:24px;font-size:9px;" title="Validé">✓</th><th style="padding:6px 4px;min-width:100px;">Com.</th></tr>';
   table.appendChild(thead);
 
   // Body
@@ -76,8 +76,8 @@ function renderAttribution() {
     tdChauffeur.appendChild(selCh);
     tr.appendChild(tdChauffeur);
 
-    // Champs éditables
-    ['pda', 'clef', 'vigik', 'trs', 'lic', 'com'].forEach(function(field) {
+    // Champs éditables texte
+    ['pda', 'clef', 'vigik', 'trs', 'lic'].forEach(function(field) {
       var td = document.createElement('td');
       td.style.cssText = 'padding:2px;';
       var inp = document.createElement('input');
@@ -88,6 +88,30 @@ function renderAttribution() {
       td.appendChild(inp);
       tr.appendChild(td);
     });
+
+    // Cases à cocher retour
+    ['rP', 'rT', 'rL', 'rC', 'rV', 'ok'].forEach(function(field) {
+      var td = document.createElement('td');
+      td.style.cssText = 'padding:2px;text-align:center;';
+      var cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = !!r[field];
+      cb.style.cssText = 'width:14px;height:14px;accent-color:var(--accent);cursor:pointer;';
+      cb.onchange = function() { r[field] = cb.checked; saveAttr(sid, attrDate, rows); };
+      td.appendChild(cb);
+      tr.appendChild(td);
+    });
+
+    // Commentaire
+    var tdCom = document.createElement('td');
+    tdCom.style.cssText = 'padding:2px;';
+    var inpCom = document.createElement('input');
+    inpCom.className = 'h-inp';
+    inpCom.style.cssText = 'width:100%;font-size:10px;padding:3px;';
+    inpCom.value = r.com || '';
+    inpCom.onchange = function() { r.com = inpCom.value; saveAttr(sid, attrDate, rows); };
+    tdCom.appendChild(inpCom);
+    tr.appendChild(tdCom);
 
     tbody.appendChild(tr);
   });
