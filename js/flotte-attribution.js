@@ -42,7 +42,7 @@ function renderAttribution() {
 
   // Colgroup pour contrôler les largeurs
   const colgroup = document.createElement('colgroup');
-  colgroup.innerHTML = '<col style="width:70px"><col style="width:30px"><col style="width:150px"><col style="width:44px"><col style="width:44px"><col style="width:50px"><col style="width:36px"><col style="width:36px"><col style="width:22px"><col style="width:22px"><col style="width:22px"><col style="width:22px"><col style="width:22px"><col style="width:22px"><col>';
+  colgroup.innerHTML = '<col style="width:70px"><col style="width:30px"><col style="width:140px"><col style="width:36px"><col style="width:36px"><col style="width:44px"><col style="width:30px"><col style="width:30px"><col style="width:20px"><col style="width:20px"><col style="width:20px"><col style="width:20px"><col style="width:20px"><col style="width:20px"><col>';
   table.appendChild(colgroup);
 
   // Header
@@ -67,7 +67,7 @@ function renderAttribution() {
     tdSt.style.cssText = 'padding:2px;text-align:center;';
     var selSt = document.createElement('select');
     selSt.className = 'h-inp';
-    selSt.style.cssText = 'width:32px;font-size:9px;padding:1px;font-weight:700;';
+    selSt.style.cssText = 'width:32px;font-size:9px;padding:1px;font-weight:700;background:var(--bg-primary);border:1px solid var(--border);border-radius:4px;';
     ['OK', 'BU', 'X'].forEach(function(opt) {
       var o = document.createElement('option');
       o.value = opt; o.textContent = opt;
@@ -108,7 +108,7 @@ function renderAttribution() {
     tdChauffeur.style.cssText = 'padding:2px;';
     const selCh = document.createElement('select');
     selCh.className = 'h-inp';
-    selCh.style.cssText = 'width:100%;font-size:11px;padding:3px;';
+    selCh.style.cssText = 'width:100%;font-size:10px;padding:3px;background:var(--bg-primary);color:var(--text-primary);border:1px solid var(--border);border-radius:4px;';
     var optEmpty = document.createElement('option');
     optEmpty.value = ''; optEmpty.textContent = '—';
     selCh.appendChild(optEmpty);
