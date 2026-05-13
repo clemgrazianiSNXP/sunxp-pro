@@ -26,13 +26,13 @@ function sb() { return _supabaseReady ? _supabase : null; }
 window.sb = sb; // Rendre accessible globalement
 
 /* ── Envoi push notification via Edge Function ────────────── */
-window.sendPushToStation = async function(stationId, title, body) {
+window.sendPushToStation = async function(stationId, title, body, chauffeurId) {
   if (!sb()) { console.warn('sendPush: sb non dispo'); return; }
   try {
-    console.log('📤 Envoi push à la station', stationId, ':', title);
-    const { data, error } = await sb().functions.invoke('send-push', {
-      body: { station_id: stationId, title: title, body: body }
-    });
+    console.log('📤 Envoi push à la station', stationId, ':', title, chauffeurId ? '(chauffeur: ' + chauffeurId + ')' : '(tous)');
+    const payload = { station_id: stationId, title: title, body: body };
+    if (chauffeurId) payload.chauffeur_id = chauffeurId;
+    const { data, error } = await sb().functions.invoke('send-push', { body: payload });
     if (error) { console.error('❌ Push error:', error.message); return; }
     console.log('✅ Push envoyé:', data);
   } catch (e) { console.error('❌ Push catch:', e.message); }
