@@ -42,7 +42,7 @@ function renderAttribution() {
 
   // Header
   const thead = document.createElement('thead');
-  thead.innerHTML = '<tr><th style="padding:6px 4px;text-align:left;min-width:80px;">Plaque</th><th style="padding:6px 4px;min-width:36px;">St</th><th style="padding:6px 4px;text-align:left;min-width:120px;">Chauffeur</th><th style="padding:6px 4px;min-width:50px;">PDA</th><th style="padding:6px 4px;min-width:50px;">Clef</th><th style="padding:6px 4px;min-width:60px;">VIGIK</th><th style="padding:6px 4px;min-width:40px;">Trs</th><th style="padding:6px 4px;min-width:40px;">Lic</th><th style="padding:6px 4px;min-width:24px;font-size:9px;" title="Retour PDA">rP</th><th style="padding:6px 4px;min-width:24px;font-size:9px;" title="Retour Trousseau">rT</th><th style="padding:6px 4px;min-width:24px;font-size:9px;" title="Retour Licence">rL</th><th style="padding:6px 4px;min-width:24px;font-size:9px;" title="Retour Clef">rC</th><th style="padding:6px 4px;min-width:24px;font-size:9px;" title="Retour VIGIK">rV</th><th style="padding:6px 4px;min-width:24px;font-size:9px;" title="Validé">✓</th><th style="padding:6px 4px;min-width:100px;">Com.</th></tr>';
+  thead.innerHTML = '<tr><th style="padding:6px 4px;text-align:left;min-width:60px;font-size:10px;">Plaque</th><th style="padding:6px 4px;min-width:30px;font-size:10px;">St</th><th style="padding:6px 4px;text-align:left;min-width:100px;font-size:10px;">Chauffeur</th><th style="padding:6px 4px;min-width:40px;font-size:10px;">PDA</th><th style="padding:6px 4px;min-width:40px;font-size:10px;">Clef</th><th style="padding:6px 4px;min-width:50px;font-size:10px;">VIGIK</th><th style="padding:6px 4px;min-width:34px;font-size:10px;">Trs</th><th style="padding:6px 4px;min-width:34px;font-size:10px;">Lic</th><th style="padding:6px 2px;min-width:20px;font-size:9px;" title="Retour PDA">rP</th><th style="padding:6px 2px;min-width:20px;font-size:9px;" title="Retour Trousseau">rT</th><th style="padding:6px 2px;min-width:20px;font-size:9px;" title="Retour Licence">rL</th><th style="padding:6px 2px;min-width:20px;font-size:9px;" title="Retour Clef">rC</th><th style="padding:6px 2px;min-width:20px;font-size:9px;" title="Retour VIGIK">rV</th><th style="padding:6px 2px;min-width:20px;font-size:9px;" title="Validé">✓</th><th style="padding:6px 4px;min-width:80px;font-size:10px;">Com.</th></tr>';
   table.appendChild(thead);
 
   // Body
@@ -53,7 +53,7 @@ function renderAttribution() {
 
     // Plaque (non éditable)
     const tdPlaque = document.createElement('td');
-    tdPlaque.style.cssText = 'padding:4px;font-weight:700;color:var(--accent);white-space:nowrap;';
+    tdPlaque.style.cssText = 'padding:4px;font-weight:700;color:var(--accent);white-space:nowrap;font-size:10px;';
     tdPlaque.textContent = r.plaque + (r.bva ? ' BVA' : '');
     tr.appendChild(tdPlaque);
 
@@ -62,7 +62,7 @@ function renderAttribution() {
     tdSt.style.cssText = 'padding:2px;text-align:center;';
     var selSt = document.createElement('select');
     selSt.className = 'h-inp';
-    selSt.style.cssText = 'width:36px;font-size:10px;padding:2px;font-weight:700;';
+    selSt.style.cssText = 'width:32px;font-size:9px;padding:1px;font-weight:700;';
     ['OK', 'BU', 'X'].forEach(function(opt) {
       var o = document.createElement('option');
       o.value = opt; o.textContent = opt;
@@ -73,14 +73,30 @@ function renderAttribution() {
     selSt.style.color = stColors[r.statut || 'OK'] || '';
     selSt.onchange = function() {
       r.statut = selSt.value;
-      selSt.style.color = stColors[selSt.value] || '';
-      if (selSt.value === 'X') tr.style.opacity = '0.4';
-      else tr.style.opacity = '';
       saveAttr(sid, attrDate, rows);
+      if (typeof renderFlotte === 'function') renderFlotte();
     };
-    if ((r.statut || 'OK') === 'X') tr.style.opacity = '0.4';
     tdSt.appendChild(selSt);
     tr.appendChild(tdSt);
+
+    // Si X → fusionner toutes les colonnes restantes
+    if ((r.statut || 'OK') === 'X') {
+      tr.style.opacity = '0.4';
+      tr.style.background = 'rgba(248,113,113,0.05)';
+      var tdFusion = document.createElement('td');
+      tdFusion.colSpan = 13;
+      tdFusion.style.cssText = 'padding:4px;';
+      var inpFusion = document.createElement('input');
+      inpFusion.className = 'h-inp';
+      inpFusion.style.cssText = 'width:100%;font-size:10px;padding:3px;color:#f87171;font-style:italic;';
+      inpFusion.placeholder = 'Motif indisponibilité...';
+      inpFusion.value = r.com || '';
+      inpFusion.onchange = function() { r.com = inpFusion.value; saveAttr(sid, attrDate, rows); };
+      tdFusion.appendChild(inpFusion);
+      tr.appendChild(tdFusion);
+      tbody.appendChild(tr);
+      return;
+    }
 
     // Chauffeur (select)
     const tdChauffeur = document.createElement('td');
