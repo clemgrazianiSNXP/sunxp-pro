@@ -479,5 +479,20 @@ async function loadPublishedFromSupabase(sid) {
         localStorage.setItem(sid + '-planning-' + y + '-' + String(m).padStart(2, '0'), JSON.stringify(planData.data));
       }
     }
+    // Recharger repos demandes
+    const { data: reposData } = await sb().from('repos_demandes').select('data').eq('station_id', sid).maybeSingle();
+    if (reposData && reposData.data) {
+      localStorage.setItem(sid + '-repos-demandes', JSON.stringify(reposData.data));
+    }
+    // Recharger acomptes
+    const { data: acomptesData } = await sb().from('acomptes').select('data').eq('station_id', sid).maybeSingle();
+    if (acomptesData && acomptesData.data) {
+      localStorage.setItem(sid + '-acomptes', JSON.stringify(acomptesData.data));
+    }
+    // Recharger congés
+    const { data: congesData } = await sb().from('conges_payes').select('data').eq('station_id', sid).maybeSingle();
+    if (congesData && congesData.data) {
+      localStorage.setItem(sid + '-conges-payes', JSON.stringify(congesData.data));
+    }
   } catch (_) {}
 }
