@@ -91,11 +91,39 @@ function showRepertoireForm(container, person, type, onSave, onCancel) {
       var telDigits = telephone.replace(/\D/g, '');
       var telPart = telDigits.slice(-4);
       var mdp = amazonPart + telPart;
-      if (mdp.length >= 6 && typeof sb === 'function' && sb()) {
-        sb().auth.signUp({ email: email, password: mdp }).then(function(result) {
-          if (result.error) console.warn('SignUp error:', result.error.message);
-          else console.log('✅ Compte Supabase créé pour:', email);
+      if (mdp.length >= 6 && window.supabase && window.supabase.createClient) {
+        var stationId = window.getActiveStationId ? window.getActiveStationId() : null;
+        // Utiliser un client séparé pour le signUp (ne pas perturber la session en cours)
+        var signUpClient = window.supabase.createClient(
+          'https://uqgwmrvtjulpbblucrht.supabase.co',
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVxZ3dtcnZ0anVscGJibHVjcmh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3ODA0MDcsImV4cCI6MjA5MjM1NjQwN30.h1NkKsNuqFubREY0Zzt2VIJYqjJHKn14BUALocVwk5s',
+          { auth: { persistSession: false, autoRefreshToken: false } }
+        );
+        signUpClient.auth.signUp({ email: email, password: mdp, options: { emailRedirectTo: window.location.origin } }).then(function(result) {
+          if (result.error) {
+            console.warn('SignUp error:', result.error.message);
+            alert('⚠️ Erreur création compte: ' + result.error.message);
+          } else {
+            console.log('✅ Compte Supabase créé pour:', email, result.data);
+            // Insérer dans user_profiles avec le client principal
+            var userId = result.data && result.data.user ? result.data.user.id : null;
+            if (userId && stationId && sb()) {
+              sb().from('user_profiles').upsert({
+                id: userId,
+                role: 'chauffeur',
+                station_id: stationId,
+                chauffeur_id: id_amazon || '',
+                nom: nom,
+                prenom: prenom
+              }).then(function(res) {
+                if (res.error) console.warn('user_profiles error:', res.error.message);
+                else console.log('✅ Profil chauffeur créé dans user_profiles');
+              });
+            }
+          }
         });
+      } else {
+        console.warn('⚠️ Impossible de créer le compte: SDK Supabase non disponible ou mot de passe trop court (' + mdp.length + ' chars)');
       }
     }
 
