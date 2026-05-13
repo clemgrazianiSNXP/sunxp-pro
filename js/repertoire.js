@@ -187,6 +187,28 @@ function buildPersonGrid(list, stationId, type) {
     delBtn.onclick = () => deletePerson(c.id, stationId, type);
 
     actions.appendChild(editBtn);
+
+    // Bouton envoyer mot de passe via WhatsApp
+    if (c.telephone && c.email) {
+      var waPassBtn = document.createElement('button');
+      waPassBtn.className = 'h-btn';
+      waPassBtn.style.cssText = 'font-size:10px;padding:3px 7px;background:#25d366;color:#fff;border:none;';
+      waPassBtn.textContent = '🔑';
+      waPassBtn.title = 'Envoyer identifiants WhatsApp';
+      waPassBtn.onclick = function() {
+        var tel = typeof formatWaTel === 'function' ? formatWaTel(c.telephone) : c.telephone.replace(/\D/g, '');
+        var msg = 'Bonjour ' + c.prenom + ' !\n\nVoici tes identifiants pour te connecter à SunXP Pro :\n\n📧 Email : ' + c.email + '\n🔑 Mot de passe : ' + (c.password || c.email) + '\n\n📱 Lien : ' + window.location.origin + '\n\nBonne journée !';
+        navigator.clipboard.writeText(msg).catch(function(){});
+        var a = document.createElement('a');
+        a.href = 'whatsapp://send?phone=' + tel + '&text=' + encodeURIComponent(msg);
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      };
+      actions.appendChild(waPassBtn);
+    }
+
     actions.appendChild(delBtn);
 
     card.appendChild(avatar);
