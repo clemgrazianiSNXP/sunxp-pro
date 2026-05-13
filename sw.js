@@ -52,7 +52,8 @@ const ASSETS = [
   '/js/demandes-chauffeurs.js',
   '/js/repos-demandes.js',
   '/js/identifier-chauffeurs.js',
-  '/js/checkTSM.js'
+  '/js/checkTSM.js',
+  '/js/push-notifications.js'
 ];
 
 // Installation : mettre en cache tous les fichiers
@@ -75,6 +76,38 @@ self.addEventListener('activate', event => {
     })
   );
   self.clients.claim();
+});
+
+// Push : recevoir une notification push
+self.addEventListener('push', event => {
+  let data = { title: 'SunXP Pro', body: 'Nouvelle notification', icon: '/img/matting_2026-4-21_fa553fc4-3d99-11f1-9b2d-16737e16766a.png' };
+  try {
+    if (event.data) data = Object.assign(data, event.data.json());
+  } catch (e) {
+    if (event.data) data.body = event.data.text();
+  }
+  event.waitUntil(
+    self.registration.showNotification(data.title, {
+      body: data.body,
+      icon: data.icon || '/img/matting_2026-4-21_fa553fc4-3d99-11f1-9b2d-16737e16766a.png',
+      badge: '/img/matting_2026-4-21_fa553fc4-3d99-11f1-9b2d-16737e16766a.png',
+      vibrate: [200, 100, 200],
+      data: data.url || '/'
+    })
+  );
+});
+
+// Notification click : ouvrir l'appli
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
+      for (const client of clientList) {
+        if (client.url.includes(self.location.origin) && 'focus' in client) return client.focus();
+      }
+      return clients.openWindow(event.notification.data || '/');
+    })
+  );
 });
 
 // Fetch : réseau d'abord, cache en fallback

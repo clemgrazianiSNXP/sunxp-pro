@@ -254,6 +254,10 @@ function buildPlanningToolbar(year, month) {
       const curMonday = getMondayOfPortal ? getMondayOfPortal(new Date()) : new Date();
       publishWeek(stationId, curMonday);
     }
+    // Envoyer une push notification aux chauffeurs
+    if (typeof sendPushToStation === 'function') {
+      sendPushToStation(stationId, '📅 Planning publié', 'Le planning de la semaine prochaine est disponible !');
+    }
     renderPlanning();
   };
   bar.querySelector('.h-toolbar-right').appendChild(publishBtn);
