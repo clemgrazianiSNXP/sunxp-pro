@@ -38,11 +38,16 @@ function renderAttribution() {
 
   const table = document.createElement('table');
   table.className = 'h-table';
-  table.style.cssText = 'font-size:11px;width:100%;border-collapse:collapse;';
+  table.style.cssText = 'font-size:11px;width:100%;border-collapse:collapse;table-layout:fixed;';
+
+  // Colgroup pour contrôler les largeurs
+  const colgroup = document.createElement('colgroup');
+  colgroup.innerHTML = '<col style="width:70px"><col style="width:30px"><col style="width:150px"><col style="width:44px"><col style="width:44px"><col style="width:50px"><col style="width:36px"><col style="width:36px"><col style="width:22px"><col style="width:22px"><col style="width:22px"><col style="width:22px"><col style="width:22px"><col style="width:22px"><col>';
+  table.appendChild(colgroup);
 
   // Header
   const thead = document.createElement('thead');
-  thead.innerHTML = '<tr><th style="padding:6px 4px;text-align:left;min-width:60px;font-size:10px;">Plaque</th><th style="padding:6px 4px;min-width:30px;font-size:10px;">St</th><th style="padding:6px 4px;text-align:left;min-width:100px;font-size:10px;">Chauffeur</th><th style="padding:6px 4px;min-width:40px;font-size:10px;">PDA</th><th style="padding:6px 4px;min-width:40px;font-size:10px;">Clef</th><th style="padding:6px 4px;min-width:50px;font-size:10px;">VIGIK</th><th style="padding:6px 4px;min-width:34px;font-size:10px;">Trs</th><th style="padding:6px 4px;min-width:34px;font-size:10px;">Lic</th><th style="padding:6px 2px;min-width:20px;font-size:9px;" title="Retour PDA">rP</th><th style="padding:6px 2px;min-width:20px;font-size:9px;" title="Retour Trousseau">rT</th><th style="padding:6px 2px;min-width:20px;font-size:9px;" title="Retour Licence">rL</th><th style="padding:6px 2px;min-width:20px;font-size:9px;" title="Retour Clef">rC</th><th style="padding:6px 2px;min-width:20px;font-size:9px;" title="Retour VIGIK">rV</th><th style="padding:6px 2px;min-width:20px;font-size:9px;" title="Validé">✓</th><th style="padding:6px 4px;min-width:80px;font-size:10px;">Com.</th></tr>';
+  thead.innerHTML = '<tr><th style="padding:4px 2px;text-align:left;font-size:10px;">Plaque</th><th style="padding:4px 1px;font-size:9px;">St</th><th style="padding:4px 2px;text-align:left;font-size:10px;">Chauffeur</th><th style="padding:4px 1px;font-size:9px;">PDA</th><th style="padding:4px 1px;font-size:9px;">Clef</th><th style="padding:4px 1px;font-size:9px;">VIGIK</th><th style="padding:4px 1px;font-size:9px;">Trs</th><th style="padding:4px 1px;font-size:9px;">Lic</th><th style="padding:2px 0;font-size:8px;" title="Retour PDA">rP</th><th style="padding:2px 0;font-size:8px;" title="Retour Trousseau">rT</th><th style="padding:2px 0;font-size:8px;" title="Retour Licence">rL</th><th style="padding:2px 0;font-size:8px;" title="Retour Clef">rC</th><th style="padding:2px 0;font-size:8px;" title="Retour VIGIK">rV</th><th style="padding:2px 0;font-size:8px;" title="Validé">✓</th><th style="padding:4px 2px;font-size:9px;">Com.</th></tr>';
   table.appendChild(thead);
 
   // Body
