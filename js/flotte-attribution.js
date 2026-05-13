@@ -42,12 +42,12 @@ function renderAttribution() {
 
   // Colgroup pour contrôler les largeurs
   const colgroup = document.createElement('colgroup');
-  colgroup.innerHTML = '<col style="width:24px"><col style="width:36px"><col style="width:70px"><col style="width:40px"><col style="width:130px"><col style="width:34px"><col style="width:34px"><col style="width:30px"><col style="width:40px"><col style="width:40px"><col style="width:20px"><col style="width:20px"><col style="width:20px"><col style="width:20px"><col style="width:20px"><col style="width:20px"><col style="width:120px">';
+  colgroup.innerHTML = '<col style="width:16px"><col style="width:24px"><col style="width:36px"><col style="width:70px"><col style="width:40px"><col style="width:130px"><col style="width:34px"><col style="width:34px"><col style="width:30px"><col style="width:40px"><col style="width:40px"><col style="width:20px"><col style="width:20px"><col style="width:20px"><col style="width:20px"><col style="width:20px"><col style="width:20px"><col style="width:120px">';
   table.appendChild(colgroup);
 
   // Header
   const thead = document.createElement('thead');
-  thead.innerHTML = '<tr style="text-align:center;"><th style="padding:4px 1px;font-size:9px;">TP</th><th style="padding:4px 1px;font-size:9px;">UTA</th><th style="padding:4px 2px;font-size:9px;text-align:center;">Plaque</th><th style="padding:4px 1px;font-size:9px;text-align:center;">Statut</th><th style="padding:4px 2px;font-size:9px;text-align:center;">Chauffeur</th><th style="padding:4px 1px;font-size:9px;">PDA</th><th style="padding:4px 1px;font-size:9px;">Trs</th><th style="padding:4px 1px;font-size:9px;">Lic</th><th style="padding:4px 1px;font-size:9px;">Clé</th><th style="padding:4px 1px;font-size:9px;">VIGIK</th><th style="padding:2px 0;font-size:8px;" title="Retour PDA">rP</th><th style="padding:2px 0;font-size:8px;" title="Retour Trousseau">rT</th><th style="padding:2px 0;font-size:8px;" title="Retour Licence">rL</th><th style="padding:2px 0;font-size:8px;" title="Retour Clé">rC</th><th style="padding:2px 0;font-size:8px;" title="Retour VIGIK">rV</th><th style="padding:2px 0;font-size:8px;">✓</th><th style="padding:4px 2px;font-size:9px;">Com.</th></tr>';
+  thead.innerHTML = '<tr style="text-align:center;"><th style="padding:2px;font-size:8px;"></th><th style="padding:4px 1px;font-size:9px;">TP</th><th style="padding:4px 1px;font-size:9px;">UTA</th><th style="padding:4px 2px;font-size:9px;text-align:center;">Plaque</th><th style="padding:4px 1px;font-size:9px;text-align:center;">Statut</th><th style="padding:4px 2px;font-size:9px;text-align:center;">Chauffeur</th><th style="padding:4px 1px;font-size:9px;">PDA</th><th style="padding:4px 1px;font-size:9px;">Trs</th><th style="padding:4px 1px;font-size:9px;">Lic</th><th style="padding:4px 1px;font-size:9px;">Clé</th><th style="padding:4px 1px;font-size:9px;">VIGIK</th><th style="padding:2px 0;font-size:8px;" title="Retour PDA">rP</th><th style="padding:2px 0;font-size:8px;" title="Retour Trousseau">rT</th><th style="padding:2px 0;font-size:8px;" title="Retour Licence">rL</th><th style="padding:2px 0;font-size:8px;" title="Retour Clé">rC</th><th style="padding:2px 0;font-size:8px;" title="Retour VIGIK">rV</th><th style="padding:2px 0;font-size:8px;">✓</th><th style="padding:4px 2px;font-size:9px;">Com.</th></tr>';
   table.appendChild(thead);
 
   // Body
@@ -55,6 +55,13 @@ function renderAttribution() {
   rows.forEach(function(r, idx) {
     const tr = document.createElement('tr');
     tr.style.cssText = idx % 2 === 0 ? 'background:var(--bg-sidebar);' : '';
+
+    // Handle drag
+    var tdDrag = document.createElement('td');
+    tdDrag.style.cssText = 'padding:0 2px;cursor:grab;color:var(--text-muted);font-size:10px;text-align:center;user-select:none;';
+    tdDrag.textContent = '⋮⋮';
+    tdDrag.className = 'drag-handle';
+    tr.appendChild(tdDrag);
 
     // TP (checkbox)
     var tdTp = document.createElement('td');
@@ -108,7 +115,7 @@ function renderAttribution() {
       tr.style.opacity = '0.4';
       tr.style.background = 'rgba(248,113,113,0.05)';
       var tdFusion = document.createElement('td');
-      tdFusion.colSpan = 13;
+      tdFusion.colSpan = 14;
       tdFusion.style.cssText = 'padding:4px;';
       var inpFusion = document.createElement('input');
       inpFusion.className = 'h-inp';
@@ -209,6 +216,30 @@ function renderAttribution() {
   table.appendChild(tbody);
   tableWrap.appendChild(table);
   wrap.appendChild(tableWrap);
+
+  // Drag & drop pour réordonner les lignes
+  var dragSrcIdx = null;
+  tbody.querySelectorAll('tr').forEach(function(tr, i) {
+    tr.draggable = true;
+    tr.addEventListener('dragstart', function(e) {
+      dragSrcIdx = i;
+      tr.style.opacity = '0.4';
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    tr.addEventListener('dragend', function() { tr.style.opacity = ''; });
+    tr.addEventListener('dragover', function(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; tr.style.borderTop = '2px solid var(--accent)'; });
+    tr.addEventListener('dragleave', function() { tr.style.borderTop = ''; });
+    tr.addEventListener('drop', function(e) {
+      e.preventDefault();
+      tr.style.borderTop = '';
+      if (dragSrcIdx === null || dragSrcIdx === i) return;
+      var moved = rows.splice(dragSrcIdx, 1)[0];
+      rows.splice(i, 0, moved);
+      saveAttr(sid, attrDate, rows);
+      if (typeof renderFlotte === 'function') renderFlotte();
+    });
+  });
+
   return wrap;
 }
 
