@@ -505,6 +505,21 @@ function buildScrollableRight(chauffeurs, data, meta, nbDays, year, month, stati
       });
 
       td.appendChild(inp);
+
+      // Commentaire : triangle orange si commentaire existe + clic droit pour ajouter/modifier
+      td.style.position = 'relative';
+      const commentKey = 'comment_' + cellKey;
+      if (data[commentKey]) {
+        const tri = document.createElement('span');
+        tri.style.cssText = 'position:absolute;top:0;right:0;width:0;height:0;border-style:solid;border-width:0 7px 7px 0;border-color:transparent #f97316 transparent transparent;pointer-events:none;';
+        td.appendChild(tri);
+        td.title = data[commentKey];
+      }
+      td.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+        showPlanningComment(e, cellKey, data, stationId, year, month, td);
+      });
+
       tr.appendChild(td);
     }
     bodyTable.appendChild(tr);
@@ -759,6 +774,70 @@ function showPlanningAlertPopup(button, title, items, color) {
   setTimeout(() => document.addEventListener('click', function handler(e) {
     if (!popup.contains(e.target) && e.target !== button) { popup.remove(); document.removeEventListener('click', handler); }
   }), 0);
+}
+
+
+/* ── Commentaire sur cellule planning (clic droit) ────────── */
+function showPlanningComment(e, cellKey, data, stationId, year, month, td) {
+  document.querySelectorAll('.pl-comment-popup').forEach(p => p.remove());
+  const commentKey = 'comment_' + cellKey;
+  const existing = data[commentKey] || '';
+
+  const popup = document.createElement('div');
+  popup.className = 'pl-comment-popup';
+  popup.style.cssText = 'position:fixed;z-index:9999;background:var(--bg-sidebar);border:1px solid var(--accent);border-radius:8px;padding:10px;box-shadow:0 6px 20px rgba(0,0,0,0.4);width:200px;display:flex;flex-direction:column;gap:6px;';
+  popup.style.top = e.clientY + 'px';
+  popup.style.left = e.clientX + 'px';
+
+  const title = document.createElement('div');
+  title.style.cssText = 'font-size:10px;font-weight:700;color:var(--accent);';
+  title.textContent = '💬 Commentaire';
+  popup.appendChild(title);
+
+  const ta = document.createElement('textarea');
+  ta.value = existing;
+  ta.placeholder = 'Ajouter un commentaire...';
+  ta.style.cssText = 'width:100%;height:50px;resize:vertical;background:var(--bg-primary);border:1px solid var(--border);border-radius:4px;color:var(--text-primary);font-size:11px;padding:6px;font-family:var(--font-family);outline:none;';
+  popup.appendChild(ta);
+
+  const btns = document.createElement('div');
+  btns.style.cssText = 'display:flex;gap:4px;';
+  const okBtn = document.createElement('button');
+  okBtn.textContent = '✓';
+  okBtn.style.cssText = 'flex:1;background:var(--accent);color:#fff;border:none;border-radius:4px;padding:4px;font-size:11px;cursor:pointer;';
+  okBtn.onclick = function() {
+    if (ta.value.trim()) {
+      data[commentKey] = ta.value.trim();
+    } else {
+      delete data[commentKey];
+    }
+    savePlanning(stationId, year, month, data);
+    popup.remove();
+    // Mettre à jour le triangle indicateur
+    td.querySelectorAll('span[style*="border-color:transparent #f97316"]').forEach(s => s.remove());
+    td.title = '';
+    if (data[commentKey]) {
+      var tri = document.createElement('span');
+      tri.style.cssText = 'position:absolute;top:0;right:0;width:0;height:0;border-style:solid;border-width:0 7px 7px 0;border-color:transparent #f97316 transparent transparent;pointer-events:none;';
+      td.appendChild(tri);
+      td.title = data[commentKey];
+    }
+  };
+  const noBtn = document.createElement('button');
+  noBtn.textContent = '✕';
+  noBtn.style.cssText = 'background:transparent;border:1px solid var(--border);color:var(--text-muted);border-radius:4px;padding:4px 8px;font-size:11px;cursor:pointer;';
+  noBtn.onclick = function() { popup.remove(); };
+  btns.appendChild(okBtn);
+  btns.appendChild(noBtn);
+  popup.appendChild(btns);
+
+  document.body.appendChild(popup);
+  ta.focus();
+  setTimeout(function() {
+    document.addEventListener('click', function handler(ev) {
+      if (!popup.contains(ev.target)) { popup.remove(); document.removeEventListener('click', handler); }
+    });
+  }, 0);
 }
 
 
