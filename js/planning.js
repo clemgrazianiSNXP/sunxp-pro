@@ -3,6 +3,19 @@ console.log('planning.js chargé');
 
 const PLANNING_CODES = ['RSTD','REP','CP','AT','ABS','BU','AM','AST','DSP','CE','MAT','PAT','GAR','PARC','BUR','HN','OFF','RD','RDL','CSS','MAP','CHIME','SAFETY','DBL','RLV1','RLV2','RLV3'];
 
+/* ── Envoi push notification via Edge Function ────────────── */
+async function sendPushToStation(stationId, title, body) {
+  if (!sb || !sb()) { console.warn('sendPush: sb non dispo'); return; }
+  try {
+    console.log('📤 Envoi push à la station', stationId, ':', title);
+    const { data, error } = await sb().functions.invoke('send-push', {
+      body: { station_id: stationId, title: title, body: body }
+    });
+    if (error) { console.error('❌ Push error:', error.message); return; }
+    console.log('✅ Push envoyé:', data);
+  } catch (e) { console.error('❌ Push catch:', e.message); }
+}
+
 const PLANNING_CODE_COLORS = {
   RSTD:'#4ade80', REP:'#f87171', CP:'#fbbf24', AT:'#9ca3af', ABS:'#7dd3fc',
   BU:'#f97316', AM:'#f472b6', AST:'#fbbf24', DSP:'#4b5563', CE:'#4b5563',
