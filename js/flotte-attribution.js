@@ -42,7 +42,7 @@ function renderAttribution() {
 
   // Colgroup pour contrôler les largeurs
   const colgroup = document.createElement('colgroup');
-  colgroup.innerHTML = '<col style="width:24px"><col style="width:36px"><col style="width:70px"><col style="width:40px"><col style="width:130px"><col style="width:34px"><col style="width:34px"><col style="width:30px"><col style="width:40px"><col style="width:40px"><col style="width:22px"><col style="width:22px"><col style="width:22px"><col style="width:22px"><col style="width:22px"><col style="width:20px"><col>';
+  colgroup.innerHTML = '<col style="width:24px"><col style="width:36px"><col style="width:70px"><col style="width:40px"><col style="width:130px"><col style="width:34px"><col style="width:34px"><col style="width:30px"><col style="width:40px"><col style="width:40px"><col style="width:20px"><col style="width:20px"><col style="width:20px"><col style="width:20px"><col style="width:20px"><col style="width:20px"><col style="width:120px">';
   table.appendChild(colgroup);
 
   // Header
