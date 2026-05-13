@@ -1,4 +1,4 @@
-/* js/flotte-attribution.js — Attribution camions (SunXP Pro) — v2 Cards */
+/* js/flotte-attribution.js — Attribution camions tableau (SunXP Pro) v3 */
 console.log('flotte-attribution.js chargé');
 
 let attrDate = new Date();
@@ -14,80 +14,122 @@ function saveAttr(sid, d, data) {
 /* ── Rendu principal ──────────────────────────────────────── */
 function renderAttribution() {
   const wrap = document.createElement('div');
-  wrap.style.cssText = 'display:flex;flex-direction:column;gap:14px;height:100%;overflow-y:auto;';
+  wrap.style.cssText = 'display:flex;flex-direction:column;gap:12px;height:100%;overflow:hidden;';
   const sid = window.getActiveStationId ? window.getActiveStationId() : null;
   if (!sid) { wrap.innerHTML = '<p style="color:var(--text-muted);padding:20px;">Sélectionnez une station.</p>'; return wrap; }
 
   const camions = typeof loadCamions === 'function' ? loadCamions() : [];
   let chauffeurs = [];
   try { chauffeurs = JSON.parse(localStorage.getItem(sid + '-repertoire')) || []; } catch (_) {}
+  const chauffeurNames = chauffeurs.map(c => (c.prenom + ' ' + c.nom).trim());
 
   let rows = loadAttr(sid, attrDate);
   if (!rows) {
     rows = camions.map(c => ({ plaque: c.plaque, modele: (c.marque || '') + ' ' + (c.modele || ''), bva: c.bva || false, chauffeur: '', pda: '', trs: '', lic: '', clef: '', vigik: '', com: '' }));
+    saveAttr(sid, attrDate, rows);
   }
 
   // Toolbar
-  wrap.appendChild(buildAttrToolbar(sid, rows, camions, chauffeurs));
+  wrap.appendChild(buildAttrToolbar(sid, rows));
 
-  // Recherche
-  const search = document.createElement('input');
-  search.type = 'text';
-  search.placeholder = '🔍 Rechercher plaque ou chauffeur...';
-  search.className = 'rep-search';
-  search.style.cssText = 'width:100%;max-width:300px;';
-  wrap.appendChild(search);
+  // Tableau scrollable
+  const tableWrap = document.createElement('div');
+  tableWrap.style.cssText = 'flex:1;overflow:auto;';
 
-  // Grille de cards
-  const grid = document.createElement('div');
-  grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));gap:12px;';
-  wrap.appendChild(grid);
+  const table = document.createElement('table');
+  table.className = 'h-table';
+  table.style.cssText = 'font-size:11px;width:100%;border-collapse:collapse;';
 
-  function renderCards(query) {
-    grid.innerHTML = '';
-    const q = (query || '').toLowerCase();
-    rows.filter(r => (r.plaque + ' ' + r.chauffeur).toLowerCase().includes(q)).forEach((r, idx) => {
-      grid.appendChild(buildAttrCard(r, idx, rows, sid, chauffeurs));
+  // Header
+  const thead = document.createElement('thead');
+  thead.innerHTML = '<tr><th style="padding:6px 4px;text-align:left;min-width:80px;">Plaque</th><th style="padding:6px 4px;text-align:left;min-width:120px;">Chauffeur</th><th style="padding:6px 4px;min-width:50px;">PDA</th><th style="padding:6px 4px;min-width:50px;">Clef</th><th style="padding:6px 4px;min-width:60px;">VIGIK</th><th style="padding:6px 4px;min-width:40px;">Trs</th><th style="padding:6px 4px;min-width:40px;">Lic</th><th style="padding:6px 4px;min-width:100px;">Commentaire</th></tr>';
+  table.appendChild(thead);
+
+  // Body
+  const tbody = document.createElement('tbody');
+  rows.forEach(function(r, idx) {
+    const tr = document.createElement('tr');
+    tr.style.cssText = idx % 2 === 0 ? 'background:var(--bg-sidebar);' : '';
+
+    // Plaque (non éditable)
+    const tdPlaque = document.createElement('td');
+    tdPlaque.style.cssText = 'padding:4px;font-weight:700;color:var(--accent);white-space:nowrap;';
+    tdPlaque.textContent = r.plaque + (r.bva ? ' BVA' : '');
+    tr.appendChild(tdPlaque);
+
+    // Chauffeur (select)
+    const tdChauffeur = document.createElement('td');
+    tdChauffeur.style.cssText = 'padding:2px;';
+    const selCh = document.createElement('select');
+    selCh.className = 'h-inp';
+    selCh.style.cssText = 'width:100%;font-size:11px;padding:3px;';
+    var optEmpty = document.createElement('option');
+    optEmpty.value = ''; optEmpty.textContent = '—';
+    selCh.appendChild(optEmpty);
+    chauffeurNames.forEach(function(name) {
+      var opt = document.createElement('option');
+      opt.value = name; opt.textContent = name;
+      if (name === r.chauffeur) opt.selected = true;
+      selCh.appendChild(opt);
     });
-  }
+    selCh.onchange = function() { r.chauffeur = selCh.value; saveAttr(sid, attrDate, rows); };
+    tdChauffeur.appendChild(selCh);
+    tr.appendChild(tdChauffeur);
 
-  search.oninput = () => renderCards(search.value);
-  renderCards('');
+    // Champs éditables
+    ['pda', 'clef', 'vigik', 'trs', 'lic', 'com'].forEach(function(field) {
+      var td = document.createElement('td');
+      td.style.cssText = 'padding:2px;';
+      var inp = document.createElement('input');
+      inp.className = 'h-inp';
+      inp.style.cssText = 'width:100%;font-size:10px;padding:3px;';
+      inp.value = r[field] || '';
+      inp.onchange = function() { r[field] = inp.value; saveAttr(sid, attrDate, rows); };
+      td.appendChild(inp);
+      tr.appendChild(td);
+    });
+
+    tbody.appendChild(tr);
+  });
+
+  table.appendChild(tbody);
+  tableWrap.appendChild(table);
+  wrap.appendChild(tableWrap);
   return wrap;
 }
 
 /* ── Toolbar ──────────────────────────────────────────────── */
-function buildAttrToolbar(sid, rows, camions, chauffeurs) {
+function buildAttrToolbar(sid, rows) {
   const bar = document.createElement('div');
-  bar.style.cssText = 'display:flex;align-items:center;gap:10px;flex-wrap:wrap;';
+  bar.style.cssText = 'display:flex;align-items:center;gap:10px;flex-wrap:wrap;flex-shrink:0;';
 
   // Navigation date
-  const prev = document.createElement('button');
+  var prev = document.createElement('button');
   prev.className = 'h-btn h-nav'; prev.textContent = '◀';
-  prev.onclick = () => { attrDate.setDate(attrDate.getDate() - 1); if (typeof renderFlotte === 'function') renderFlotte(); };
+  prev.onclick = function() { attrDate.setDate(attrDate.getDate() - 1); if (typeof renderFlotte === 'function') renderFlotte(); };
 
-  const label = document.createElement('span');
-  label.style.cssText = 'font-size:14px;font-weight:700;min-width:140px;text-align:center;';
-  label.textContent = attrDate.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
+  var label = document.createElement('span');
+  label.style.cssText = 'font-size:13px;font-weight:700;min-width:140px;text-align:center;';
+  label.textContent = attrDate.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 
-  const next = document.createElement('button');
+  var next = document.createElement('button');
   next.className = 'h-btn h-nav'; next.textContent = '▶';
-  next.onclick = () => { attrDate.setDate(attrDate.getDate() + 1); if (typeof renderFlotte === 'function') renderFlotte(); };
+  next.onclick = function() { attrDate.setDate(attrDate.getDate() + 1); if (typeof renderFlotte === 'function') renderFlotte(); };
 
-  const todayBtn = document.createElement('button');
+  var todayBtn = document.createElement('button');
   todayBtn.className = 'h-btn'; todayBtn.textContent = "Aujourd'hui";
-  todayBtn.onclick = () => { attrDate = new Date(); if (typeof renderFlotte === 'function') renderFlotte(); };
+  todayBtn.onclick = function() { attrDate = new Date(); if (typeof renderFlotte === 'function') renderFlotte(); };
 
   // Dupliquer veille
-  const dupBtn = document.createElement('button');
+  var dupBtn = document.createElement('button');
   dupBtn.className = 'rep-btn rep-btn-primary';
-  dupBtn.style.cssText = 'font-size:11px;padding:6px 12px;';
+  dupBtn.style.cssText = 'font-size:11px;padding:6px 12px;margin-left:auto;';
   dupBtn.textContent = '📋 Dupliquer veille';
-  dupBtn.onclick = () => {
-    const yest = new Date(attrDate); yest.setDate(yest.getDate() - 1);
-    const prev = loadAttr(sid, yest);
-    if (!prev) { alert('Pas de données la veille.'); return; }
-    saveAttr(sid, attrDate, JSON.parse(JSON.stringify(prev)));
+  dupBtn.onclick = function() {
+    var yest = new Date(attrDate); yest.setDate(yest.getDate() - 1);
+    var prevData = loadAttr(sid, yest);
+    if (!prevData) { alert('Pas de données la veille.'); return; }
+    saveAttr(sid, attrDate, JSON.parse(JSON.stringify(prevData)));
     if (typeof renderFlotte === 'function') renderFlotte();
   };
 
@@ -95,137 +137,3 @@ function buildAttrToolbar(sid, rows, camions, chauffeurs) {
   bar.appendChild(todayBtn); bar.appendChild(dupBtn);
   return bar;
 }
-
-/* ── Card camion ──────────────────────────────────────────── */
-function buildAttrCard(r, idx, rows, sid, chauffeurs) {
-  const card = document.createElement('div');
-  card.style.cssText = 'background:var(--bg-sidebar);border:1px solid var(--border);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:8px;transition:border-color 0.18s,box-shadow 0.18s;cursor:pointer;';
-  card.onmouseenter = () => { card.style.borderColor = 'var(--accent)'; card.style.boxShadow = '0 4px 16px rgba(0,0,0,0.15)'; };
-  card.onmouseleave = () => { card.style.borderColor = 'var(--border)'; card.style.boxShadow = ''; };
-
-  // Header : plaque + modèle + BVA
-  const header = document.createElement('div');
-  header.style.cssText = 'display:flex;align-items:center;gap:8px;';
-  header.innerHTML = '<span style="font-size:16px;font-weight:800;color:var(--accent);letter-spacing:0.03em;">' + esc(r.plaque) + '</span>' +
-    '<span style="font-size:10px;color:var(--text-muted);">' + esc(r.modele || '') + '</span>' +
-    (r.bva ? '<span style="background:#fbbf24;color:#000;padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;">BVA</span>' : '');
-  card.appendChild(header);
-
-  // Chauffeur
-  const chauffeurDiv = document.createElement('div');
-  chauffeurDiv.style.cssText = 'font-size:13px;font-weight:600;color:' + (r.chauffeur ? 'var(--text-primary)' : 'var(--text-muted)') + ';';
-  chauffeurDiv.textContent = r.chauffeur || '— Non attribué —';
-  card.appendChild(chauffeurDiv);
-
-  // Équipements en badges compacts
-  const equip = document.createElement('div');
-  equip.style.cssText = 'display:flex;flex-wrap:wrap;gap:4px;';
-  const items = [
-    { key: 'pda', label: 'PDA', icon: '📱' },
-    { key: 'clef', label: 'Clef', icon: '🔑' },
-    { key: 'vigik', label: 'VIGIK', icon: '🏷' },
-    { key: 'trs', label: 'Trs', icon: '📋' },
-    { key: 'lic', label: 'Lic', icon: '📄' }
-  ];
-  items.forEach(item => {
-    if (r[item.key]) {
-      const badge = document.createElement('span');
-      badge.style.cssText = 'background:var(--bg-primary);border:1px solid var(--border);border-radius:6px;padding:2px 6px;font-size:9px;color:var(--text-muted);';
-      badge.textContent = item.icon + ' ' + r[item.key];
-      equip.appendChild(badge);
-    }
-  });
-  if (!equip.children.length) {
-    equip.innerHTML = '<span style="font-size:10px;color:var(--text-muted);font-style:italic;">Aucun équipement</span>';
-  }
-  card.appendChild(equip);
-
-  // Commentaire
-  if (r.com) {
-    const comDiv = document.createElement('div');
-    comDiv.style.cssText = 'font-size:10px;color:var(--text-muted);font-style:italic;border-top:1px solid var(--border);padding-top:4px;';
-    comDiv.textContent = '💬 ' + r.com;
-    card.appendChild(comDiv);
-  }
-
-  // Clic → modal édition
-  card.onclick = () => showAttrEditModal(r, idx, rows, sid, chauffeurs);
-  return card;
-}
-
-/* ── Modal édition attribution ────────────────────────────── */
-function showAttrEditModal(r, idx, rows, sid, chauffeurs) {
-  const overlay = document.createElement('div');
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99999;display:flex;align-items:center;justify-content:center;';
-
-  const modal = document.createElement('div');
-  modal.style.cssText = 'background:var(--bg-sidebar);border-radius:14px;padding:24px;width:90%;max-width:380px;display:flex;flex-direction:column;gap:12px;max-height:80vh;overflow-y:auto;';
-
-  modal.innerHTML = '<h3 style="margin:0;font-size:16px;color:var(--accent);">🚛 ' + esc(r.plaque) + '</h3>';
-
-  const fields = [
-    { key: 'chauffeur', label: '👤 Chauffeur', type: 'select', options: ['', ...chauffeurs.map(c => (c.prenom + ' ' + c.nom).trim())] },
-    { key: 'pda', label: '📱 PDA', type: 'text' },
-    { key: 'clef', label: '🔑 Clef', type: 'text' },
-    { key: 'vigik', label: '🏷 VIGIK', type: 'text' },
-    { key: 'trs', label: '📋 Trousseau', type: 'text' },
-    { key: 'lic', label: '📄 Licence', type: 'text' },
-    { key: 'com', label: '💬 Commentaire', type: 'text' }
-  ];
-
-  fields.forEach(f => {
-    const div = document.createElement('div');
-    div.style.cssText = 'display:flex;flex-direction:column;gap:3px;';
-    div.innerHTML = '<label style="font-size:10px;color:var(--text-muted);">' + f.label + '</label>';
-    let inp;
-    if (f.type === 'select') {
-      inp = document.createElement('select');
-      inp.className = 'rep-input';
-      inp.style.cssText = 'padding:8px;font-size:12px;';
-      f.options.forEach(o => {
-        const opt = document.createElement('option');
-        opt.value = o; opt.textContent = o || '— Aucun —';
-        if (o === r[f.key]) opt.selected = true;
-        inp.appendChild(opt);
-      });
-    } else {
-      inp = document.createElement('input');
-      inp.type = 'text';
-      inp.className = 'rep-input';
-      inp.style.cssText = 'padding:8px;font-size:12px;';
-      inp.value = r[f.key] || '';
-    }
-    inp.dataset.field = f.key;
-    div.appendChild(inp);
-    modal.appendChild(div);
-  });
-
-  // Boutons
-  const btns = document.createElement('div');
-  btns.style.cssText = 'display:flex;gap:8px;margin-top:8px;';
-  const saveBtn = document.createElement('button');
-  saveBtn.className = 'rep-btn rep-btn-primary'; saveBtn.style.cssText = 'flex:1;';
-  saveBtn.textContent = 'Enregistrer';
-  const cancelBtn = document.createElement('button');
-  cancelBtn.className = 'h-btn'; cancelBtn.style.cssText = 'flex:1;';
-  cancelBtn.textContent = 'Annuler';
-  cancelBtn.onclick = () => overlay.remove();
-
-  saveBtn.onclick = () => {
-    modal.querySelectorAll('[data-field]').forEach(inp => {
-      r[inp.dataset.field] = inp.value;
-    });
-    rows[idx] = r;
-    saveAttr(sid, attrDate, rows);
-    overlay.remove();
-    if (typeof renderFlotte === 'function') renderFlotte();
-  };
-
-  btns.appendChild(saveBtn); btns.appendChild(cancelBtn);
-  modal.appendChild(btns);
-  overlay.appendChild(modal);
-  overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
-  document.body.appendChild(overlay);
-}
-
-function esc(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
