@@ -10,6 +10,28 @@ function portalAccueil() {
   const sid = portalStationId;
   const now = new Date();
 
+  // ── Bouton activer notifications (iOS nécessite un geste utilisateur) ──
+  if ('Notification' in window && Notification.permission === 'default') {
+    const notifBanner = document.createElement('div');
+    notifBanner.style.cssText = 'background:linear-gradient(135deg,#6366f1,#a78bfa);border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:12px;cursor:pointer;';
+    notifBanner.innerHTML = '<span style="font-size:22px;">🔔</span><div style="flex:1;"><div style="font-size:13px;font-weight:700;color:#fff;">Activer les notifications</div><div style="font-size:11px;color:rgba(255,255,255,0.8);">Recevez une alerte quand le planning est publié</div></div>';
+    notifBanner.onclick = async () => {
+      if (typeof initPushNotifications === 'function') {
+        const ok = await initPushNotifications();
+        if (ok) {
+          notifBanner.innerHTML = '<span style="font-size:22px;">✅</span><div style="font-size:13px;font-weight:700;color:#fff;">Notifications activées !</div>';
+          notifBanner.style.background = '#10b981';
+          notifBanner.onclick = null;
+          setTimeout(() => notifBanner.remove(), 3000);
+        } else {
+          notifBanner.innerHTML = '<span style="font-size:22px;">❌</span><div style="font-size:13px;font-weight:700;color:#fff;">Notifications refusées ou non supportées</div>';
+          notifBanner.style.background = '#ef4444';
+        }
+      }
+    };
+    wrap.appendChild(notifBanner);
+  }
+
   // ── Section Planning S et S+1 ──
   wrap.appendChild(buildPortalPlanning(sid, nom, now));
 
