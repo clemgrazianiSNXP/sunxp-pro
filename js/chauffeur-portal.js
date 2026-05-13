@@ -465,7 +465,7 @@ function portalProd() {
 
   wrap.appendChild(portalCard('⚡', 'Moyenne arrêts par heure', String(moyArH), jours > 0 ? `Votre moyenne sur ${jours} jour${jours !== 1 ? 's' : ''} ce mois` : 'Pas encore de données ce mois'));
 
-  wrap.appendChild(portalCard('📦', 'Total arrêts du mois', String(totalArrets), `Nombre total d'arrêts effectués en ${frMonths[month]}`));
+  wrap.appendChild(portalCard('📦', 'Moyenne arrêts du mois', String(jours > 0 ? Math.round(totalArrets / jours) : 0), `Moyenne d'arrêts par jour en ${frMonths[month]}`));
 
   wrap.appendChild(portalCard('📅', "Jours d'activité", String(jours), `Nombre de jours où vous avez eu une route en ${frMonths[month]}`));
 
