@@ -25,6 +25,19 @@ function initSupabase() {
 function sb() { return _supabaseReady ? _supabase : null; }
 window.sb = sb; // Rendre accessible globalement
 
+/* ── Envoi push notification via Edge Function ────────────── */
+window.sendPushToStation = async function(stationId, title, body) {
+  if (!sb()) { console.warn('sendPush: sb non dispo'); return; }
+  try {
+    console.log('📤 Envoi push à la station', stationId, ':', title);
+    const { data, error } = await sb().functions.invoke('send-push', {
+      body: { station_id: stationId, title: title, body: body }
+    });
+    if (error) { console.error('❌ Push error:', error.message); return; }
+    console.log('✅ Push envoyé:', data);
+  } catch (e) { console.error('❌ Push catch:', e.message); }
+};
+
 /* ── Helper : écriture double (Supabase + localStorage) ──── */
 /* On écrit toujours en localStorage ET en Supabase.
    On lit depuis Supabase si dispo, sinon localStorage. */

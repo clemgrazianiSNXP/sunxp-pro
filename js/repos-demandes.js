@@ -248,7 +248,7 @@ function renderReposResponsable() {
       btn.onclick = () => {
         const id = btn.dataset.id;
         const d = demandes.find(x => x.id === id);
-        if (d) { d.statut = 'acceptee'; d.reponse = 'Demande acceptée.'; if (d.date1 && typeof applyDemandeToPlanning === 'function') applyDemandeToPlanning(stationId, d.chauffeurNom, d.date1, 'RD'); if (d.date2 && typeof applyDemandeToPlanning === 'function') applyDemandeToPlanning(stationId, d.chauffeurNom, d.date2, 'RD'); saveReposDemandes(stationId, demandes); renderReposModule(); }
+        if (d) { d.statut = 'acceptee'; d.reponse = 'Demande acceptée.'; if (d.date1 && typeof applyDemandeToPlanning === 'function') applyDemandeToPlanning(stationId, d.chauffeurNom, d.date1, 'RD'); if (d.date2 && typeof applyDemandeToPlanning === 'function') applyDemandeToPlanning(stationId, d.chauffeurNom, d.date2, 'RD'); saveReposDemandes(stationId, demandes); renderReposModule(); if (typeof sendPushToStation === 'function') sendPushToStation(stationId, '✅ Repos accepté', d.chauffeurNom + ' — Ton repos du ' + new Date(d.date1).toLocaleDateString('fr-FR') + ' est accepté !'); }
       };
     });
     wrap.querySelectorAll('.repos-refuse').forEach(btn => {
@@ -256,7 +256,7 @@ function renderReposResponsable() {
         const motif = prompt('Motif du refus (optionnel) :') || '';
         const id = btn.dataset.id;
         const d = demandes.find(x => x.id === id);
-        if (d) { d.statut = 'refusee'; d.reponse = motif ? 'Refusée : ' + motif : 'Demande refusée.'; saveReposDemandes(stationId, demandes); renderReposModule(); }
+        if (d) { d.statut = 'refusee'; d.reponse = motif ? 'Refusée : ' + motif : 'Demande refusée.'; saveReposDemandes(stationId, demandes); renderReposModule(); if (typeof sendPushToStation === 'function') sendPushToStation(stationId, '❌ Repos refusé', d.chauffeurNom + ' — Ton repos du ' + new Date(d.date1).toLocaleDateString('fr-FR') + ' est refusé.' + (motif ? ' Motif : ' + motif : '')); }
       };
     });
   }, 0);
@@ -393,22 +393,22 @@ function toggleBellPopup() {
   // Bind
   setTimeout(() => {
     popup.querySelectorAll('.bell-accept-repos').forEach(btn => {
-      btn.onclick = (e) => { e.stopPropagation(); const all = loadReposDemandes(stationId); const d = all.find(x => x.id === btn.dataset.id); if (d) { d.statut = 'acceptee'; if (d.date1 && typeof applyDemandeToPlanning === 'function') applyDemandeToPlanning(stationId, d.chauffeurNom, d.date1, 'RD'); if (d.date2 && typeof applyDemandeToPlanning === 'function') applyDemandeToPlanning(stationId, d.chauffeurNom, d.date2, 'RD'); saveReposDemandes(stationId, all); } popup.remove(); toggleBellPopup(); updateReposBell(); };
+      btn.onclick = (e) => { e.stopPropagation(); const all = loadReposDemandes(stationId); const d = all.find(x => x.id === btn.dataset.id); if (d) { d.statut = 'acceptee'; if (d.date1 && typeof applyDemandeToPlanning === 'function') applyDemandeToPlanning(stationId, d.chauffeurNom, d.date1, 'RD'); if (d.date2 && typeof applyDemandeToPlanning === 'function') applyDemandeToPlanning(stationId, d.chauffeurNom, d.date2, 'RD'); saveReposDemandes(stationId, all); if (typeof sendPushToStation === 'function') sendPushToStation(stationId, '✅ Repos accepté', d.chauffeurNom + ' — Ton repos du ' + new Date(d.date1).toLocaleDateString('fr-FR') + ' est accepté !'); } popup.remove(); toggleBellPopup(); updateReposBell(); };
     });
     popup.querySelectorAll('.bell-refuse-repos').forEach(btn => {
-      btn.onclick = (e) => { e.stopPropagation(); const all = loadReposDemandes(stationId); const d = all.find(x => x.id === btn.dataset.id); if (d) { d.statut = 'refusee'; saveReposDemandes(stationId, all); } popup.remove(); toggleBellPopup(); updateReposBell(); };
+      btn.onclick = (e) => { e.stopPropagation(); const all = loadReposDemandes(stationId); const d = all.find(x => x.id === btn.dataset.id); if (d) { d.statut = 'refusee'; saveReposDemandes(stationId, all); if (typeof sendPushToStation === 'function') sendPushToStation(stationId, '❌ Repos refusé', d.chauffeurNom + ' — Ton repos du ' + new Date(d.date1).toLocaleDateString('fr-FR') + ' est refusé.'); } popup.remove(); toggleBellPopup(); updateReposBell(); };
     });
     popup.querySelectorAll('.bell-accept-acompte').forEach(btn => {
-      btn.onclick = (e) => { e.stopPropagation(); const all = loadAcomptes(stationId); const d = all.find(x => x.id === btn.dataset.id); if (d) { d.statut = 'acceptee'; saveAcomptes(stationId, all); } popup.remove(); toggleBellPopup(); updateReposBell(); };
+      btn.onclick = (e) => { e.stopPropagation(); const all = loadAcomptes(stationId); const d = all.find(x => x.id === btn.dataset.id); if (d) { d.statut = 'acceptee'; saveAcomptes(stationId, all); if (typeof sendPushToStation === 'function') sendPushToStation(stationId, '💰 Acompte accepté', (d.chauffeurNom || d.chauffeur || '') + ' — Ta demande de ' + (d.montant || '') + '€ est validée !'); } popup.remove(); toggleBellPopup(); updateReposBell(); };
     });
     popup.querySelectorAll('.bell-refuse-acompte').forEach(btn => {
-      btn.onclick = (e) => { e.stopPropagation(); const all = loadAcomptes(stationId); const d = all.find(x => x.id === btn.dataset.id); if (d) { d.statut = 'refusee'; saveAcomptes(stationId, all); } popup.remove(); toggleBellPopup(); updateReposBell(); };
+      btn.onclick = (e) => { e.stopPropagation(); const all = loadAcomptes(stationId); const d = all.find(x => x.id === btn.dataset.id); if (d) { d.statut = 'refusee'; saveAcomptes(stationId, all); if (typeof sendPushToStation === 'function') sendPushToStation(stationId, '❌ Acompte refusé', (d.chauffeurNom || d.chauffeur || '') + ' — Ta demande d\'acompte a été refusée.'); } popup.remove(); toggleBellPopup(); updateReposBell(); };
     });
     popup.querySelectorAll('.bell-accept-conge').forEach(btn => {
-      btn.onclick = (e) => { e.stopPropagation(); const all = loadConges(stationId); const d = all.find(x => x.id === btn.dataset.id); if (d) { d.statut = 'acceptee'; if (typeof applyCongeToPlanning === 'function') applyCongeToPlanning(stationId, d); saveConges(stationId, all); } popup.remove(); toggleBellPopup(); updateReposBell(); };
+      btn.onclick = (e) => { e.stopPropagation(); const all = loadConges(stationId); const d = all.find(x => x.id === btn.dataset.id); if (d) { d.statut = 'acceptee'; if (typeof applyCongeToPlanning === 'function') applyCongeToPlanning(stationId, d); saveConges(stationId, all); if (typeof sendPushToStation === 'function') sendPushToStation(stationId, '✅ Congé accepté', (d.chauffeurNom || d.chauffeur || '') + ' — Ton congé du ' + new Date(d.dateDebut).toLocaleDateString('fr-FR') + ' est accepté !'); } popup.remove(); toggleBellPopup(); updateReposBell(); };
     });
     popup.querySelectorAll('.bell-refuse-conge').forEach(btn => {
-      btn.onclick = (e) => { e.stopPropagation(); const all = loadConges(stationId); const d = all.find(x => x.id === btn.dataset.id); if (d) { d.statut = 'refusee'; saveConges(stationId, all); } popup.remove(); toggleBellPopup(); updateReposBell(); };
+      btn.onclick = (e) => { e.stopPropagation(); const all = loadConges(stationId); const d = all.find(x => x.id === btn.dataset.id); if (d) { d.statut = 'refusee'; saveConges(stationId, all); if (typeof sendPushToStation === 'function') sendPushToStation(stationId, '❌ Congé refusé', (d.chauffeurNom || d.chauffeur || '') + ' — Ta demande de congé a été refusée.'); } popup.remove(); toggleBellPopup(); updateReposBell(); };
     });
     document.addEventListener('click', function cl(e) {
       if (!popup.contains(e.target) && e.target.id !== 'topbar-bell') { popup.remove(); document.removeEventListener('click', cl); }
