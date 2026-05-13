@@ -91,23 +91,35 @@ function showRepertoireForm(container, person, type, onSave, onCancel) {
       var telDigits = telephone.replace(/\D/g, '');
       var telPart = telDigits.slice(-4);
       var mdp = amazonPart + telPart;
+      console.log('🔐 Tentative création compte — email:', email, '| mdp:', mdp, '| longueur:', mdp.length);
       if (mdp.length >= 6 && window.supabase && window.supabase.createClient) {
         var stationId = window.getActiveStationId ? window.getActiveStationId() : null;
-        // Utiliser un client séparé pour le signUp (ne pas perturber la session en cours)
+        // Client séparé pour ne pas perturber la session responsable en cours
         var signUpClient = window.supabase.createClient(
           'https://uqgwmrvtjulpbblucrht.supabase.co',
           'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVxZ3dtcnZ0anVscGJibHVjcmh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3ODA0MDcsImV4cCI6MjA5MjM1NjQwN30.h1NkKsNuqFubREY0Zzt2VIJYqjJHKn14BUALocVwk5s',
-          { auth: { persistSession: false, autoRefreshToken: false } }
+          { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } }
         );
-        signUpClient.auth.signUp({ email: email, password: mdp, options: { emailRedirectTo: window.location.origin } }).then(function(result) {
+        signUpClient.auth.signUp({
+          email: email,
+          password: mdp,
+          options: { data: { nom: nom, prenom: prenom, role: 'chauffeur' } }
+        }).then(function(result) {
+          console.log('📧 SignUp result:', JSON.stringify(result));
           if (result.error) {
-            console.warn('SignUp error:', result.error.message);
-            alert('⚠️ Erreur création compte: ' + result.error.message);
+            console.error('❌ SignUp error:', result.error.message);
+            alert('❌ Erreur création compte: ' + result.error.message);
           } else {
-            console.log('✅ Compte Supabase créé pour:', email, result.data);
-            // Insérer dans user_profiles avec le client principal
             var userId = result.data && result.data.user ? result.data.user.id : null;
-            if (userId && stationId && sb()) {
+            console.log('✅ Compte créé — userId:', userId, '| identities:', result.data.user ? result.data.user.identities : 'N/A');
+            // Si identities est vide, le compte existait déjà
+            if (result.data.user && result.data.user.identities && result.data.user.identities.length === 0) {
+              alert('⚠️ Ce compte existe déjà: ' + email);
+              return;
+            }
+            alert('✅ Compte créé pour ' + email);
+            // Insérer dans user_profiles
+            if (userId && stationId && typeof sb === 'function' && sb()) {
               sb().from('user_profiles').upsert({
                 id: userId,
                 role: 'chauffeur',
@@ -116,14 +128,25 @@ function showRepertoireForm(container, person, type, onSave, onCancel) {
                 nom: nom,
                 prenom: prenom
               }).then(function(res) {
-                if (res.error) console.warn('user_profiles error:', res.error.message);
-                else console.log('✅ Profil chauffeur créé dans user_profiles');
+                if (res.error) {
+                  console.error('❌ user_profiles error:', res.error.message);
+                  alert('⚠️ Profil non créé: ' + res.error.message);
+                } else {
+                  console.log('✅ Profil chauffeur inséré dans user_profiles');
+                }
               });
+            } else {
+              console.warn('⚠️ user_profiles non inséré — userId:', userId, '| stationId:', stationId, '| sb:', !!sb());
             }
           }
+        }).catch(function(err) {
+          console.error('❌ SignUp catch:', err);
+          alert('❌ Erreur réseau: ' + err.message);
         });
       } else {
-        console.warn('⚠️ Impossible de créer le compte: SDK Supabase non disponible ou mot de passe trop court (' + mdp.length + ' chars)');
+        var reason = !window.supabase ? 'SDK non chargé' : (!window.supabase.createClient ? 'createClient absent' : 'mdp trop court (' + mdp.length + ' chars)');
+        console.warn('⚠️ Compte non créé:', reason);
+        alert('⚠️ Impossible de créer le compte: ' + reason);
       }
     }
 
