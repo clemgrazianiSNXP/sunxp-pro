@@ -94,7 +94,7 @@ function buildMainNav() {
 function buildStatsNav() {
   const nav = document.createElement('div');
   nav.style.cssText = 'display:flex;gap:4px;padding:10px 16px;border-bottom:1px solid var(--border);background:var(--bg-sidebar);flex-shrink:0;';
-  [['dsdpmo','DS / DPMO'],['pod','POD'],['dwc','DWC'],['envoi','📤 Envoi']].forEach(([id,label]) => {
+  [['dsdpmo','DS / DPMO'],['pod','POD'],['dwc','DWC'],['envoi','📊 Stats WEEK']].forEach(([id,label]) => {
     const btn = document.createElement('button');
     btn.className = 'h-btn'; btn.textContent = label;
     if (statsTab === id) btn.style.cssText = 'background:var(--accent);color:#fff;border-color:var(--accent);';
@@ -511,6 +511,20 @@ function buildEnvoi() {
   navWrap.appendChild(nextBtn);
 
   toolbar.appendChild(sendAllBtn);
+  // Bouton Publier STATS (push notification)
+  const publishStatsBtn = document.createElement('button');
+  publishStatsBtn.className = 'rep-btn rep-btn-primary';
+  publishStatsBtn.style.cssText = 'background:#a78bfa;';
+  publishStatsBtn.textContent = '🔔 Publier STATS';
+  publishStatsBtn.onclick = () => {
+    if (typeof sendPushToStation === 'function' && statsWeekEnvoi) {
+      sendPushToStation(stationId, '📊 Stats disponibles', 'Les statistiques de la semaine ' + statsWeekEnvoi + ' sont disponibles !');
+      publishStatsBtn.textContent = '✅ Publié !';
+      publishStatsBtn.style.background = '#10b981';
+      setTimeout(() => { publishStatsBtn.textContent = '🔔 Publier STATS'; publishStatsBtn.style.background = '#a78bfa'; }, 3000);
+    }
+  };
+  toolbar.appendChild(publishStatsBtn);
   toolbar.appendChild(navWrap);
   wrap.appendChild(toolbar);
 
