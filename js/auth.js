@@ -53,6 +53,10 @@ async function loadProfile() {
 /* ── Redirection selon le rôle ────────────────────────────── */
 function redirectByRole() {
   console.log('redirectByRole: currentProfile =', currentProfile);
+  // Vérifier le mode maintenance
+  if (typeof checkMaintenanceMode === 'function') checkMaintenanceMode();
+  // Logger la connexion
+  if (typeof logActivity === 'function') logActivity('login', {});
   if (!currentProfile) { console.warn('redirectByRole: pas de profil, showApp par défaut'); showApp(); return; }
 
   if (currentProfile.role === 'chauffeur') {
