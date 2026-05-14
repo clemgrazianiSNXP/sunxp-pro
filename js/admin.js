@@ -79,36 +79,108 @@ function renderAdmin() {
 }
 
 /**
- * Injecte dynamiquement l'onglet "Admin" dans la sidebar si l'utilisateur est admin.
- * Appelé après vérification de l'authentification.
+ * Injecte dynamiquement la card "Admin" sur l'écran de choix de rôle si l'utilisateur est admin.
+ * La card apparaît à côté de "Responsable" et "Chauffeur".
  */
-function injectAdminTab() {
+function injectAdminCard() {
   if (!isAdmin()) return;
 
-  const navTabs = document.querySelector('.nav-tabs');
-  if (!navTabs) return;
+  const roleScreen = document.getElementById('role-screen');
+  if (!roleScreen) return;
 
   // Ne pas injecter si déjà présent
-  if (navTabs.querySelector('[data-module="admin"]')) return;
+  if (document.getElementById('role-admin')) return;
 
-  const li = document.createElement('li');
-  li.className = 'nav-tab';
-  li.dataset.module = 'admin';
-  li.innerHTML = '<span class="icon">⚙️</span><span class="label">Admin</span>';
+  const grid = roleScreen.querySelector('div[style*="display:flex"]');
+  if (!grid) return;
 
-  li.addEventListener('click', () => {
-    if (typeof showModule === 'function') showModule('admin');
-    if (typeof dispatchModuleInit === 'function') dispatchModuleInit('admin');
+  const card = document.createElement('div');
+  card.className = 'station-card';
+  card.id = 'role-admin';
+  card.style.cursor = 'pointer';
+  card.innerHTML = `
+    <div class="station-card-name">⚙️</div>
+    <div class="station-card-name">Admin</div>
+    <button class="btn-acceder">Accéder</button>
+  `;
+
+  card.querySelector('.btn-acceder').addEventListener('click', () => {
+    roleScreen.hidden = true;
+    openAdminPanel();
   });
 
-  navTabs.appendChild(li);
+  grid.appendChild(card);
 }
 
-// Injection de l'onglet admin après le chargement du DOM et l'authentification
+/**
+ * Ouvre le panneau admin en plein écran (sans sidebar, sans station).
+ */
+function openAdminPanel() {
+  // Cacher tout le reste
+  const appLayout = document.querySelector('.app-layout');
+  if (appLayout) appLayout.style.display = 'none';
+  const stationScreen = document.getElementById('station-screen');
+  if (stationScreen) { stationScreen.hidden = true; stationScreen.style.display = 'none'; }
+
+  // Créer ou afficher le conteneur admin plein écran
+  let adminScreen = document.getElementById('admin-screen');
+  if (!adminScreen) {
+    adminScreen = document.createElement('div');
+    adminScreen.id = 'admin-screen';
+    adminScreen.style.cssText = 'position:fixed;inset:0;z-index:9999;background:var(--bg-primary);display:flex;flex-direction:column;overflow:hidden;';
+    document.body.appendChild(adminScreen);
+  }
+  adminScreen.hidden = false;
+  adminScreen.style.display = 'flex';
+  adminScreen.innerHTML = '';
+
+  // Topbar admin
+  const topbar = document.createElement('div');
+  topbar.style.cssText = 'display:flex;align-items:center;gap:12px;padding:12px 20px;background:var(--bg-sidebar);border-bottom:1px solid var(--border);flex-shrink:0;';
+  topbar.innerHTML = `<button id="admin-back-btn" class="h-btn" style="font-size:14px;">← Retour</button><span style="font-size:16px;font-weight:700;color:var(--text-primary);">⚙️ Administration</span>`;
+  topbar.querySelector('#admin-back-btn').onclick = () => {
+    adminScreen.hidden = true;
+    adminScreen.style.display = 'none';
+    document.getElementById('role-screen').hidden = false;
+  };
+  adminScreen.appendChild(topbar);
+
+  // Sous-onglets
+  const toolbar = document.createElement('div');
+  toolbar.style.cssText = 'display:flex;gap:4px;padding:10px 16px;border-bottom:1px solid var(--border);background:var(--bg-sidebar);flex-shrink:0;flex-wrap:wrap;';
+  [['monitoring','📊 Monitoring'],['sauvegarde','💾 Sauvegarde'],['utilisateurs','👥 Utilisateurs'],['logs','📋 Logs'],['maintenance','🔧 Maintenance']].forEach(([id, label]) => {
+    const btn = document.createElement('button');
+    btn.className = 'h-btn';
+    btn.style.cssText = `padding:6px 12px;font-size:11px;border-radius:6px;${adminTab === id ? 'background:var(--accent);color:#fff;' : ''}`;
+    btn.textContent = label;
+    btn.onclick = () => { adminTab = id; openAdminPanel(); };
+    toolbar.appendChild(btn);
+  });
+  adminScreen.appendChild(toolbar);
+
+  // Contenu
+  const content = document.createElement('div');
+  content.style.cssText = 'flex:1;overflow:auto;padding:20px;';
+
+  if (adminTab === 'monitoring') {
+    content.innerHTML = '<p style="color:var(--text-muted);text-align:center;margin-top:40px;">📊 Monitoring — contenu à venir</p>';
+  } else if (adminTab === 'sauvegarde') {
+    content.innerHTML = '<p style="color:var(--text-muted);text-align:center;margin-top:40px;">💾 Sauvegarde — contenu à venir</p>';
+  } else if (adminTab === 'utilisateurs') {
+    content.innerHTML = '<p style="color:var(--text-muted);text-align:center;margin-top:40px;">👥 Utilisateurs — contenu à venir</p>';
+  } else if (adminTab === 'logs') {
+    content.innerHTML = '<p style="color:var(--text-muted);text-align:center;margin-top:40px;">📋 Logs — contenu à venir</p>';
+  } else if (adminTab === 'maintenance') {
+    content.innerHTML = '<p style="color:var(--text-muted);text-align:center;margin-top:40px;">🔧 Maintenance — contenu à venir</p>';
+  }
+
+  adminScreen.appendChild(content);
+}
+
+// Injection de la card admin après le chargement du DOM et l'authentification
 document.addEventListener('DOMContentLoaded', () => {
-  // Attendre que l'auth soit terminée avant d'injecter l'onglet
   setTimeout(() => {
-    injectAdminTab();
+    injectAdminCard();
   }, 2000);
 });
 
