@@ -230,3 +230,29 @@ CREATE TABLE IF NOT EXISTS user_profiles (
 ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "users_read_own" ON user_profiles FOR SELECT USING (auth.uid() = id);
 CREATE POLICY "allow_all_anon" ON user_profiles FOR ALL USING (true) WITH CHECK (true);
+
+-- 19. Table App Settings (admin — mode maintenance, config)
+CREATE TABLE IF NOT EXISTS app_settings (
+  key TEXT PRIMARY KEY,
+  value JSONB NOT NULL DEFAULT '{}',
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_by TEXT DEFAULT ''
+);
+ALTER TABLE app_settings ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "allow_all" ON app_settings FOR ALL USING (true) WITH CHECK (true);
+
+-- 20. Table Activity Logs (audit trail)
+CREATE TABLE IF NOT EXISTS activity_logs (
+  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  email TEXT NOT NULL,
+  action TEXT NOT NULL,
+  station_id TEXT REFERENCES stations(id) ON DELETE SET NULL,
+  metadata JSONB DEFAULT '{}',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_activity_logs_email ON activity_logs(email);
+CREATE INDEX IF NOT EXISTS idx_activity_logs_action ON activity_logs(action);
+CREATE INDEX IF NOT EXISTS idx_activity_logs_created ON activity_logs(created_at DESC);
+ALTER TABLE activity_logs ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "allow_all" ON activity_logs FOR ALL USING (true) WITH CHECK (true);
