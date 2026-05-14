@@ -194,9 +194,10 @@ async function renderAdminMonitoring(container) {
   connCard.innerHTML = `<div style="font-size:14px;font-weight:700;margin-bottom:8px;">Connexion Supabase</div><div style="font-size:24px;">${connected ? '🟢 Connecté' : '🔴 Déconnecté'}</div>`;
   wrap.appendChild(connCard);
 
-  // Statut tables
+  // Statut tables + alertes
   if (connected) {
     const tables = ['stations','chauffeurs','heures','stats','primes','activite','planning','planning_meta','degats','camions','repos_demandes','acomptes','conges_payes','user_profiles','push_subscriptions','activity_logs','app_settings'];
+    const alerts = [];
     const tableCard = document.createElement('div');
     tableCard.style.cssText = 'background:var(--bg-sidebar);border:1px solid var(--border);border-radius:10px;padding:16px;';
     tableCard.innerHTML = '<div style="font-size:14px;font-weight:700;margin-bottom:12px;">Tables Supabase</div>';
@@ -204,14 +205,36 @@ async function renderAdminMonitoring(container) {
     grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;';
     for (const t of tables) {
       try {
-        const { count } = await sb().from(t).select('*', { count: 'exact', head: true });
-        grid.innerHTML += `<div style="padding:8px;background:var(--bg-primary);border-radius:6px;font-size:11px;"><b>${t}</b><br><span style="color:var(--accent);">${count || 0} lignes</span></div>`;
-      } catch (_) {
-        grid.innerHTML += `<div style="padding:8px;background:var(--bg-primary);border-radius:6px;font-size:11px;"><b>${t}</b><br><span style="color:#f87171;">erreur</span></div>`;
+        const { count, error } = await sb().from(t).select('*', { count: 'exact', head: true });
+        if (error) {
+          grid.innerHTML += `<div style="padding:8px;background:var(--bg-primary);border-radius:6px;font-size:11px;border-left:3px solid #f87171;"><b>${t}</b><br><span style="color:#f87171;">❌ ${error.message}</span></div>`;
+          alerts.push(`Table "${t}" inaccessible: ${error.message}`);
+        } else {
+          const c = count || 0;
+          const color = c === 0 ? '#fbbf24' : 'var(--accent)';
+          grid.innerHTML += `<div style="padding:8px;background:var(--bg-primary);border-radius:6px;font-size:11px;"><b>${t}</b><br><span style="color:${color};">${c} lignes${c === 0 ? ' ⚠️' : ''}</span></div>`;
+          if (c === 0 && ['stations','chauffeurs','user_profiles'].includes(t)) {
+            alerts.push(`Table "${t}" est vide (anormal)`);
+          }
+        }
+      } catch (e) {
+        grid.innerHTML += `<div style="padding:8px;background:var(--bg-primary);border-radius:6px;font-size:11px;border-left:3px solid #f87171;"><b>${t}</b><br><span style="color:#f87171;">❌ erreur</span></div>`;
+        alerts.push(`Table "${t}" erreur: ${e.message}`);
       }
     }
     tableCard.appendChild(grid);
     wrap.appendChild(tableCard);
+
+    // Alertes
+    const alertCard = document.createElement('div');
+    alertCard.style.cssText = 'background:var(--bg-sidebar);border:1px solid var(--border);border-radius:10px;padding:16px;';
+    if (alerts.length) {
+      alertCard.innerHTML = `<div style="font-size:14px;font-weight:700;margin-bottom:8px;color:#f87171;">⚠️ Alertes (${alerts.length})</div>`;
+      alerts.forEach(a => { alertCard.innerHTML += `<div style="font-size:11px;color:#fbbf24;padding:4px 0;border-bottom:1px solid var(--border);">• ${a}</div>`; });
+    } else {
+      alertCard.innerHTML = '<div style="font-size:14px;font-weight:700;color:#4ade80;">✅ Aucune alerte — Tout fonctionne</div>';
+    }
+    wrap.appendChild(alertCard);
   }
 
   container.innerHTML = '';
