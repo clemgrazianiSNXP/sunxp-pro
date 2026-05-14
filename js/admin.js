@@ -8,11 +8,10 @@ let adminTab = 'monitoring';
 
 /**
  * Vérifie si l'utilisateur connecté est un administrateur.
- * Conditions : rôle "responsable" + email dans ADMIN_EMAILS.
+ * Condition : email dans ADMIN_EMAILS (pas besoin de profil user_profiles).
  */
 function isAdmin() {
-  if (!currentUser || !currentProfile) return false;
-  if (currentProfile.role !== 'responsable') return false;
+  if (!currentUser) return false;
   return ADMIN_EMAILS.includes(currentUser.email);
 }
 
@@ -179,9 +178,14 @@ function openAdminPanel() {
 
 // Injection de la card admin après le chargement du DOM et l'authentification
 document.addEventListener('DOMContentLoaded', () => {
-  setTimeout(() => {
-    injectAdminCard();
-  }, 2000);
+  // Retry toutes les secondes pendant 10s (attendre que currentUser soit défini par auth.js)
+  let attempts = 0;
+  const tryInject = () => {
+    attempts++;
+    if (isAdmin()) { injectAdminCard(); return; }
+    if (attempts < 10) setTimeout(tryInject, 1000);
+  };
+  setTimeout(tryInject, 1500);
 });
 
 // Exports globaux
