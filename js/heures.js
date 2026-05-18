@@ -910,6 +910,15 @@ function saveDay(key, rows, stationId) {
     const dateStr = key.replace(stationId + '-heures-', '');
     dbSave('heures', key, { station_id: stationId, date_jour: dateStr }, data);
   }
+  // Log activité (debounced — on ne log qu'une fois par jour/session)
+  if (window.logActivity) {
+    const logKey = 'heures-log-' + key;
+    if (!window._heuresLogSent || window._heuresLogSent !== logKey) {
+      window._heuresLogSent = logKey;
+      const dateStr = key.replace(stationId + '-heures-', '');
+      window.logActivity('heures_saisie', { date: dateStr, station: stationId });
+    }
+  }
 }
 
 /* ── Vue semaine ──────────────────────────────────────────── */

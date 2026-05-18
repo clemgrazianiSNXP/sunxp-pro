@@ -225,6 +225,59 @@ async function renderAdminMonitoring(container) {
     tableCard.appendChild(grid);
     wrap.appendChild(tableCard);
 
+    // Vérification sync localStorage vs Supabase
+    const syncCard = document.createElement('div');
+    syncCard.style.cssText = 'background:var(--bg-sidebar);border:1px solid var(--border);border-radius:10px;padding:16px;';
+    syncCard.innerHTML = '<div style="font-size:14px;font-weight:700;margin-bottom:12px;">🔄 Sync localStorage ↔ Supabase</div>';
+    const syncGrid = document.createElement('div');
+    syncGrid.style.cssText = 'display:flex;flex-direction:column;gap:6px;';
+
+    // Récupérer les stations pour vérifier la sync
+    const { data: stationsData } = await sb().from('stations').select('id, nom');
+    const stationsList = stationsData || [];
+
+    let syncIssues = 0;
+    for (const station of stationsList) {
+      const sid = station.id;
+
+      // Vérifier chauffeurs
+      const localCh = (() => { try { const r = localStorage.getItem(sid + '-repertoire'); return r ? JSON.parse(r) : []; } catch(_) { return []; } })();
+      const { count: sbChCount } = await sb().from('chauffeurs').select('*', { count: 'exact', head: true }).eq('station_id', sid);
+      const chSync = localCh.length === (sbChCount || 0);
+      if (!chSync) syncIssues++;
+      syncGrid.innerHTML += `<div style="padding:6px 10px;background:var(--bg-primary);border-radius:6px;font-size:11px;display:flex;justify-content:space-between;align-items:center;"><span><b>${station.nom}</b> — Chauffeurs</span><span style="color:${chSync ? '#4ade80' : '#f87171'};">${chSync ? '✅' : '⚠️'} Local: ${localCh.length} | Supabase: ${sbChCount || 0}</span></div>`;
+
+      // Vérifier heures (compter les clés localStorage vs Supabase)
+      let localHeuresCount = 0;
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith(sid + '-heures-')) localHeuresCount++;
+      }
+      const { count: sbHeuresCount } = await sb().from('heures').select('*', { count: 'exact', head: true }).eq('station_id', sid);
+      const hSync = localHeuresCount === (sbHeuresCount || 0);
+      if (!hSync) syncIssues++;
+      syncGrid.innerHTML += `<div style="padding:6px 10px;background:var(--bg-primary);border-radius:6px;font-size:11px;display:flex;justify-content:space-between;align-items:center;"><span><b>${station.nom}</b> — Heures</span><span style="color:${hSync ? '#4ade80' : '#fbbf24'};">${hSync ? '✅' : '⚠️'} Local: ${localHeuresCount} | Supabase: ${sbHeuresCount || 0}</span></div>`;
+
+      // Vérifier planning
+      let localPlanCount = 0;
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith(sid + '-planning-') && !k.includes('-meta-')) localPlanCount++;
+      }
+      const { count: sbPlanCount } = await sb().from('planning').select('*', { count: 'exact', head: true }).eq('station_id', sid);
+      const pSync = localPlanCount === (sbPlanCount || 0);
+      if (!pSync) syncIssues++;
+      syncGrid.innerHTML += `<div style="padding:6px 10px;background:var(--bg-primary);border-radius:6px;font-size:11px;display:flex;justify-content:space-between;align-items:center;"><span><b>${station.nom}</b> — Planning</span><span style="color:${pSync ? '#4ade80' : '#fbbf24'};">${pSync ? '✅' : '⚠️'} Local: ${localPlanCount} | Supabase: ${sbPlanCount || 0}</span></div>`;
+    }
+
+    // Résumé sync
+    const syncSummary = document.createElement('div');
+    syncSummary.style.cssText = `margin-top:8px;padding:8px 12px;border-radius:6px;font-size:12px;font-weight:700;color:${syncIssues === 0 ? '#4ade80' : '#fbbf24'};`;
+    syncSummary.textContent = syncIssues === 0 ? '✅ Tout est synchronisé' : `⚠️ ${syncIssues} différence(s) détectée(s) — Utilisez "Sync All" dans la console pour corriger`;
+    syncCard.appendChild(syncGrid);
+    syncCard.appendChild(syncSummary);
+    wrap.appendChild(syncCard);
+
     // Alertes
     const alertCard = document.createElement('div');
     alertCard.style.cssText = 'background:var(--bg-sidebar);border:1px solid var(--border);border-radius:10px;padding:16px;';
@@ -286,6 +339,7 @@ function renderAdminSauvegarde(container) {
       a.download = 'sunxp-backup-' + new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19) + '.json';
       a.click();
       URL.revokeObjectURL(url);
+      if (window.logActivity) window.logActivity('admin_export', { tables: Object.keys(backup.tables).length });
     });
 
     document.getElementById('admin-restore-file')?.addEventListener('change', async (e) => {
@@ -299,12 +353,73 @@ function renderAdminSauvegarde(container) {
         const tableNames = Object.keys(json.tables);
         if (!confirm(`Restaurer ${tableNames.length} tables ? (${tableNames.join(', ')})`)) return;
         status.textContent = 'Restauration en cours...';
+
+        // Mapping des colonnes de conflit pour chaque table
+        const CONFLICT_MAP = {
+          stations: 'id',
+          heures: 'station_id,date_jour',
+          stats: 'station_id,type,semaine',
+          primes: 'station_id,annee,mois',
+          activite: 'station_id,date_jour',
+          concessions: 'station_id,semaine',
+          retards: 'station_id,semaine',
+          camions: 'station_id',
+          documents: 'station_id',
+          repos_demandes: 'station_id',
+          eos: 'station_id,date_jour',
+          acomptes: 'station_id',
+          conges_payes: 'station_id',
+          cles_codes: 'station_id',
+          problemes_camions: 'station_id',
+          user_profiles: 'id',
+          app_settings: 'key',
+          absences: 'station_id,semaine'
+        };
+
+        // Tables sans contrainte UNIQUE (on delete + insert)
+        const DELETE_INSERT_TABLES = ['chauffeurs', 'degats', 'activity_logs', 'responsables', 'planning', 'planning_meta', 'planning_published', 'push_subscriptions'];
+
         let restored = 0;
+        let errors = [];
         for (const [table, rows] of Object.entries(json.tables)) {
           if (!rows || !rows.length) continue;
-          try { await sb().from(table).upsert(rows); restored++; } catch (_) {}
+          status.textContent = `Restauration ${table}... (${restored}/${tableNames.length})`;
+          try {
+            if (DELETE_INSERT_TABLES.includes(table)) {
+              // Pour les tables sans UNIQUE constraint : supprimer tout et réinsérer
+              // Retirer les colonnes auto-générées (id)
+              const cleanRows = rows.map(r => { const { id, ...rest } = r; return rest; });
+              await sb().from(table).delete().neq('id', 0); // delete all
+              if (cleanRows.length) {
+                // Insérer par batch de 500
+                for (let i = 0; i < cleanRows.length; i += 500) {
+                  await sb().from(table).insert(cleanRows.slice(i, i + 500));
+                }
+              }
+            } else if (CONFLICT_MAP[table]) {
+              // Upsert avec onConflict spécifié
+              // Retirer la colonne id auto-générée sauf pour les tables avec id comme PK texte/uuid
+              const keepId = ['stations', 'user_profiles', 'app_settings'].includes(table);
+              const cleanRows = keepId ? rows : rows.map(r => { const { id, ...rest } = r; return rest; });
+              for (let i = 0; i < cleanRows.length; i += 500) {
+                await sb().from(table).upsert(cleanRows.slice(i, i + 500), { onConflict: CONFLICT_MAP[table] });
+              }
+            } else {
+              // Fallback : upsert simple
+              await sb().from(table).upsert(rows);
+            }
+            restored++;
+          } catch (err) {
+            errors.push(`${table}: ${err.message}`);
+            console.error('Restore error for', table, ':', err);
+          }
         }
-        status.textContent = `✅ ${restored} tables restaurées !`;
+        if (errors.length) {
+          status.innerHTML = `✅ ${restored} tables restaurées.<br><span style="color:#f87171;">⚠️ Erreurs: ${errors.join(', ')}</span>`;
+        } else {
+          status.textContent = `✅ ${restored} tables restaurées avec succès !`;
+        }
+        if (window.logActivity) window.logActivity('admin_restore', { tables: restored, errors: errors.length });
       } catch (err) { status.textContent = '❌ Erreur: ' + err.message; }
     });
   }, 0);
@@ -324,7 +439,14 @@ async function renderAdminUtilisateurs(container) {
       profiles.forEach(p => {
         const div = document.createElement('div');
         div.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px;background:var(--bg-sidebar);border:1px solid var(--border);border-radius:8px;font-size:12px;';
-        div.innerHTML = `<span style="font-weight:700;flex:1;">${p.prenom || ''} ${p.nom || ''}</span><span style="color:var(--accent);">${p.role}</span><span style="color:var(--text-muted);font-size:10px;">${p.station_id || '—'}</span><span style="color:var(--text-muted);font-size:10px;">${p.chauffeur_id || ''}</span>`;
+        div.innerHTML = `
+          <span style="font-weight:700;flex:1;">${p.prenom || ''} ${p.nom || ''}</span>
+          <span style="color:var(--accent);">${p.role}</span>
+          <span style="color:var(--text-muted);font-size:10px;">${p.station_id || '—'}</span>
+          <span style="color:var(--text-muted);font-size:10px;">${p.chauffeur_id || ''}</span>
+          <button class="h-btn admin-reset-pwd" data-uid="${p.id}" data-name="${(p.prenom || '') + ' ' + (p.nom || '')}" style="font-size:10px;padding:4px 8px;color:#fbbf24;border-color:#fbbf24;">🔑 Reset MDP</button>
+          <button class="h-btn admin-delete-user" data-uid="${p.id}" data-name="${(p.prenom || '') + ' ' + (p.nom || '')}" style="font-size:10px;padding:4px 8px;color:#f87171;border-color:#f87171;">🗑 Supprimer</button>
+        `;
         wrap.appendChild(div);
       });
     } else {
@@ -332,6 +454,68 @@ async function renderAdminUtilisateurs(container) {
     }
     container.innerHTML = '';
     container.appendChild(wrap);
+
+    // Bind boutons Reset MDP
+    container.querySelectorAll('.admin-reset-pwd').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const uid = btn.dataset.uid;
+        const name = btn.dataset.name;
+        const newPwd = prompt(`Nouveau mot de passe pour ${name.trim()} :`);
+        if (!newPwd || newPwd.length < 6) { alert('Mot de passe trop court (min 6 caractères)'); return; }
+        btn.textContent = '⏳...';
+        btn.disabled = true;
+        try {
+          // Utiliser l'Edge Function admin pour reset le password
+          const { data, error } = await sb().functions.invoke('admin-reset-password', {
+            body: { user_id: uid, new_password: newPwd }
+          });
+          if (error) {
+            alert('Erreur: ' + error.message);
+            btn.textContent = '🔑 Reset MDP';
+          } else {
+            alert('✅ Mot de passe réinitialisé pour ' + name.trim());
+            btn.textContent = '✅ OK';
+            if (window.logActivity) window.logActivity('admin_reset_password', { user_id: uid, nom: name.trim() });
+          }
+        } catch (e) {
+          alert('Erreur: ' + e.message);
+          btn.textContent = '🔑 Reset MDP';
+        }
+        btn.disabled = false;
+      });
+    });
+
+    // Bind boutons Supprimer
+    container.querySelectorAll('.admin-delete-user').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const uid = btn.dataset.uid;
+        const name = btn.dataset.name;
+        if (!confirm(`⚠️ Supprimer définitivement le compte de ${name.trim()} ?\n\nCette action est irréversible.`)) return;
+        btn.textContent = '⏳...';
+        btn.disabled = true;
+        try {
+          // Supprimer le profil user_profiles
+          const { error: profileErr } = await sb().from('user_profiles').delete().eq('id', uid);
+          if (profileErr) { alert('Erreur suppression profil: ' + profileErr.message); btn.textContent = '🗑 Supprimer'; btn.disabled = false; return; }
+          // Supprimer le compte auth via Edge Function
+          const { error } = await sb().functions.invoke('admin-delete-user', {
+            body: { user_id: uid }
+          });
+          if (error) {
+            alert('Profil supprimé mais erreur auth: ' + error.message);
+          } else {
+            alert('✅ Compte supprimé: ' + name.trim());
+            if (window.logActivity) window.logActivity('admin_delete_user', { user_id: uid, nom: name.trim() });
+          }
+          // Rafraîchir la liste
+          renderAdminUtilisateurs(container);
+        } catch (e) {
+          alert('Erreur: ' + e.message);
+          btn.textContent = '🗑 Supprimer';
+          btn.disabled = false;
+        }
+      });
+    });
   } catch (e) { container.innerHTML = '<p style="color:#f87171;">Erreur: ' + e.message + '</p>'; }
 }
 

@@ -240,6 +240,7 @@ function openPersonForm(person, stationId, type) {
   showRepertoireForm(
     zone, person, type,
     (saved) => {
+      const isEdit = !!person;
       if (type === 'responsable') {
         const list = loadResponsables(stationId);
         const idx = list.findIndex(c => c.id === saved.id);
@@ -251,6 +252,10 @@ function openPersonForm(person, stationId, type) {
         if (idx >= 0) list[idx] = saved; else list.push(saved);
         saveChauffeurs(stationId, list);
       }
+      // Log activité
+      if (window.logActivity) {
+        window.logActivity(isEdit ? 'repertoire_modif' : 'repertoire_ajout', { type, nom: saved.prenom + ' ' + saved.nom, station: stationId });
+      }
       zone.innerHTML = '';
       renderRepertoire();
     },
@@ -261,12 +266,23 @@ function openPersonForm(person, stationId, type) {
 function deletePerson(id, stationId, type) {
   const label = type === 'responsable' ? 'ce responsable' : 'ce chauffeur';
   showConfirmModal('Supprimer ' + label + ' ?', () => {
+    let deletedName = '';
     if (type === 'responsable') {
-      const list = loadResponsables(stationId).filter(c => c.id !== id);
+      const fullList = loadResponsables(stationId);
+      const person = fullList.find(c => c.id === id);
+      if (person) deletedName = person.prenom + ' ' + person.nom;
+      const list = fullList.filter(c => c.id !== id);
       saveResponsables(stationId, list);
     } else {
-      const list = loadChauffeurs(stationId).filter(c => c.id !== id);
+      const fullList = loadChauffeurs(stationId);
+      const person = fullList.find(c => c.id === id);
+      if (person) deletedName = person.prenom + ' ' + person.nom;
+      const list = fullList.filter(c => c.id !== id);
       saveChauffeurs(stationId, list);
+    }
+    // Log activité
+    if (window.logActivity) {
+      window.logActivity('repertoire_suppression', { type, nom: deletedName, station: stationId });
     }
     renderRepertoire();
   });

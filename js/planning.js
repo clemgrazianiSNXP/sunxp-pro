@@ -503,6 +503,8 @@ function buildScrollableRight(chauffeurs, data, meta, nbDays, year, month, stati
         updateFixedLeftCounts(chauffeurs, data, nbDays);
         var eligibleForBubbles = chauffeurs.filter(function(c) { return ['Chauffeur', 'Formateur'].includes(c.role); });
         updatePlanningBubbles(stationId, eligibleForBubbles, data, year, month, nbDays);
+        // Log activité
+        if (window.logActivity) window.logActivity('planning_modif', { chauffeur: nom, jour: d, code: v, mois: year + '-' + String(month + 1).padStart(2, '0') });
       });
 
       inp.addEventListener('keydown', e => {

@@ -449,6 +449,8 @@ function publishWeek(sid, monday) {
   if (typeof dbSave === 'function') {
     dbSave('planning_published', sid + '-planning-published', { station_id: sid }, weeks);
   }
+  // Log activité
+  if (window.logActivity) window.logActivity('planning_publication', { semaine: key, station: sid });
 }
 
 function isWeekPublished(publishedWeeks, monday) {
