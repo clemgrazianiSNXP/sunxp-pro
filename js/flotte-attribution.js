@@ -111,21 +111,27 @@ function renderAttribution() {
     tdSt.appendChild(selSt);
     tr.appendChild(tdSt);
 
-    // Si X → fusionner toutes les colonnes restantes
+    // Si X → garder la structure mais vider les champs et afficher le motif dans Com
     if ((r.statut || 'OK') === 'X') {
       tr.style.opacity = '0.4';
       tr.style.background = 'rgba(248,113,113,0.05)';
-      var tdFusion = document.createElement('td');
-      tdFusion.colSpan = 14;
-      tdFusion.style.cssText = 'padding:4px;';
-      var inpFusion = document.createElement('input');
-      inpFusion.className = 'h-inp';
-      inpFusion.style.cssText = 'width:100%;font-size:10px;padding:3px;color:#f87171;font-style:italic;';
-      inpFusion.placeholder = 'Motif indisponibilité...';
-      inpFusion.value = r.com || '';
-      inpFusion.onchange = function() { r.com = inpFusion.value; saveAttr(sid, attrDate, rows); };
-      tdFusion.appendChild(inpFusion);
-      tr.appendChild(tdFusion);
+      // Chauffeur vide
+      var tdChX = document.createElement('td'); tdChX.style.cssText = 'padding:2px;'; tr.appendChild(tdChX);
+      // PDA, Trs, Lic, Clé, VIGIK vides
+      for (var xi = 0; xi < 5; xi++) { var tdE = document.createElement('td'); tdE.style.cssText = 'padding:2px;'; tr.appendChild(tdE); }
+      // rP, rT, rL, rC, rV, ✓ vides
+      for (var xj = 0; xj < 6; xj++) { var tdC = document.createElement('td'); tdC.style.cssText = 'padding:2px;'; tr.appendChild(tdC); }
+      // Commentaire = motif
+      var tdMotif = document.createElement('td');
+      tdMotif.style.cssText = 'padding:2px;';
+      var inpMotif = document.createElement('input');
+      inpMotif.className = 'h-inp';
+      inpMotif.style.cssText = 'width:100%;font-size:10px;padding:3px;color:#f87171;font-style:italic;';
+      inpMotif.placeholder = 'Motif...';
+      inpMotif.value = r.com || '';
+      inpMotif.onchange = function() { r.com = inpMotif.value; saveAttr(sid, attrDate, rows); };
+      tdMotif.appendChild(inpMotif);
+      tr.appendChild(tdMotif);
       tbody.appendChild(tr);
       return;
     }
