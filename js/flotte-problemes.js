@@ -36,12 +36,12 @@ function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;'
 function renderProblemes(canDelete) {
   const wrap = document.createElement('div');
   wrap.style.cssText = 'padding:16px;display:flex;flex-direction:column;gap:14px;overflow-y:auto;';
-  wrap.innerHTML = '<h3 style="font-size:14px;color:var(--accent);margin:0;">🚛 Problèmes Camions</h3><p style="color:var(--text-muted);font-size:11px;margin:0;">Chargement...</p>';
+  wrap.innerHTML = '<p style="color:var(--text-muted);font-size:11px;margin:0;">Chargement...</p>';
 
   let problemes = loadProblemes();
 
   function buildUI() {
-    wrap.innerHTML = '<h3 style="font-size:14px;color:var(--accent);margin:0;">🚛 Problèmes Camions</h3>';
+    wrap.innerHTML = '';
 
     // Barre de recherche
     const searchBar = document.createElement('div');
