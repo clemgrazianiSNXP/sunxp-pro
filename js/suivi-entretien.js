@@ -47,22 +47,44 @@ function renderSuiviEntretien() {
   const camions = loadCamions();
   const entretiens = loadEntretien(stationId);
 
-  // Bouton ajouter
+  // Barre de recherche + bouton ajouter (même style que flotte-problemes)
+  const searchBar = document.createElement('div');
+  searchBar.style.cssText = 'display:flex;gap:8px;align-items:center;';
+  const searchInp = document.createElement('input');
+  searchInp.type = 'text';
+  searchInp.placeholder = '🔍 Rechercher un camion (plaque)...';
+  searchInp.className = 'rep-search';
+  searchInp.style.cssText = 'flex:1;max-width:280px;';
+  searchBar.appendChild(searchInp);
+
   const addBtn = document.createElement('button');
   addBtn.className = 'rep-btn rep-btn-primary';
+  addBtn.style.cssText = 'font-size:12px;padding:8px 14px;white-space:nowrap;';
   addBtn.textContent = '+ Ajouter un entretien';
   addBtn.onclick = () => showEntretienForm(null, stationId, camions);
-  wrap.appendChild(addBtn);
+  searchBar.appendChild(addBtn);
+  wrap.appendChild(searchBar);
 
-  if (!entretiens.length) {
-    const empty = document.createElement('p');
-    empty.style.cssText = 'color:var(--text-muted);text-align:center;margin-top:20px;';
-    empty.textContent = 'Aucun entretien enregistré.';
-    wrap.appendChild(empty);
-  } else {
+  // Container pour les sections
+  const listContainer = document.createElement('div');
+  listContainer.style.cssText = 'display:flex;flex-direction:column;gap:14px;';
+
+  function renderList(query) {
+    listContainer.innerHTML = '';
+    const q = (query || '').toLowerCase().trim();
+    const filtered = entretiens.filter(e => !q || (e.plaque || '').toLowerCase().includes(q));
+
+    if (!filtered.length) {
+      const empty = document.createElement('p');
+      empty.style.cssText = 'color:var(--text-muted);text-align:center;margin-top:20px;';
+      empty.textContent = q ? 'Aucun résultat.' : 'Aucun entretien enregistré.';
+      listContainer.appendChild(empty);
+      return;
+    }
+
     // Grouper par camion
     const byCamion = {};
-    entretiens.forEach(e => {
+    filtered.forEach(e => {
       if (!byCamion[e.plaque]) byCamion[e.plaque] = [];
       byCamion[e.plaque].push(e);
     });
@@ -170,9 +192,13 @@ function renderSuiviEntretien() {
         section.appendChild(row);
       });
 
-      wrap.appendChild(section);
+      listContainer.appendChild(section);
     });
   }
+
+  searchInp.oninput = () => renderList(searchInp.value);
+  renderList('');
+  wrap.appendChild(listContainer);
 
   return wrap;
 }
