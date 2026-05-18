@@ -111,27 +111,43 @@ function renderAttribution() {
     tdSt.appendChild(selSt);
     tr.appendChild(tdSt);
 
-    // Si X → garder la structure mais vider les champs et afficher le motif dans Com
+    // Si X → garder la structure, ajouter select motif + commentaire
     if ((r.statut || 'OK') === 'X') {
-      tr.style.opacity = '0.4';
       tr.style.background = 'rgba(248,113,113,0.05)';
-      // Chauffeur vide
-      var tdChX = document.createElement('td'); tdChX.style.cssText = 'padding:2px;'; tr.appendChild(tdChX);
+      // Motif (select déroulant) dans la colonne Chauffeur
+      var tdMotifSel = document.createElement('td');
+      tdMotifSel.style.cssText = 'padding:2px;';
+      tdMotifSel.colSpan = 1;
+      var selMotif = document.createElement('select');
+      selMotif.className = 'h-inp';
+      selMotif.style.cssText = 'width:100%;font-size:10px;padding:2px;font-weight:700;background:var(--bg-primary);border:1px solid var(--border);border-radius:4px;';
+      var motifColors = { '': 'var(--text-muted)', 'Panne': '#f87171', 'Garage': '#4ade80', 'Pavé': '#f97316' };
+      ['', 'Panne', 'Garage', 'Pavé'].forEach(function(opt) {
+        var o = document.createElement('option');
+        o.value = opt; o.textContent = opt || '—';
+        o.style.color = motifColors[opt] || '';
+        if ((r.motif || '') === opt) o.selected = true;
+        selMotif.appendChild(o);
+      });
+      selMotif.style.color = motifColors[r.motif || ''] || '';
+      selMotif.onchange = function() { r.motif = selMotif.value; selMotif.style.color = motifColors[selMotif.value] || ''; saveAttr(sid, attrDate, rows); };
+      tdMotifSel.appendChild(selMotif);
+      tr.appendChild(tdMotifSel);
       // PDA, Trs, Lic, Clé, VIGIK vides
       for (var xi = 0; xi < 5; xi++) { var tdE = document.createElement('td'); tdE.style.cssText = 'padding:2px;'; tr.appendChild(tdE); }
       // rP, rT, rL, rC, rV, ✓ vides
       for (var xj = 0; xj < 6; xj++) { var tdC = document.createElement('td'); tdC.style.cssText = 'padding:2px;'; tr.appendChild(tdC); }
-      // Commentaire = motif
-      var tdMotif = document.createElement('td');
-      tdMotif.style.cssText = 'padding:2px;';
-      var inpMotif = document.createElement('input');
-      inpMotif.className = 'h-inp';
-      inpMotif.style.cssText = 'width:100%;font-size:10px;padding:3px;color:#f87171;font-style:italic;';
-      inpMotif.placeholder = 'Motif...';
-      inpMotif.value = r.com || '';
-      inpMotif.onchange = function() { r.com = inpMotif.value; saveAttr(sid, attrDate, rows); };
-      tdMotif.appendChild(inpMotif);
-      tr.appendChild(tdMotif);
+      // Commentaire
+      var tdComX = document.createElement('td');
+      tdComX.style.cssText = 'padding:2px;';
+      var inpComX = document.createElement('input');
+      inpComX.className = 'h-inp';
+      inpComX.style.cssText = 'width:100%;font-size:10px;padding:3px;color:#f87171;font-style:italic;';
+      inpComX.placeholder = 'Commentaire...';
+      inpComX.value = r.com || '';
+      inpComX.onchange = function() { r.com = inpComX.value; saveAttr(sid, attrDate, rows); };
+      tdComX.appendChild(inpComX);
+      tr.appendChild(tdComX);
       tbody.appendChild(tr);
       return;
     }
