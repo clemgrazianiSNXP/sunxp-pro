@@ -63,14 +63,15 @@ function renderAttribution() {
     tdDrag.className = 'drag-handle';
     tr.appendChild(tdDrag);
 
-    // TP (checkbox)
+    // TP (input texte comme UTA)
     var tdTp = document.createElement('td');
-    tdTp.style.cssText = 'padding:2px;text-align:center;';
-    var cbTp = document.createElement('input');
-    cbTp.type = 'checkbox'; cbTp.checked = !!r.tp;
-    cbTp.style.cssText = 'width:13px;height:13px;accent-color:var(--accent);cursor:pointer;';
-    cbTp.onchange = function() { r.tp = cbTp.checked; saveAttr(sid, attrDate, rows); };
-    tdTp.appendChild(cbTp); tr.appendChild(tdTp);
+    tdTp.style.cssText = 'padding:2px;';
+    var inpTp = document.createElement('input');
+    inpTp.className = 'h-inp';
+    inpTp.style.cssText = 'width:100%;font-size:9px;padding:2px;background:var(--bg-primary);color:var(--text-primary);border:1px solid var(--border);border-radius:3px;';
+    inpTp.value = r.tp || '';
+    inpTp.onchange = function() { r.tp = inpTp.value; saveAttr(sid, attrDate, rows); };
+    tdTp.appendChild(inpTp); tr.appendChild(tdTp);
 
     // UTA (input court)
     var tdUta = document.createElement('td');
@@ -187,7 +188,8 @@ function renderAttribution() {
     tdVig.appendChild(inpVig); tr.appendChild(tdVig);
 
     // Cases à cocher retour (rPDA, rTrs, rLic, rClé, rVIG, ✓)
-    ['rP', 'rT', 'rL', 'rC', 'rV', 'ok'].forEach(function(field) {
+    var retourCheckboxes = [];
+    ['rP', 'rT', 'rL', 'rC', 'rV'].forEach(function(field) {
       var td = document.createElement('td');
       td.style.cssText = 'padding:2px;text-align:center;';
       var cb = document.createElement('input');
@@ -195,9 +197,28 @@ function renderAttribution() {
       cb.checked = !!r[field];
       cb.style.cssText = 'width:14px;height:14px;accent-color:var(--accent);cursor:pointer;';
       cb.onchange = function() { r[field] = cb.checked; saveAttr(sid, attrDate, rows); };
+      retourCheckboxes.push({ cb: cb, field: field });
       td.appendChild(cb);
       tr.appendChild(td);
     });
+    // ✓ = tout cocher d'un coup
+    (function() {
+      var td = document.createElement('td');
+      td.style.cssText = 'padding:2px;text-align:center;';
+      var cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = !!r.ok;
+      cb.style.cssText = 'width:14px;height:14px;accent-color:#4ade80;cursor:pointer;';
+      cb.onchange = function() {
+        r.ok = cb.checked;
+        if (cb.checked) {
+          retourCheckboxes.forEach(function(item) { item.cb.checked = true; r[item.field] = true; });
+        }
+        saveAttr(sid, attrDate, rows);
+      };
+      td.appendChild(cb);
+      tr.appendChild(td);
+    })();
 
     // Commentaire
     var tdCom = document.createElement('td');
@@ -280,5 +301,19 @@ function buildAttrToolbar(sid, rows) {
 
   bar.appendChild(prev); bar.appendChild(label); bar.appendChild(next);
   bar.appendChild(todayBtn); bar.appendChild(dupBtn);
+
+  // Compteur vans par statut
+  var countOK = 0, countBU = 0, countX = 0;
+  rows.forEach(function(r) {
+    var st = r.statut || 'OK';
+    if (st === 'OK') countOK++;
+    else if (st === 'BU') countBU++;
+    else if (st === 'X') countX++;
+  });
+  var countEl = document.createElement('div');
+  countEl.style.cssText = 'display:flex;gap:8px;align-items:center;font-size:11px;font-weight:700;margin-left:12px;';
+  countEl.innerHTML = '<span style="color:#4ade80;">OK: ' + countOK + '</span><span style="color:#60a5fa;">BU: ' + countBU + '</span><span style="color:#f87171;">X: ' + countX + '</span>';
+  bar.appendChild(countEl);
+
   return bar;
 }
