@@ -296,8 +296,34 @@ async function renderAdminMonitoring(container) {
 
     // Résumé sync
     const syncSummary = document.createElement('div');
-    syncSummary.style.cssText = `margin-top:8px;padding:8px 12px;border-radius:6px;font-size:12px;font-weight:700;color:${syncIssues === 0 ? '#4ade80' : '#fbbf24'};`;
-    syncSummary.textContent = syncIssues === 0 ? '✅ Tout est synchronisé' : `⚠️ ${syncIssues} différence(s) détectée(s) — Utilisez "Sync All" dans la console pour corriger`;
+    syncSummary.style.cssText = `margin-top:8px;padding:8px 12px;border-radius:6px;font-size:12px;font-weight:700;color:${syncIssues === 0 ? '#4ade80' : '#fbbf24'};display:flex;align-items:center;gap:12px;`;
+    syncSummary.textContent = syncIssues === 0 ? '✅ Tout est synchronisé' : `⚠️ ${syncIssues} différence(s) détectée(s)`;
+
+    // Bouton Forcer Sync
+    if (syncIssues > 0) {
+      const syncBtn = document.createElement('button');
+      syncBtn.className = 'rep-btn rep-btn-primary';
+      syncBtn.style.cssText = 'font-size:11px;padding:6px 14px;';
+      syncBtn.textContent = '🔄 Forcer la sync';
+      syncBtn.onclick = async () => {
+        syncBtn.textContent = '⏳ Sync en cours...';
+        syncBtn.disabled = true;
+        try {
+          if (typeof window.dbSyncAll === 'function') {
+            await window.dbSyncAll();
+          } else if (typeof dbSyncAll === 'function') {
+            await dbSyncAll();
+          }
+          syncBtn.textContent = '✅ Terminé !';
+          setTimeout(() => openAdminPanel(), 1500);
+        } catch (e) {
+          syncBtn.textContent = '❌ Erreur';
+          alert('Erreur sync: ' + e.message);
+        }
+      };
+      syncSummary.appendChild(syncBtn);
+    }
+
     syncCard.appendChild(syncGrid);
     syncCard.appendChild(syncSummary);
     wrap.appendChild(syncCard);
