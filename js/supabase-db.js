@@ -166,6 +166,17 @@ window.dbSavePlanning = async function (stationId, year, month, data) {
   }, 500);
 };
 
+/* Version directe sans debounce (pour sync) */
+window.dbSavePlanningDirect = async function (stationId, year, month, data) {
+  if (!sb()) return;
+  try {
+    await sb().from('planning').delete().eq('station_id', stationId).eq('year', year).eq('month', month + 1);
+    const { error } = await sb().from('planning').insert({ station_id: stationId, year: year, month: month + 1, data: data });
+    if (error) console.error('dbSavePlanningDirect error:', error.message);
+    else console.log('✅ Planning sauvé (direct):', year + '-' + (month + 1));
+  } catch (e) { console.warn('dbSavePlanningDirect catch:', e.message); }
+};
+
 window.dbSavePlanningMeta = async function (stationId, year, month, meta) {
   if (!sb()) return;
   try {
@@ -425,7 +436,7 @@ window.dbSyncAll = async function () {
         const parts = moisKey.split('-');
         if (parts.length === 2) {
           const data = JSON.parse(localStorage.getItem(k));
-          await dbSavePlanning(sid, parseInt(parts[0]), parseInt(parts[1]) - 1, data);
+          await dbSavePlanningDirect(sid, parseInt(parts[0]), parseInt(parts[1]) - 1, data);
         }
       }
       if (k && k.startsWith(sid + '-planning-meta-')) {
