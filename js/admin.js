@@ -175,17 +175,35 @@ window.checkMaintenanceMode = async function() {
   if (!sb()) return;
   if (isAdmin()) return;
   try {
+    // Vérifier maintenance manuelle
     const { data } = await sb().from('app_settings').select('value').eq('key', 'maintenance').maybeSingle();
     if (data && data.value && data.value.active) {
       const msg = data.value.message || 'Maintenance en cours';
-      const screen = document.createElement('div');
-      screen.id = 'maintenance-screen';
-      screen.style.cssText = 'position:fixed;inset:0;z-index:99998;background:var(--bg-primary);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;padding:24px;text-align:center;';
-      screen.innerHTML = `<div style="font-size:48px;">🔧</div><h1 style="font-size:20px;color:var(--text-primary);margin:0;">Maintenance en cours</h1><p style="font-size:14px;color:var(--text-muted);max-width:300px;">${msg}</p><p style="font-size:11px;color:var(--text-muted);">Veuillez réessayer plus tard.</p>`;
-      document.body.appendChild(screen);
+      showMaintenanceScreen(msg);
+      return;
+    }
+    // Vérifier maintenance planifiée
+    const { data: schedData } = await sb().from('app_settings').select('value').eq('key', 'maintenance_scheduled').maybeSingle();
+    if (schedData && schedData.value && schedData.value.scheduled && schedData.value.start && schedData.value.end) {
+      const now = new Date();
+      const start = new Date(schedData.value.start);
+      const end = new Date(schedData.value.end);
+      if (now >= start && now <= end) {
+        const msg = schedData.value.message || 'Maintenance planifiée en cours';
+        showMaintenanceScreen(msg);
+        return;
+      }
     }
   } catch (_) {}
 };
+
+function showMaintenanceScreen(msg) {
+  const screen = document.createElement('div');
+  screen.id = 'maintenance-screen';
+  screen.style.cssText = 'position:fixed;inset:0;z-index:99998;background:var(--bg-primary);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;padding:24px;text-align:center;';
+  screen.innerHTML = `<div style="font-size:48px;">🔧</div><h1 style="font-size:20px;color:var(--text-primary);margin:0;">Maintenance en cours</h1><p style="font-size:14px;color:var(--text-muted);max-width:300px;">${msg}</p><p style="font-size:11px;color:var(--text-muted);">Veuillez réessayer plus tard.</p>`;
+  document.body.appendChild(screen);
+}
 
 /* ── Activity Logger (global) ─────────────────────────────── */
 window.logActivity = async function(action, metadata) {
