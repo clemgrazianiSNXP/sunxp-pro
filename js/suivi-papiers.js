@@ -71,20 +71,37 @@ function renderSuiviPapiers() {
 
   const papiers = loadPapiers(stationId);
 
-  // Bouton ajouter
+  // Barre de recherche + bouton ajouter
+  const searchBar = document.createElement('div');
+  searchBar.style.cssText = 'display:flex;gap:8px;align-items:center;';
+  const searchInp = document.createElement('input');
+  searchInp.type = 'text';
+  searchInp.placeholder = '🔍 Rechercher un employé...';
+  searchInp.className = 'rep-search';
+  searchInp.style.cssText = 'flex:1;max-width:280px;';
+  searchBar.appendChild(searchInp);
+
   const addBtn = document.createElement('button');
   addBtn.className = 'rep-btn rep-btn-primary';
+  addBtn.style.cssText = 'font-size:12px;padding:8px 14px;white-space:nowrap;';
   addBtn.textContent = '+ Ajouter un document';
   addBtn.onclick = () => showPapierForm(null, stationId, allPersons);
-  wrap.appendChild(addBtn);
+  searchBar.appendChild(addBtn);
+  wrap.appendChild(searchBar);
 
-  // Liste des documents
-  if (!papiers.length) {
-    const empty = document.createElement('p');
-    empty.style.cssText = 'color:var(--text-muted);text-align:center;margin-top:20px;';
-    empty.textContent = 'Aucun document enregistré.';
-    wrap.appendChild(empty);
-  } else {
+  // Container pour les sections
+  const listContainer = document.createElement('div');
+  listContainer.style.cssText = 'display:flex;flex-direction:column;gap:10px;';
+
+  function renderPapiersList(query) {
+    listContainer.innerHTML = '';
+    const q = (query || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
+    if (!papiers.length) {
+      listContainer.innerHTML = '<p style="color:var(--text-muted);text-align:center;margin-top:20px;">Aucun document enregistré.</p>';
+      return;
+    }
+
     // Grouper par chauffeur
     const byPerson = {};
     papiers.forEach(p => {
@@ -102,7 +119,9 @@ function renderSuiviPapiers() {
       return aMinDays - bMinDays;
     });
 
-    personKeys.forEach(nom => {
+    const filteredKeys = personKeys.filter(nom => !q || nom.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes(q));
+    if (!filteredKeys.length) { listContainer.innerHTML = '<p style="color:var(--text-muted);text-align:center;">Aucun résultat.</p>'; return; }
+    filteredKeys.forEach(nom => {
       const section = document.createElement('div');
       section.style.cssText = 'background:var(--bg-sidebar);border:1px solid var(--border);border-radius:10px;padding:12px;';
 
@@ -217,9 +236,13 @@ function renderSuiviPapiers() {
         section.appendChild(row);
       });
 
-      wrap.appendChild(section);
+      listContainer.appendChild(section);
     });
   }
+
+  searchInp.oninput = () => renderPapiersList(searchInp.value);
+  renderPapiersList('');
+  wrap.appendChild(listContainer);
 
   return wrap;
 }
@@ -309,8 +332,8 @@ function showPapierForm(papier, stationId, allPersons) {
     if (idx >= 0) all[idx] = entry; else all.push(entry);
     savePapiers(stationId, all);
 
-    // Appliquer au planning (seulement AM et AT)
-    if (type === 'AM' || type === 'AT') {
+    // Appliquer au planning (tous sauf VM)
+    if (type !== 'VM') {
       applyPapierToPlanning(stationId, chauffeurNom, dateDebut, dateFin, type);
     }
 

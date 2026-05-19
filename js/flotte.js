@@ -39,7 +39,7 @@ function renderFlotte() {
   else if (flotteTab === 'degats') content.appendChild(typeof renderDegats === 'function' ? renderDegats() : document.createElement('div'));
   else if (flotteTab === 'problemes') content.appendChild(typeof renderProblemesResponsable === 'function' ? renderProblemesResponsable() : document.createElement('div'));
   else if (flotteTab === 'entretien') content.appendChild(typeof renderSuiviEntretien === 'function' ? renderSuiviEntretien() : document.createElement('div'));
-  else if (flotteTab === 'documents') { const p = document.createElement('p'); p.style.cssText = 'color:var(--text-muted);text-align:center;margin-top:40px;'; p.textContent = '📄 Documents — à venir'; content.appendChild(p); }
+  else if (flotteTab === 'documents') content.appendChild(typeof renderDocsCamions === 'function' ? renderDocsCamions() : document.createElement('div'));
   else if (flotteTab === 'attribution') content.appendChild(typeof renderAttribution === 'function' ? renderAttribution() : document.createElement('div'));
   container.appendChild(content);
 }
