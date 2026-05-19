@@ -52,19 +52,37 @@ function renderDocsEmployes() {
 
   const docs = loadDocsEmployes(stationId);
 
-  // Bouton ajouter
+  // Barre de recherche + bouton ajouter
+  const searchBar = document.createElement('div');
+  searchBar.style.cssText = 'display:flex;gap:8px;align-items:center;';
+  const searchInp = document.createElement('input');
+  searchInp.type = 'text';
+  searchInp.placeholder = '🔍 Rechercher un employé...';
+  searchInp.className = 'rep-search';
+  searchInp.style.cssText = 'flex:1;max-width:280px;';
+  searchBar.appendChild(searchInp);
+
   const addBtn = document.createElement('button');
   addBtn.className = 'rep-btn rep-btn-primary';
+  addBtn.style.cssText = 'font-size:12px;padding:8px 14px;white-space:nowrap;';
   addBtn.textContent = '+ Ajouter un document';
   addBtn.onclick = () => showDocEmpForm(null, stationId, allPersons);
-  wrap.appendChild(addBtn);
+  searchBar.appendChild(addBtn);
+  wrap.appendChild(searchBar);
 
-  if (!docs.length) {
-    const empty = document.createElement('p');
-    empty.style.cssText = 'color:var(--text-muted);text-align:center;margin-top:20px;';
-    empty.textContent = 'Aucun document enregistré.';
-    wrap.appendChild(empty);
-  } else {
+  // Container pour les sections
+  const listContainer = document.createElement('div');
+  listContainer.style.cssText = 'display:flex;flex-direction:column;gap:10px;';
+
+  function renderList(query) {
+    listContainer.innerHTML = '';
+    const q = (query || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
+    if (!docs.length) {
+      listContainer.innerHTML = '<p style="color:var(--text-muted);text-align:center;margin-top:20px;">Aucun document enregistré.</p>';
+      return;
+    }
+
     // Grouper par employé
     const byPerson = {};
     docs.forEach(d => {
@@ -72,7 +90,14 @@ function renderDocsEmployes() {
       byPerson[d.chauffeurNom].push(d);
     });
 
-    Object.keys(byPerson).forEach(nom => {
+    const filteredNames = Object.keys(byPerson).filter(nom => !q || nom.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes(q));
+
+    if (!filteredNames.length) {
+      listContainer.innerHTML = '<p style="color:var(--text-muted);text-align:center;margin-top:20px;">Aucun résultat.</p>';
+      return;
+    }
+
+    filteredNames.forEach(nom => {
       const section = document.createElement('div');
       section.style.cssText = 'background:var(--bg-sidebar);border:1px solid var(--border);border-radius:10px;padding:12px;';
 
@@ -124,9 +149,13 @@ function renderDocsEmployes() {
         section.appendChild(row);
       });
 
-      wrap.appendChild(section);
+      listContainer.appendChild(section);
     });
   }
+
+  searchInp.oninput = () => renderList(searchInp.value);
+  renderList('');
+  wrap.appendChild(listContainer);
 
   return wrap;
 }
