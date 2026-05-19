@@ -100,31 +100,37 @@ function getGlobalRank() {
 
 /* ── Page principale des jeux ─────────────────────────────── */
 function initGamesPage() {
-  console.log('initGamesPage appelé', { portalStationId: typeof portalStationId !== 'undefined' ? portalStationId : 'N/A', portalChauffeur: typeof portalChauffeur !== 'undefined' ? portalChauffeur : 'N/A' });
+  console.log('initGamesPage appelé');
   
-  // Hide everything
-  document.querySelectorAll('#chauffeur-portal, .app-layout, .chauffeur-portal-wrap').forEach(el => { if (el) el.style.display = 'none'; });
-
-  let gamesScreen = document.getElementById('games-screen');
-  if (!gamesScreen) {
-    gamesScreen = document.createElement('div');
-    gamesScreen.id = 'games-screen';
-    gamesScreen.style.cssText = 'position:fixed;inset:0;z-index:99990;background:var(--bg-primary,#12121a);display:flex;flex-direction:column;overflow-y:auto;min-height:100vh;';
-    document.body.appendChild(gamesScreen);
+  // Approche directe : injecter dans le portail chauffeur existant
+  const portal = document.getElementById('chauffeur-portal');
+  if (portal) {
+    portal.innerHTML = '';
+    portal.style.cssText = 'position:fixed;inset:0;z-index:9999;background:#12121a;display:flex;flex-direction:column;overflow-y:auto;';
+    buildGamesContent(portal);
+    return;
   }
-  gamesScreen.hidden = false;
-  gamesScreen.style.display = 'flex';
-  gamesScreen.innerHTML = '';
+  
+  // Fallback : créer un nouveau div
+  let gamesScreen = document.getElementById('games-screen');
+  if (gamesScreen) gamesScreen.remove();
+  gamesScreen = document.createElement('div');
+  gamesScreen.id = 'games-screen';
+  gamesScreen.style.cssText = 'position:fixed;inset:0;z-index:999999;background:#12121a;display:flex;flex-direction:column;overflow-y:auto;';
+  document.body.appendChild(gamesScreen);
+  buildGamesContent(gamesScreen);
+}
+
+function buildGamesContent(container) {
+  container.innerHTML = '';
 
   // Header
   const header = document.createElement('div');
-  header.style.cssText = 'display:flex;align-items:center;gap:12px;padding:14px 20px;background:var(--bg-sidebar,#1e1e2e);border-bottom:1px solid var(--border,#333);flex-shrink:0;';
+  header.style.cssText = 'display:flex;align-items:center;gap:12px;padding:14px 20px;background:#1e1e2e;border-bottom:1px solid #333;flex-shrink:0;';
   const backBtn = document.createElement('button');
   backBtn.className = 'h-btn'; backBtn.textContent = '← Retour';
-  backBtn.style.cssText = 'padding:8px 14px;font-size:13px;cursor:pointer;background:var(--bg-primary,#12121a);color:var(--text-primary,#fff);border:1px solid var(--border,#444);border-radius:6px;';
+  backBtn.style.cssText = 'padding:8px 14px;font-size:13px;cursor:pointer;background:#12121a;color:#fff;border:1px solid #444;border-radius:6px;';
   backBtn.onclick = () => { 
-    gamesScreen.style.display = 'none'; 
-    document.querySelectorAll('#chauffeur-portal, .app-layout, .chauffeur-portal-wrap').forEach(el => { if (el) el.style.display = ''; });
     if (typeof renderPortal === 'function') renderPortal();
   };
   header.appendChild(backBtn);
@@ -140,7 +146,7 @@ function initGamesPage() {
     rankEl.textContent = `🏆 Rang ${globalRank.rank}/${globalRank.total}`;
     header.appendChild(rankEl);
   }
-  gamesScreen.appendChild(header);
+  container.appendChild(header);
 
   // Content
   const content = document.createElement('div');
@@ -223,7 +229,7 @@ function initGamesPage() {
     content.innerHTML += '<p style="color:var(--text-muted);font-size:12px;text-align:center;">Aucun score enregistré. Jouez pour apparaître au classement !</p>';
   }
 
-  gamesScreen.appendChild(content);
+  container.appendChild(content);
 }
 
 /* ── Ouvrir un jeu ────────────────────────────────────────── */
