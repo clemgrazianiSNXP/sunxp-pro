@@ -57,7 +57,8 @@ function portalAccueil() {
     { id: 'prod', icon: '📋', label: 'Ma Prod', color: '#a78bfa' },
     { id: 'degats', icon: '🔧', label: 'Mes Dégâts', color: '#f87171' },
     { id: 'rapport', icon: '📋', label: 'Mon Rapport', color: '#f97316' },
-    { id: 'badges', icon: '🏆', label: 'Mes Badges', color: '#38bdf8' }
+    { id: 'badges', icon: '🏆', label: 'Mes Badges', color: '#38bdf8' },
+    { id: 'games', icon: '🎮', label: 'Mes Jeux', color: '#ff00ff' }
   ];
 
   navCards.forEach(c => {
@@ -66,7 +67,10 @@ function portalAccueil() {
     card.innerHTML = `<span style="font-size:28px;">${c.icon}</span><span style="font-size:12px;font-weight:700;color:var(--text-primary);">${c.label}</span>`;
     card.onmouseenter = () => { card.style.transform = 'translateY(-2px)'; card.style.boxShadow = '0 6px 20px rgba(0,0,0,0.2)'; };
     card.onmouseleave = () => { card.style.transform = ''; card.style.boxShadow = ''; };
-    card.onclick = () => { portalTab = c.id; renderPortal(); };
+    card.onclick = () => { 
+      if (c.id === 'games') { if (typeof initGamesPage === 'function') initGamesPage(); return; }
+      portalTab = c.id; renderPortal(); 
+    };
     cardsGrid.appendChild(card);
   });
 
