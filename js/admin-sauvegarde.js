@@ -46,28 +46,97 @@ function renderAdminSauvegarde(container) {
         const tableNames = Object.keys(json.tables);
         if (!confirm(`Restaurer ${tableNames.length} tables ? (${tableNames.join(', ')})`)) return;
         status.textContent = 'Restauration en cours...';
+
         const CONFLICT_MAP = { stations:'id', heures:'station_id,date_jour', stats:'station_id,type,semaine', primes:'station_id,annee,mois', activite:'station_id,date_jour', concessions:'station_id,semaine', retards:'station_id,semaine', camions:'station_id', documents:'station_id', repos_demandes:'station_id', eos:'station_id,date_jour', acomptes:'station_id', conges_payes:'station_id', cles_codes:'station_id', problemes_camions:'station_id', user_profiles:'id', app_settings:'key', absences:'station_id,semaine' };
-        const DELETE_INSERT_TABLES = ['chauffeurs','degats','activity_logs','responsables','planning','planning_meta','planning_published','push_subscriptions'];
-        let restored = 0, errors = [];
+        const DELETE_INSERT_TABLES = ['chauffeurs','degats','activity_logs','responsables','planning','planning_meta'];
+        // Tables à structure inconnue — try/catch séparé
+        const FRAGILE_TABLES = ['planning_published', 'push_subscriptions'];
+
+        let restored = 0, errors = [], lsUpdated = 0;
+
         for (const [table, rows] of Object.entries(json.tables)) {
           if (!rows || !rows.length) continue;
           status.textContent = `Restauration ${table}... (${restored}/${tableNames.length})`;
+
+          // Tables fragiles (structure inconnue) — try/catch isolé
+          if (FRAGILE_TABLES.includes(table)) {
+            try {
+              const cleanRows = rows.map(r => { const { id, ...rest } = r; return rest; });
+              await sb().from(table).delete().not('id', 'is', null);
+              if (cleanRows.length) {
+                for (let i = 0; i < cleanRows.length; i += 500) { await sb().from(table).insert(cleanRows.slice(i, i + 500)); }
+              }
+              restored++;
+            } catch (err) {
+              errors.push(`${table}: structure inconnue — ${err.message}`);
+              console.warn(`⚠️ Table fragile "${table}" échouée:`, err.message);
+            }
+            continue;
+          }
+
           try {
             if (DELETE_INSERT_TABLES.includes(table)) {
               const cleanRows = rows.map(r => { const { id, ...rest } = r; return rest; });
-              await sb().from(table).delete().neq('id', 0);
-              if (cleanRows.length) { for (let i = 0; i < cleanRows.length; i += 500) { await sb().from(table).insert(cleanRows.slice(i, i + 500)); } }
+              await sb().from(table).delete().not('id', 'is', null);
+              if (cleanRows.length) {
+                for (let i = 0; i < cleanRows.length; i += 500) { await sb().from(table).insert(cleanRows.slice(i, i + 500)); }
+              }
+
+              // Sync localStorage pour planning
+              if (table === 'planning') {
+                for (const row of rows) {
+                  if (row.station_id && row.year && row.month && row.data) {
+                    const key = row.station_id + '-planning-' + row.year + '-' + String(row.month).padStart(2, '0');
+                    localStorage.setItem(key, JSON.stringify(row.data));
+                    lsUpdated++;
+                  }
+                }
+              }
+
             } else if (CONFLICT_MAP[table]) {
               const keepId = ['stations','user_profiles','app_settings'].includes(table);
               const cleanRows = keepId ? rows : rows.map(r => { const { id, ...rest } = r; return rest; });
               for (let i = 0; i < cleanRows.length; i += 500) { await sb().from(table).upsert(cleanRows.slice(i, i + 500), { onConflict: CONFLICT_MAP[table] }); }
-            } else { await sb().from(table).upsert(rows); }
+
+              // Sync localStorage pour camions
+              if (table === 'camions') {
+                const byStation = {};
+                for (const row of rows) {
+                  if (!row.station_id) continue;
+                  if (!byStation[row.station_id]) byStation[row.station_id] = [];
+                  if (row.data) byStation[row.station_id].push(...(Array.isArray(row.data) ? row.data : []));
+                }
+                for (const [sid, list] of Object.entries(byStation)) {
+                  localStorage.setItem(sid + '-camions', JSON.stringify(list));
+                  lsUpdated++;
+                }
+              }
+
+            } else {
+              await sb().from(table).upsert(rows);
+            }
             restored++;
-          } catch (err) { errors.push(`${table}: ${err.message}`); console.error('Restore error for', table, ':', err); }
+          } catch (err) {
+            errors.push(`${table}: ${err.message}`);
+            console.error('Restore error for', table, ':', err);
+          }
         }
-        if (errors.length) { status.innerHTML = `✅ ${restored} tables restaurées.<br><span style="color:#f87171;">⚠️ Erreurs: ${errors.join(', ')}</span>`; }
-        else { status.textContent = `✅ ${restored} tables restaurées avec succès !`; }
-        if (window.logActivity) window.logActivity('admin_restore', { tables: restored, errors: errors.length });
+
+        // Résumé final
+        let html = `<div style="margin-top:8px;">`;
+        html += `<div style="font-size:13px;font-weight:700;color:#4ade80;margin-bottom:6px;">✅ Restauration terminée</div>`;
+        html += `<div style="font-size:11px;color:var(--text-primary);margin-bottom:4px;">📦 ${restored} tables restaurées avec succès</div>`;
+        if (lsUpdated) html += `<div style="font-size:11px;color:var(--text-primary);margin-bottom:4px;">💾 ${lsUpdated} entrées localStorage mises à jour</div>`;
+        if (errors.length) {
+          html += `<div style="font-size:11px;color:#f87171;margin-bottom:4px;">⚠️ ${errors.length} erreur(s) :</div>`;
+          errors.forEach(e => { html += `<div style="font-size:10px;color:#f87171;padding-left:8px;">• ${e}</div>`; });
+        }
+        html += `<div style="font-size:10px;color:var(--text-muted);margin-top:8px;font-style:italic;">⚠️ Si certaines données n'apparaissent pas, rechargez la page.</div>`;
+        html += `<button onclick="window.location.reload()" class="rep-btn rep-btn-primary" style="margin-top:10px;font-size:11px;padding:8px 16px;">🔄 Recharger l'application</button>`;
+        html += `</div>`;
+        status.innerHTML = html;
+
+        if (window.logActivity) window.logActivity('admin_restore', { tables: restored, errors: errors.length, localStorage: lsUpdated });
       } catch (err) { status.textContent = '❌ Erreur: ' + err.message; }
     });
   }, 0);
