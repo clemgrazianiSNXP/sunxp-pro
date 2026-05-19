@@ -100,18 +100,16 @@ function getGlobalRank() {
 
 /* ── Page principale des jeux ─────────────────────────────── */
 function initGamesPage() {
-  // Hide portal
-  const portalScreen = document.getElementById('chauffeur-portal');
-  if (portalScreen) portalScreen.style.display = 'none';
-  // Also hide the app layout if visible
-  const appLayout = document.querySelector('.app-layout');
-  if (appLayout) appLayout.style.display = 'none';
+  console.log('initGamesPage appelé', { portalStationId: typeof portalStationId !== 'undefined' ? portalStationId : 'N/A', portalChauffeur: typeof portalChauffeur !== 'undefined' ? portalChauffeur : 'N/A' });
+  
+  // Hide everything
+  document.querySelectorAll('#chauffeur-portal, .app-layout, .chauffeur-portal-wrap').forEach(el => { if (el) el.style.display = 'none'; });
 
   let gamesScreen = document.getElementById('games-screen');
   if (!gamesScreen) {
     gamesScreen = document.createElement('div');
     gamesScreen.id = 'games-screen';
-    gamesScreen.style.cssText = 'position:fixed;inset:0;z-index:99990;background:var(--bg-primary);display:flex;flex-direction:column;overflow:hidden;';
+    gamesScreen.style.cssText = 'position:fixed;inset:0;z-index:99990;background:var(--bg-primary,#12121a);display:flex;flex-direction:column;overflow:hidden;';
     document.body.appendChild(gamesScreen);
   }
   gamesScreen.hidden = false;
@@ -125,8 +123,7 @@ function initGamesPage() {
   backBtn.className = 'h-btn'; backBtn.textContent = '← Retour';
   backBtn.onclick = () => { 
     gamesScreen.style.display = 'none'; 
-    if (portalScreen) portalScreen.style.display = ''; 
-    // Re-render portal
+    document.querySelectorAll('#chauffeur-portal, .app-layout, .chauffeur-portal-wrap').forEach(el => { if (el) el.style.display = ''; });
     if (typeof renderPortal === 'function') renderPortal();
   };
   header.appendChild(backBtn);
