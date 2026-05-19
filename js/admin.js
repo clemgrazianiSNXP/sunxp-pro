@@ -122,12 +122,13 @@ function openAdminPanel() {
   // Topbar
   const topbar = document.createElement('div');
   topbar.className = 'adm-topbar';
-  topbar.innerHTML = `<button class="adm-btn" id="admin-back-btn">← Retour</button><span class="adm-topbar-title"><span class="adm-pulse">⚙️</span> Administration</span><span class="adm-topbar-email">${currentUser?.email || ''}</span>`;
+  topbar.innerHTML = `<button class="adm-btn" id="admin-back-btn">← Retour</button><span class="adm-topbar-title"><span class="adm-pulse">⚙️</span> Administration</span><button class="adm-btn" id="admin-debug-btn" style="margin-left:auto;margin-right:8px;color:#00ff88;border-color:#00ff88;font-size:10px;">🐛 Debug</button><span class="adm-topbar-email">${currentUser?.email || ''}</span>`;
   topbar.querySelector('#admin-back-btn').onclick = () => {
     adminScreen.hidden = true;
     adminScreen.style.display = 'none';
     document.getElementById('role-screen').hidden = false;
   };
+  topbar.querySelector('#admin-debug-btn').onclick = () => toggleDebugPanel();
   adminScreen.appendChild(topbar);
 
   // Sous-onglets
@@ -203,6 +204,58 @@ function showMaintenanceScreen(msg) {
   screen.style.cssText = 'position:fixed;inset:0;z-index:99998;background:var(--bg-primary);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;padding:24px;text-align:center;';
   screen.innerHTML = `<div style="font-size:48px;">🔧</div><h1 style="font-size:20px;color:var(--text-primary);margin:0;">Maintenance en cours</h1><p style="font-size:14px;color:var(--text-muted);max-width:300px;">${msg}</p><p style="font-size:11px;color:var(--text-muted);">Veuillez réessayer plus tard.</p>`;
   document.body.appendChild(screen);
+}
+
+/* ── Debug Console Panel ───────────────────────────────────── */
+let _debugPanelOpen = false;
+let _debugLogs = [];
+let _origLog, _origWarn, _origError;
+
+function toggleDebugPanel() {
+  if (!isAdmin()) return;
+  _debugPanelOpen = !_debugPanelOpen;
+  let panel = document.getElementById('admin-debug-panel');
+
+  if (!_debugPanelOpen) {
+    if (panel) panel.style.display = 'none';
+    return;
+  }
+
+  if (!panel) {
+    panel = document.createElement('div');
+    panel.id = 'admin-debug-panel';
+    panel.style.cssText = 'position:fixed;bottom:0;left:0;right:0;height:220px;z-index:99999;background:#050810;border-top:2px solid #00d4ff;display:flex;flex-direction:column;font-family:"Courier New",monospace;font-size:11px;';
+    panel.innerHTML = `<div style="display:flex;align-items:center;padding:4px 12px;gap:8px;flex-shrink:0;border-bottom:1px solid #1e2d3d;"><span style="color:#00d4ff;font-weight:700;font-size:10px;">🐛 DEBUG CONSOLE</span><button id="debug-clear" style="margin-left:auto;background:transparent;border:1px solid #fbbf24;color:#fbbf24;border-radius:4px;padding:2px 8px;font-size:9px;cursor:pointer;">Vider</button><button id="debug-close" style="background:transparent;border:1px solid #f87171;color:#f87171;border-radius:4px;padding:2px 8px;font-size:9px;cursor:pointer;">Fermer</button></div><div id="debug-output" style="flex:1;overflow-y:auto;padding:6px 12px;"></div>`;
+    document.body.appendChild(panel);
+    panel.querySelector('#debug-clear').onclick = () => { _debugLogs = []; renderDebugOutput(); };
+    panel.querySelector('#debug-close').onclick = () => toggleDebugPanel();
+    // Intercepter console
+    _origLog = console.log;
+    _origWarn = console.warn;
+    _origError = console.error;
+    console.log = function() { _origLog.apply(console, arguments); addDebugEntry('LOG', arguments); };
+    console.warn = function() { _origWarn.apply(console, arguments); addDebugEntry('WARN', arguments); };
+    console.error = function() { _origError.apply(console, arguments); addDebugEntry('ERROR', arguments); };
+  }
+
+  panel.style.display = 'flex';
+  renderDebugOutput();
+}
+
+function addDebugEntry(level, args) {
+  const msg = Array.from(args).map(a => typeof a === 'object' ? JSON.stringify(a).slice(0, 120) : String(a)).join(' ');
+  const time = new Date().toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+  _debugLogs.push({ time, level, msg });
+  if (_debugLogs.length > 100) _debugLogs.shift();
+  if (_debugPanelOpen) renderDebugOutput();
+}
+
+function renderDebugOutput() {
+  const output = document.getElementById('debug-output');
+  if (!output) return;
+  const colors = { LOG: '#a0ffb0', WARN: '#fbbf24', ERROR: '#f87171' };
+  output.innerHTML = _debugLogs.map(e => `<div style="padding:1px 0;"><span style="color:#00d4ff;">${e.time}</span> <span style="color:${colors[e.level] || '#a0ffb0'};font-weight:700;">[${e.level}]</span> <span style="color:#e6edf3;">${e.msg}</span></div>`).join('');
+  output.scrollTop = output.scrollHeight;
 }
 
 /* ── Activity Logger (global) ─────────────────────────────── */
