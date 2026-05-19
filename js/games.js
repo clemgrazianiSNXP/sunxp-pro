@@ -124,44 +124,44 @@ function initGamesPage() {
 function buildGamesContent(container) {
   // Version simplifiée — HTML statique pour garantir l'affichage
   container.innerHTML = `
-    <div style="padding:20px;color:#fff;">
+    <div style="padding:20px;color:var(--text-primary,#fff);">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
-        <button onclick="renderPortal()" style="padding:8px 14px;background:#222;color:#fff;border:1px solid #444;border-radius:6px;cursor:pointer;">← Retour</button>
+        <button onclick="renderPortal()" style="padding:8px 14px;background:var(--bg-sidebar);color:var(--text-primary);border:1px solid var(--border);border-radius:6px;cursor:pointer;">← Retour</button>
         <span style="font-size:18px;font-weight:700;">🎮 Mes Jeux</span>
       </div>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;">
-        <div onclick="openGame('enveloppe')" style="background:#1e1e2e;border:1px solid #333;border-radius:14px;padding:16px;text-align:center;cursor:pointer;">
+        <div onclick="openGame('enveloppe')" style="background:var(--bg-sidebar);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center;cursor:pointer;">
           <div style="font-size:32px;">📬</div>
           <div style="font-size:12px;font-weight:700;margin-top:6px;">L'Enveloppe</div>
-          <button style="margin-top:8px;padding:4px 12px;background:#7c6af7;color:#fff;border:none;border-radius:6px;font-size:10px;cursor:pointer;">▶ Jouer</button>
+          <button style="margin-top:8px;padding:4px 12px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:10px;cursor:pointer;">▶ Jouer</button>
         </div>
-        <div onclick="openGame('tetris')" style="background:#1e1e2e;border:1px solid #333;border-radius:14px;padding:16px;text-align:center;cursor:pointer;">
+        <div onclick="openGame('tetris')" style="background:var(--bg-sidebar);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center;cursor:pointer;">
           <div style="font-size:32px;">📦</div>
           <div style="font-size:12px;font-weight:700;margin-top:6px;">Tetris Colis</div>
-          <button style="margin-top:8px;padding:4px 12px;background:#7c6af7;color:#fff;border:none;border-radius:6px;font-size:10px;cursor:pointer;">▶ Jouer</button>
+          <button style="margin-top:8px;padding:4px 12px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:10px;cursor:pointer;">▶ Jouer</button>
         </div>
-        <div onclick="openGame('slalom')" style="background:#1e1e2e;border:1px solid #333;border-radius:14px;padding:16px;text-align:center;cursor:pointer;">
+        <div onclick="openGame('slalom')" style="background:var(--bg-sidebar);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center;cursor:pointer;">
           <div style="font-size:32px;">🚛</div>
           <div style="font-size:12px;font-weight:700;margin-top:6px;">Slalom Camion</div>
-          <button style="margin-top:8px;padding:4px 12px;background:#7c6af7;color:#fff;border:none;border-radius:6px;font-size:10px;cursor:pointer;">▶ Jouer</button>
+          <button style="margin-top:8px;padding:4px 12px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:10px;cursor:pointer;">▶ Jouer</button>
         </div>
-        <div onclick="openGame('scan')" style="background:#1e1e2e;border:1px solid #333;border-radius:14px;padding:16px;text-align:center;cursor:pointer;">
+        <div onclick="openGame('scan')" style="background:var(--bg-sidebar);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center;cursor:pointer;">
           <div style="font-size:32px;">⚡</div>
           <div style="font-size:12px;font-weight:700;margin-top:6px;">Scan Express</div>
-          <button style="margin-top:8px;padding:4px 12px;background:#7c6af7;color:#fff;border:none;border-radius:6px;font-size:10px;cursor:pointer;">▶ Jouer</button>
+          <button style="margin-top:8px;padding:4px 12px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:10px;cursor:pointer;">▶ Jouer</button>
         </div>
-        <div onclick="openGame('tournee')" style="background:#1e1e2e;border:1px solid #333;border-radius:14px;padding:16px;text-align:center;cursor:pointer;">
+        <div onclick="openGame('tournee')" style="background:var(--bg-sidebar);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center;cursor:pointer;">
           <div style="font-size:32px;">🗺️</div>
           <div style="font-size:12px;font-weight:700;margin-top:6px;">Tournée Parfaite</div>
-          <button style="margin-top:8px;padding:4px 12px;background:#7c6af7;color:#fff;border:none;border-radius:6px;font-size:10px;cursor:pointer;">▶ Jouer</button>
+          <button style="margin-top:8px;padding:4px 12px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:10px;cursor:pointer;">▶ Jouer</button>
         </div>
-        <div onclick="openGame('dernier')" style="background:#1e1e2e;border:1px solid #333;border-radius:14px;padding:16px;text-align:center;cursor:pointer;">
+        <div onclick="openGame('dernier')" style="background:var(--bg-sidebar);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center;cursor:pointer;">
           <div style="font-size:32px;">🏃</div>
           <div style="font-size:12px;font-weight:700;margin-top:6px;">Dernier Colis</div>
-          <button style="margin-top:8px;padding:4px 12px;background:#7c6af7;color:#fff;border:none;border-radius:6px;font-size:10px;cursor:pointer;">▶ Jouer</button>
+          <button style="margin-top:8px;padding:4px 12px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:10px;cursor:pointer;">▶ Jouer</button>
         </div>
       </div>
-      <p style="text-align:center;color:#888;margin-top:20px;font-size:12px;">🏆 Classement à venir — jouez pour enregistrer vos scores !</p>
+      <p style="text-align:center;color:var(--text-muted);margin-top:20px;font-size:12px;">🏆 Classement à venir — jouez pour enregistrer vos scores !</p>
     </div>
   `;
 }
