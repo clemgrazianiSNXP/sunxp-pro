@@ -96,7 +96,8 @@ function renderDocsCamions() {
         let alertHtml = '';
         if (d.type === 'CT' && d.dateExpiration) {
           const daysLeft = Math.ceil((new Date(d.dateExpiration) - new Date()) / 86400000);
-          if (daysLeft <= 0) alertHtml = ' <span style="color:#f87171;font-weight:700;font-size:10px;">⚠️ EXPIRÉ</span>';
+          if (d.rdvPris) alertHtml = ' <span style="color:#38bdf8;font-weight:700;font-size:10px;">📅 RDV pris</span>';
+          else if (daysLeft <= 0) alertHtml = ' <span style="color:#f87171;font-weight:700;font-size:10px;">⚠️ EXPIRÉ</span>';
           else if (daysLeft <= 30) alertHtml = ' <span style="color:#f87171;font-weight:700;font-size:10px;">⚠️ ' + daysLeft + 'j</span>';
           else if (daysLeft <= 60) alertHtml = ' <span style="color:#fbbf24;font-weight:700;font-size:10px;">⏳ ' + daysLeft + 'j</span>';
         }
@@ -116,6 +117,25 @@ function renderDocsCamions() {
           link.style.cssText = 'font-size:11px;color:var(--accent);';
           link.textContent = '📎';
           row.appendChild(link);
+        }
+
+        // Bouton RDV pris pour CT en alerte
+        if (d.type === 'CT' && d.dateExpiration) {
+          const daysLeftBtn = Math.ceil((new Date(d.dateExpiration) - new Date()) / 86400000);
+          if (daysLeftBtn <= 30) {
+            const rdvBtn = document.createElement('button');
+            rdvBtn.className = 'h-btn';
+            if (d.rdvPris) {
+              rdvBtn.style.cssText = 'font-size:9px;padding:2px 6px;color:#38bdf8;border-color:#38bdf8;';
+              rdvBtn.textContent = '↩ Annuler';
+              rdvBtn.onclick = () => { const all = loadDocsCamions(stationId); const item = all.find(x => x.id === d.id); if (item) { delete item.rdvPris; saveDocsCamions(stationId, all); } if (typeof renderFlotte === 'function') renderFlotte(); if (typeof updateNavBadges === 'function') updateNavBadges(); };
+            } else {
+              rdvBtn.style.cssText = 'font-size:9px;padding:2px 6px;background:#38bdf8;color:#000;border:none;font-weight:700;';
+              rdvBtn.textContent = '📅 RDV pris';
+              rdvBtn.onclick = () => { const all = loadDocsCamions(stationId); const item = all.find(x => x.id === d.id); if (item) { item.rdvPris = true; saveDocsCamions(stationId, all); } if (typeof renderFlotte === 'function') renderFlotte(); if (typeof updateNavBadges === 'function') updateNavBadges(); };
+            }
+            row.appendChild(rdvBtn);
+          }
         }
 
         const delBtn = document.createElement('button');

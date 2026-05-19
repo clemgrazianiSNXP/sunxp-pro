@@ -491,18 +491,32 @@ function getVMExpiringSoon(sid) {
 }
 
 function getCTExpiringSoon(sid) {
+  const now = new Date();
+  const results = [];
+
+  // Source 1 : suivi-entretien (ancien système)
   let entretiens = [];
   try { entretiens = JSON.parse(localStorage.getItem(sid + '-suivi-entretien')) || []; } catch (_) {}
-  const now = new Date();
-  return entretiens
+  entretiens
     .filter(e => e.type === 'ct' && e.dateFin && !e.rdvPris)
-    .map(e => {
+    .forEach(e => {
       const exp = new Date(e.dateFin);
       const daysLeft = Math.ceil((exp - now) / (1000 * 60 * 60 * 24));
-      return { plaque: e.plaque, dateFin: e.dateFin, daysLeft, expired: daysLeft <= 0 };
-    })
-    .filter(e => e.daysLeft <= 30)
-    .sort((a, b) => a.daysLeft - b.daysLeft);
+      if (daysLeft <= 30) results.push({ plaque: e.plaque, dateFin: e.dateFin, daysLeft, expired: daysLeft <= 0, source: 'entretien', id: e.id });
+    });
+
+  // Source 2 : docs-camions (nouveau système)
+  let docsCamions = [];
+  try { docsCamions = JSON.parse(localStorage.getItem(sid + '-docs-camions')) || []; } catch (_) {}
+  docsCamions
+    .filter(d => d.type === 'CT' && d.dateExpiration && !d.rdvPris)
+    .forEach(d => {
+      const exp = new Date(d.dateExpiration);
+      const daysLeft = Math.ceil((exp - now) / (1000 * 60 * 60 * 24));
+      if (daysLeft <= 30) results.push({ plaque: d.plaque, dateFin: d.dateExpiration, daysLeft, expired: daysLeft <= 0, source: 'docs-camions', id: d.id });
+    });
+
+  return results.sort((a, b) => a.daysLeft - b.daysLeft);
 }
 
 /* ── Badges de notification sur les onglets ───────────────── */
