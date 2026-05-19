@@ -122,114 +122,48 @@ function initGamesPage() {
 }
 
 function buildGamesContent(container) {
-  container.innerHTML = '';
-
-  // Header
-  const header = document.createElement('div');
-  header.style.cssText = 'display:flex;align-items:center;gap:12px;padding:14px 20px;background:#1e1e2e;border-bottom:1px solid #333;flex-shrink:0;';
-  const backBtn = document.createElement('button');
-  backBtn.className = 'h-btn'; backBtn.textContent = '← Retour';
-  backBtn.style.cssText = 'padding:8px 14px;font-size:13px;cursor:pointer;background:#12121a;color:#fff;border:1px solid #444;border-radius:6px;';
-  backBtn.onclick = () => { 
-    if (typeof renderPortal === 'function') renderPortal();
-  };
-  header.appendChild(backBtn);
-  const title = document.createElement('span');
-  title.style.cssText = 'font-size:16px;font-weight:700;color:#fff;';
-  title.textContent = '🎮 Mes Jeux';
-  header.appendChild(title);
-  // Global rank
-  const globalRank = getGlobalRank();
-  if (globalRank) {
-    const rankEl = document.createElement('span');
-    rankEl.style.cssText = 'margin-left:auto;font-size:12px;color:var(--accent);font-weight:700;';
-    rankEl.textContent = `🏆 Rang ${globalRank.rank}/${globalRank.total}`;
-    header.appendChild(rankEl);
-  }
-  container.appendChild(header);
-
-  // Content
-  const content = document.createElement('div');
-  content.style.cssText = 'flex:1;overflow:auto;padding:20px;';
-
-  // Games grid
-  const grid = document.createElement('div');
-  grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:24px;';
-
-  GAMES_LIST.forEach(g => {
-    const card = document.createElement('div');
-    card.style.cssText = 'background:var(--bg-sidebar);border:1px solid var(--border);border-radius:14px;padding:16px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:all 0.15s;';
-    card.onmouseenter = () => { card.style.borderColor = 'var(--accent)'; card.style.transform = 'translateY(-2px)'; };
-    card.onmouseleave = () => { card.style.borderColor = 'var(--border)'; card.style.transform = ''; };
-
-    const icon = document.createElement('div');
-    icon.style.cssText = 'font-size:32px;';
-    icon.textContent = g.icon;
-
-    const name = document.createElement('div');
-    name.style.cssText = 'font-size:12px;font-weight:700;color:var(--text-primary);text-align:center;';
-    name.textContent = g.name;
-
-    const score = document.createElement('div');
-    score.style.cssText = 'font-size:11px;color:var(--accent);font-family:monospace;';
-    score.textContent = getPlayerScore(g.id) ? getPlayerScore(g.id) + ' pts' : '—';
-
-    const rank = getPlayerRank(g.id);
-    const rankEl = document.createElement('div');
-    rankEl.style.cssText = 'font-size:10px;color:var(--text-muted);';
-    const stationScores = loadLocalScores(portalStationId || '', g.id);
-    rankEl.textContent = rank ? (rank <= 3 ? ['🥇','🥈','🥉'][rank-1] : rank + 'e') + ' / ' + stationScores.length : '';
-
-    const playBtn = document.createElement('button');
-    playBtn.className = 'rep-btn rep-btn-primary';
-    playBtn.style.cssText = 'font-size:10px;padding:5px 12px;margin-top:4px;';
-    playBtn.textContent = '▶ Jouer';
-    playBtn.onclick = (e) => { e.stopPropagation(); openGame(g.id); };
-
-    card.appendChild(icon);
-    card.appendChild(name);
-    card.appendChild(score);
-    card.appendChild(rankEl);
-    card.appendChild(playBtn);
-    card.onclick = () => openGame(g.id);
-    grid.appendChild(card);
-  });
-
-  content.appendChild(grid);
-
-  // Station leaderboard
-  const lbTitle = document.createElement('div');
-  lbTitle.style.cssText = 'font-size:14px;font-weight:700;color:var(--text-primary);margin-bottom:10px;';
-  lbTitle.textContent = '🏆 Classement station';
-  content.appendChild(lbTitle);
-
-  const totals = {};
-  const sid = portalStationId || '';
-  GAMES_LIST.forEach(g => {
-    const scores = loadLocalScores(sid, g.id);
-    scores.forEach(s => {
-      if (!totals[s.chauffeur_id]) totals[s.chauffeur_id] = { nom: s.chauffeur_nom, total: 0 };
-      totals[s.chauffeur_id].total += s.score;
-    });
-  });
-  const sorted = Object.values(totals).sort((a, b) => b.total - a.total);
-
-  if (sorted.length) {
-    const table = document.createElement('div');
-    table.style.cssText = 'display:flex;flex-direction:column;gap:4px;';
-    sorted.slice(0, 10).forEach((p, i) => {
-      const row = document.createElement('div');
-      row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg-sidebar);border:1px solid var(--border);border-radius:8px;font-size:12px;';
-      const medal = i < 3 ? ['🥇','🥈','🥉'][i] : (i + 1) + '.';
-      row.innerHTML = `<span style="min-width:24px;font-weight:700;">${medal}</span><span style="flex:1;color:var(--text-primary);">${p.nom}</span><span style="font-family:monospace;color:var(--accent);font-weight:700;">${p.total} pts</span>`;
-      table.appendChild(row);
-    });
-    content.appendChild(table);
-  } else {
-    content.innerHTML += '<p style="color:var(--text-muted);font-size:12px;text-align:center;">Aucun score enregistré. Jouez pour apparaître au classement !</p>';
-  }
-
-  container.appendChild(content);
+  // Version simplifiée — HTML statique pour garantir l'affichage
+  container.innerHTML = `
+    <div style="padding:20px;color:#fff;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+        <button onclick="renderPortal()" style="padding:8px 14px;background:#222;color:#fff;border:1px solid #444;border-radius:6px;cursor:pointer;">← Retour</button>
+        <span style="font-size:18px;font-weight:700;">🎮 Mes Jeux</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;">
+        <div onclick="openGame('enveloppe')" style="background:#1e1e2e;border:1px solid #333;border-radius:14px;padding:16px;text-align:center;cursor:pointer;">
+          <div style="font-size:32px;">📬</div>
+          <div style="font-size:12px;font-weight:700;margin-top:6px;">L'Enveloppe</div>
+          <button style="margin-top:8px;padding:4px 12px;background:#7c6af7;color:#fff;border:none;border-radius:6px;font-size:10px;cursor:pointer;">▶ Jouer</button>
+        </div>
+        <div onclick="openGame('tetris')" style="background:#1e1e2e;border:1px solid #333;border-radius:14px;padding:16px;text-align:center;cursor:pointer;">
+          <div style="font-size:32px;">📦</div>
+          <div style="font-size:12px;font-weight:700;margin-top:6px;">Tetris Colis</div>
+          <button style="margin-top:8px;padding:4px 12px;background:#7c6af7;color:#fff;border:none;border-radius:6px;font-size:10px;cursor:pointer;">▶ Jouer</button>
+        </div>
+        <div onclick="openGame('slalom')" style="background:#1e1e2e;border:1px solid #333;border-radius:14px;padding:16px;text-align:center;cursor:pointer;">
+          <div style="font-size:32px;">🚛</div>
+          <div style="font-size:12px;font-weight:700;margin-top:6px;">Slalom Camion</div>
+          <button style="margin-top:8px;padding:4px 12px;background:#7c6af7;color:#fff;border:none;border-radius:6px;font-size:10px;cursor:pointer;">▶ Jouer</button>
+        </div>
+        <div onclick="openGame('scan')" style="background:#1e1e2e;border:1px solid #333;border-radius:14px;padding:16px;text-align:center;cursor:pointer;">
+          <div style="font-size:32px;">⚡</div>
+          <div style="font-size:12px;font-weight:700;margin-top:6px;">Scan Express</div>
+          <button style="margin-top:8px;padding:4px 12px;background:#7c6af7;color:#fff;border:none;border-radius:6px;font-size:10px;cursor:pointer;">▶ Jouer</button>
+        </div>
+        <div onclick="openGame('tournee')" style="background:#1e1e2e;border:1px solid #333;border-radius:14px;padding:16px;text-align:center;cursor:pointer;">
+          <div style="font-size:32px;">🗺️</div>
+          <div style="font-size:12px;font-weight:700;margin-top:6px;">Tournée Parfaite</div>
+          <button style="margin-top:8px;padding:4px 12px;background:#7c6af7;color:#fff;border:none;border-radius:6px;font-size:10px;cursor:pointer;">▶ Jouer</button>
+        </div>
+        <div onclick="openGame('dernier')" style="background:#1e1e2e;border:1px solid #333;border-radius:14px;padding:16px;text-align:center;cursor:pointer;">
+          <div style="font-size:32px;">🏃</div>
+          <div style="font-size:12px;font-weight:700;margin-top:6px;">Dernier Colis</div>
+          <button style="margin-top:8px;padding:4px 12px;background:#7c6af7;color:#fff;border:none;border-radius:6px;font-size:10px;cursor:pointer;">▶ Jouer</button>
+        </div>
+      </div>
+      <p style="text-align:center;color:#888;margin-top:20px;font-size:12px;">🏆 Classement à venir — jouez pour enregistrer vos scores !</p>
+    </div>
+  `;
 }
 
 /* ── Ouvrir un jeu ────────────────────────────────────────── */
