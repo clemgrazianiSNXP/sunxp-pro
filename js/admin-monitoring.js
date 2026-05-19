@@ -290,6 +290,104 @@ async function renderAdminMonitoring(container) {
     syncCard.appendChild(syncSummary);
     wrap.appendChild(syncCard);
 
+    // Card Test de charge
+    const loadCard = document.createElement('div');
+    loadCard.style.cssText = 'background:var(--bg-sidebar);border:1px solid var(--border);border-radius:10px;padding:16px;';
+    loadCard.innerHTML = `
+      <div style="font-size:14px;font-weight:700;margin-bottom:12px;">🔥 Test de charge</div>
+      <div style="padding:8px 10px;background:rgba(255,170,0,0.1);border:1px solid #fbbf24;border-radius:6px;font-size:10px;color:#fbbf24;margin-bottom:12px;">⚠️ Ne lancez pas ce test en production avec de vrais utilisateurs connectés</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;align-items:center;gap:8px;font-size:11px;"><label style="min-width:120px;color:var(--text-muted);">Utilisateurs :</label><input type="range" id="lt-users" min="1" max="50" value="10" style="flex:1;"><span id="lt-users-val" style="min-width:24px;font-family:monospace;color:var(--accent);">10</span></div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:11px;"><label style="min-width:120px;color:var(--text-muted);">Durée (sec) :</label><select id="lt-duration" style="font-size:11px;padding:3px 6px;"><option value="10">10s</option><option value="30" selected>30s</option><option value="60">60s</option></select></div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:11px;"><label style="min-width:120px;color:var(--text-muted);">Type :</label><select id="lt-type" style="font-size:11px;padding:3px 6px;"><option value="read">Lecture seule</option><option value="readwrite">Lecture + Écriture</option></select></div>
+      </div>
+      <button id="lt-start" class="rep-btn rep-btn-primary" style="margin-top:12px;font-size:11px;padding:8px 16px;width:100%;">🔥 Lancer le test</button>
+      <div id="lt-progress" style="margin-top:10px;display:none;"></div>
+      <div id="lt-results" style="margin-top:10px;display:none;"></div>
+    `;
+    wrap.appendChild(loadCard);
+
+    // Bind load test
+    setTimeout(() => {
+      const usersSlider = document.getElementById('lt-users');
+      const usersVal = document.getElementById('lt-users-val');
+      if (usersSlider) usersSlider.oninput = () => { usersVal.textContent = usersSlider.value; };
+
+      document.getElementById('lt-start')?.addEventListener('click', async () => {
+        const users = parseInt(document.getElementById('lt-users')?.value || '10');
+        const duration = parseInt(document.getElementById('lt-duration')?.value || '30');
+        const type = document.getElementById('lt-type')?.value || 'read';
+        const btn = document.getElementById('lt-start');
+        const progDiv = document.getElementById('lt-progress');
+        const resDiv = document.getElementById('lt-results');
+        btn.disabled = true; btn.textContent = '⏳ Test en cours...';
+        progDiv.style.display = 'block'; resDiv.style.display = 'none';
+        progDiv.innerHTML = '<div style="height:6px;background:#1e2d3d;border-radius:3px;overflow:hidden;"><div id="lt-bar" style="height:100%;width:0%;background:var(--accent);transition:width 0.3s;"></div></div><div id="lt-live" style="font-size:10px;color:var(--text-muted);margin-top:4px;font-family:monospace;"></div>';
+
+        const results = { success: 0, fail: 0, times: [], startTime: Date.now() };
+        const endTime = Date.now() + duration * 1000;
+        const bar = document.getElementById('lt-bar');
+        const live = document.getElementById('lt-live');
+
+        async function doRequest() {
+          const t0 = performance.now();
+          try {
+            if (type === 'readwrite' && Math.random() > 0.7) {
+              await sb().from('activity_logs').insert({ action: 'load_test', email: currentUser?.email || 'test', metadata: { test: true } });
+            } else if (Math.random() > 0.5) {
+              await sb().from('chauffeurs').select('*');
+            } else {
+              await sb().from('heures').select('*').limit(10);
+            }
+            results.success++;
+          } catch (_) { results.fail++; }
+          results.times.push(performance.now() - t0);
+        }
+
+        // Boucle de test
+        while (Date.now() < endTime) {
+          const batch = Array.from({ length: users }, () => doRequest());
+          await Promise.all(batch);
+          const elapsed = Date.now() - results.startTime;
+          const pct = Math.min(100, (elapsed / (duration * 1000)) * 100);
+          if (bar) bar.style.width = pct + '%';
+          if (live) live.textContent = `✅ ${results.success} | ❌ ${results.fail} | Moy: ${results.times.length ? (results.times.reduce((a,b)=>a+b,0)/results.times.length).toFixed(0) : 0}ms`;
+          await new Promise(r => setTimeout(r, 200));
+        }
+
+        // Rapport final
+        const totalTime = ((Date.now() - results.startTime) / 1000).toFixed(1);
+        const avg = results.times.length ? (results.times.reduce((a,b)=>a+b,0)/results.times.length).toFixed(0) : 0;
+        const min = results.times.length ? Math.min(...results.times).toFixed(0) : 0;
+        const max = results.times.length ? Math.max(...results.times).toFixed(0) : 0;
+        const total = results.success + results.fail;
+        const successRate = total ? ((results.success / total) * 100).toFixed(1) : 0;
+        let status = '✅ Supabase tient la charge';
+        let statusColor = '#4ade80';
+        if (successRate < 95) { status = '❌ Surcharge détectée'; statusColor = '#f87171'; }
+        else if (successRate < 99) { status = '⚠️ Quelques erreurs détectées'; statusColor = '#fbbf24'; }
+
+        const report = { date: new Date().toISOString(), users, duration, type, total, success: results.success, fail: results.fail, successRate: parseFloat(successRate), avgMs: parseInt(avg), minMs: parseInt(min), maxMs: parseInt(max), status };
+
+        resDiv.style.display = 'block';
+        resDiv.innerHTML = `
+          <div style="padding:10px;background:var(--bg-primary);border-radius:8px;font-size:11px;">
+            <div style="font-weight:700;color:${statusColor};font-size:13px;margin-bottom:6px;">${status}</div>
+            <div style="color:var(--text-primary);">📊 ${total} requêtes en ${totalTime}s</div>
+            <div style="color:var(--text-primary);">✅ Taux de succès : <span style="color:${statusColor};font-weight:700;">${successRate}%</span></div>
+            <div style="color:var(--text-muted);font-family:monospace;margin-top:4px;">Moy: ${avg}ms | Min: ${min}ms | Max: ${max}ms</div>
+          </div>
+          <button id="lt-export" class="h-btn" style="margin-top:8px;font-size:10px;padding:4px 10px;">📥 Exporter le rapport</button>
+        `;
+        document.getElementById('lt-export').onclick = () => {
+          const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+          const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+          a.download = 'load-test-' + new Date().toISOString().slice(0,10) + '.json'; a.click();
+        };
+        btn.disabled = false; btn.textContent = '🔥 Relancer le test';
+      });
+    }, 0);
+
     // Alertes
     const alertCard = document.createElement('div');
     alertCard.style.cssText = 'background:var(--bg-sidebar);border:1px solid var(--border);border-radius:10px;padding:16px;';
