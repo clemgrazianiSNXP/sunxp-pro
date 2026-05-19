@@ -16,6 +16,34 @@ async function renderAdminMonitoring(container) {
   connCard.innerHTML = `<span class="adm-status-badge ${connected ? 'adm-status-online' : 'adm-status-error'}">${connected ? 'ONLINE' : 'OFFLINE'}</span><div class="adm-card-title">Connexion Supabase</div><div class="adm-big-number">${connected ? '🟢' : '🔴'}</div>`;
   wrap.appendChild(connCard);
 
+  // Card erreurs de sync récentes (depuis localStorage)
+  const syncErrorLog = (() => { try { return JSON.parse(localStorage.getItem('sync-errors-log') || '[]'); } catch(_) { return []; } })();
+  const syncErrCard = document.createElement('div');
+  if (syncErrorLog.length > 0) {
+    syncErrCard.style.cssText = 'background:var(--bg-sidebar);border:1px solid #f87171;border-radius:10px;padding:14px;';
+    syncErrCard.innerHTML = '<div style="font-size:13px;font-weight:700;color:#f87171;margin-bottom:8px;">⚠️ Erreurs de sync récentes (' + syncErrorLog.length + ')</div>';
+    const errList = document.createElement('div');
+    errList.style.cssText = 'display:flex;flex-direction:column;gap:4px;max-height:150px;overflow-y:auto;';
+    syncErrorLog.slice(0, 10).forEach(e => {
+      const row = document.createElement('div');
+      row.style.cssText = 'font-size:10px;padding:4px 8px;background:var(--bg-primary);border-radius:4px;display:flex;gap:8px;align-items:center;';
+      const d = e.date ? new Date(e.date).toLocaleString('fr-FR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }) : '?';
+      row.innerHTML = `<span style="color:var(--accent);font-family:monospace;min-width:80px;">${d}</span><span style="color:#f87171;font-weight:700;min-width:80px;">${e.table}</span><span style="color:var(--text-muted);flex:1;">${e.message || ''}</span>`;
+      errList.appendChild(row);
+    });
+    syncErrCard.appendChild(errList);
+    const clearBtn = document.createElement('button');
+    clearBtn.className = 'h-btn';
+    clearBtn.style.cssText = 'margin-top:8px;font-size:10px;padding:4px 10px;color:#fbbf24;border-color:#fbbf24;';
+    clearBtn.textContent = '🗑 Vider le log d\'erreurs';
+    clearBtn.onclick = () => { localStorage.removeItem('sync-errors-log'); localStorage.removeItem('sync-errors-count'); openAdminPanel(); };
+    syncErrCard.appendChild(clearBtn);
+  } else {
+    syncErrCard.style.cssText = 'background:var(--bg-sidebar);border:1px solid var(--border);border-radius:10px;padding:12px;';
+    syncErrCard.innerHTML = '<div style="font-size:12px;color:#4ade80;font-weight:700;">✅ Aucune erreur de sync</div>';
+  }
+  wrap.appendChild(syncErrCard);
+
   // Card Activité par station
   if (connected) {
     const actCard = document.createElement('div');

@@ -237,12 +237,42 @@ window.dbSave = async function (table, lsKey, filters, data) {
     Object.entries(filters).forEach(([k, v]) => { query = query.eq(k, v); });
     const { data: updated, error: updateErr } = await query.select();
     
+    if (updateErr) throw new Error(updateErr.message);
+
     // Si rien n'a été mis à jour (pas de ligne existante), insert
-    if (!updateErr && (!updated || updated.length === 0)) {
-      await sb().from(table).insert({ ...filters, data });
+    if (!updated || updated.length === 0) {
+      const { error: insertErr } = await sb().from(table).insert({ ...filters, data });
+      if (insertErr) throw new Error(insertErr.message);
     }
-  } catch (e) { console.warn(`dbSave(${table}) error:`, e.message); }
+  } catch (e) {
+    console.warn(`dbSave(${table}) error:`, e.message);
+    // Enregistrer l'erreur de sync
+    _logSyncError(table, lsKey, e.message);
+  }
 };
+
+/* ── Gestion erreurs de sync ──────────────────────────────── */
+function _logSyncError(table, lsKey, message) {
+  try {
+    // Ajouter au log (max 20 entrées)
+    const log = JSON.parse(localStorage.getItem('sync-errors-log') || '[]');
+    log.unshift({ table, key: lsKey, date: new Date().toISOString(), message });
+    if (log.length > 20) log.length = 20;
+    localStorage.setItem('sync-errors-log', JSON.stringify(log));
+
+    // Incrémenter le compteur
+    const count = (parseInt(localStorage.getItem('sync-errors-count') || '0')) + 1;
+    localStorage.setItem('sync-errors-count', String(count));
+
+    // Vérifier si > 3 erreurs en < 10 minutes → alerte push admin
+    const recent = log.filter(e => (Date.now() - new Date(e.date).getTime()) < 10 * 60 * 1000);
+    if (recent.length > 3 && typeof sendPushToStation === 'function') {
+      // Envoyer une alerte à toutes les stations (l'admin la recevra)
+      const sid = (typeof getActiveStationId === 'function' && getActiveStationId()) || null;
+      if (sid) sendPushToStation(sid, '⚠️ Sync Supabase en échec', recent.length + ' erreurs détectées en moins de 10 min');
+    }
+  } catch (_) {}
+}
 
 /**
  * Suppression générique
