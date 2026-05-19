@@ -59,6 +59,22 @@ function redirectByRole() {
   if (typeof logActivity === 'function') logActivity('login', {});
   if (!currentProfile) { console.warn('redirectByRole: pas de profil, showApp par défaut'); showApp(); return; }
 
+  // Vérifier si alumni
+  if (currentProfile.statut === 'alumni') {
+    console.log('redirectByRole: statut alumni détecté');
+    // Vérifier expiration
+    if (currentProfile.alumni_expiration) {
+      const expDate = new Date(currentProfile.alumni_expiration);
+      if (expDate < new Date()) {
+        console.log('redirectByRole: accès alumni expiré');
+        if (typeof showAlumniExpired === 'function') showAlumniExpired();
+        return;
+      }
+    }
+    if (typeof showAlumniPortal === 'function') showAlumniPortal();
+    return;
+  }
+
   if (currentProfile.role === 'chauffeur') {
     console.log('redirectByRole: rôle chauffeur détecté');
     showChauffeurDirect();
