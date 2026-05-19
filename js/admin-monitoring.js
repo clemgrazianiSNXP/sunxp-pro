@@ -44,6 +44,65 @@ async function renderAdminMonitoring(container) {
   }
   wrap.appendChild(syncErrCard);
 
+  // Card Supabase Storage
+  if (connected) {
+    const storageCard = document.createElement('div');
+    storageCard.style.cssText = 'background:var(--bg-sidebar);border:1px solid var(--border);border-radius:10px;padding:16px;';
+    storageCard.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><span style="font-size:14px;font-weight:700;">☁️ Supabase Storage</span><button id="adm-storage-refresh" class="h-btn" style="font-size:9px;padding:3px 8px;">🔄 Rafraîchir</button></div><p style="font-size:11px;color:var(--text-muted);">Chargement...</p>';
+    wrap.appendChild(storageCard);
+
+    // Charger les infos storage
+    (async () => {
+      try {
+        const { data: buckets, error: bErr } = await sb().storage.listBuckets();
+        if (bErr || !buckets) { storageCard.querySelector('p').textContent = '❌ ' + (bErr?.message || 'Erreur'); return; }
+
+        let totalBytes = 0;
+        const bucketInfos = [];
+
+        for (const bucket of buckets) {
+          let fileCount = 0, bucketSize = 0;
+          try {
+            const { data: files } = await sb().storage.from(bucket.name).list('', { limit: 1000 });
+            if (files) {
+              fileCount = files.length;
+              files.forEach(f => { if (f.metadata && f.metadata.size) bucketSize += f.metadata.size; });
+            }
+          } catch (_) {}
+          totalBytes += bucketSize;
+          bucketInfos.push({ name: bucket.name, files: fileCount, size: bucketSize });
+        }
+
+        const totalMB = (totalBytes / (1024 * 1024)).toFixed(1);
+        const pct = Math.min(100, (totalBytes / (500 * 1024 * 1024)) * 100).toFixed(0);
+        let gaugeColor = '#4ade80';
+        if (totalMB > 400) gaugeColor = '#f87171';
+        else if (totalMB > 300) gaugeColor = '#fbbf24';
+
+        let html = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><span style="font-size:14px;font-weight:700;">☁️ Supabase Storage</span><button id="adm-storage-refresh" class="h-btn" style="font-size:9px;padding:3px 8px;">🔄 Rafraîchir</button></div>';
+
+        // Jauge
+        html += `<div style="margin-bottom:12px;"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;"><span style="color:var(--text-primary);font-weight:700;">Utilisé : ${totalMB} MB / 500 MB</span><span style="color:${gaugeColor};font-family:monospace;">${pct}%</span></div><div style="height:8px;background:#1e2d3d;border-radius:4px;overflow:hidden;"><div style="height:100%;width:${pct}%;background:${gaugeColor};border-radius:4px;transition:width 0.3s;"></div></div></div>`;
+
+        // Alerte si > 400MB
+        if (totalMB > 400) {
+          html += '<div style="padding:8px 10px;background:rgba(255,61,61,0.1);border:1px solid #f87171;border-radius:6px;font-size:10px;color:#f87171;margin-bottom:10px;">⚠️ Limite Storage bientôt atteinte — pensez à upgrader votre plan Supabase ou supprimer des fichiers inutiles</div>';
+        }
+
+        // Liste buckets
+        html += '<div style="display:flex;flex-direction:column;gap:4px;">';
+        bucketInfos.forEach(b => {
+          const sizeMB = (b.size / (1024 * 1024)).toFixed(2);
+          html += `<div style="display:flex;justify-content:space-between;padding:5px 8px;background:var(--bg-primary);border-radius:5px;font-size:10px;"><span style="color:var(--text-primary);font-weight:700;">📁 ${b.name}</span><span style="color:var(--text-muted);font-family:monospace;">${b.files} fichiers · ${sizeMB} MB</span></div>`;
+        });
+        html += '</div>';
+
+        storageCard.innerHTML = html;
+        storageCard.querySelector('#adm-storage-refresh').onclick = () => openAdminPanel();
+      } catch (e) { storageCard.querySelector('p').textContent = '❌ ' + e.message; }
+    })();
+  }
+
   // Card Activité par station
   if (connected) {
     const actCard = document.createElement('div');
