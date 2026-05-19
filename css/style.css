@@ -1148,3 +1148,224 @@ body.light-mode ::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.25
 input::placeholder, textarea::placeholder { color: var(--text-muted); opacity: 0.6; }
 a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
+
+/* ══════════════════════════════════════════════════════════════
+   THEME: GLASSMORPHISM
+   ══════════════════════════════════════════════════════════════ */
+body.theme-glass {
+  --bg-primary: #0f0c29;
+  --bg-sidebar: rgba(255,255,255,0.05);
+  --bg-tab-active: rgba(255,255,255,0.08);
+  --bg-tab-hover: rgba(255,255,255,0.04);
+  --border: rgba(255,255,255,0.15);
+  --text-primary: #e8e8ff;
+  --text-muted: #a0a0c0;
+}
+body.theme-glass::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+  background-size: 400% 400%;
+  animation: glassGradient 15s ease infinite;
+}
+@keyframes glassGradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+body.theme-glass .portal-card,
+body.theme-glass .station-card,
+body.theme-glass .rep-form-box,
+body.theme-glass .h-dashboard,
+body.theme-glass .sidebar {
+  backdrop-filter: blur(12px);
+  background: rgba(255,255,255,0.07) !important;
+  border: 1px solid rgba(255,255,255,0.15) !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   THEME: NEON CYBERPUNK
+   ══════════════════════════════════════════════════════════════ */
+body.theme-neon {
+  --bg-primary: #050510;
+  --bg-sidebar: #0a0a1a;
+  --bg-tab-active: #1a0a2a;
+  --bg-tab-hover: #0f0a1f;
+  --accent: #ff00ff;
+  --accent-dim: rgba(255,0,255,0.15);
+  --border: rgba(255,0,255,0.3);
+  --text-primary: #e0e0ff;
+  --text-muted: #8080b0;
+}
+body.theme-neon .portal-card,
+body.theme-neon .station-card,
+body.theme-neon .rep-form-box {
+  border: 1px solid rgba(255,0,255,0.3) !important;
+  box-shadow: 0 0 10px rgba(255,0,255,0.1);
+}
+body.theme-neon .rep-btn-primary,
+body.theme-neon .h-btn:hover {
+  box-shadow: 0 0 12px var(--accent);
+}
+body.theme-neon .h-table th {
+  color: #ff00ff !important;
+  text-shadow: 0 0 8px #ff00ff;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   THEME: FLAT MINIMAL
+   ══════════════════════════════════════════════════════════════ */
+body.theme-minimal {
+  --bg-primary: #fafafa;
+  --bg-sidebar: #f0f0f0;
+  --bg-tab-active: #e8e8e8;
+  --bg-tab-hover: #eeeeee;
+  --text-primary: #111111;
+  --text-muted: #666666;
+  --border: transparent;
+  --accent: #111111;
+  --accent-dim: rgba(17,17,17,0.08);
+}
+body.theme-minimal *,
+body.theme-minimal .portal-card,
+body.theme-minimal .station-card,
+body.theme-minimal .rep-form-box,
+body.theme-minimal .h-btn,
+body.theme-minimal .rep-btn,
+body.theme-minimal .rep-input,
+body.theme-minimal input,
+body.theme-minimal select {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+body.theme-minimal .h-btn,
+body.theme-minimal .rep-btn {
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 2px solid #111 !important;
+}
+body.theme-minimal .rep-btn-primary {
+  background: transparent !important;
+  color: #111 !important;
+  border: none !important;
+  border-bottom: 2px solid #111 !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   THEME: ROUNDED SOFT
+   ══════════════════════════════════════════════════════════════ */
+body.theme-soft {
+  --bg-primary: #1a1a2e;
+  --bg-sidebar: #16213e;
+  --bg-tab-active: #1f2b47;
+  --bg-tab-hover: #1a2540;
+  --accent: #e94560;
+  --accent-dim: rgba(233,69,96,0.15);
+  --border: rgba(233,69,96,0.2);
+  --text-primary: #eaeaea;
+  --text-muted: #8899aa;
+}
+body.theme-soft .portal-card,
+body.theme-soft .station-card,
+body.theme-soft .rep-form-box {
+  border-radius: 16px !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3) !important;
+}
+body.theme-soft .h-btn,
+body.theme-soft .rep-btn,
+body.theme-soft .rep-btn-primary {
+  border-radius: 50px !important;
+}
+body.theme-soft .rep-input,
+body.theme-soft input,
+body.theme-soft select {
+  border-radius: 12px !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   THEME: WARM SAND
+   ══════════════════════════════════════════════════════════════ */
+body.theme-warm {
+  --bg-primary: #2c1810;
+  --bg-sidebar: #3d2414;
+  --bg-tab-active: #4a2d18;
+  --bg-tab-hover: #432818;
+  --accent: #d4a55a;
+  --accent-dim: rgba(212,165,90,0.15);
+  --border: rgba(212,165,90,0.25);
+  --text-primary: #f5e6d0;
+  --text-muted: #a08060;
+}
+body.theme-warm .portal-card,
+body.theme-warm .station-card,
+body.theme-warm .rep-form-box {
+  border-left: 3px solid var(--accent) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   THEME: CUBIC
+   ══════════════════════════════════════════════════════════════ */
+body.theme-cubic {
+  --bg-primary: #f5f5f5;
+  --bg-sidebar: #e8e8e8;
+  --bg-tab-active: #d8d8d8;
+  --bg-tab-hover: #dedede;
+  --text-primary: #1a1a1a;
+  --text-muted: #666666;
+  --accent: #1a1a1a;
+  --accent-dim: rgba(26,26,26,0.08);
+  --border: #1a1a1a;
+  font-weight: 500;
+}
+body.theme-cubic *,
+body.theme-cubic .portal-card,
+body.theme-cubic .station-card,
+body.theme-cubic .rep-form-box,
+body.theme-cubic .h-btn,
+body.theme-cubic .rep-btn,
+body.theme-cubic .rep-input,
+body.theme-cubic input,
+body.theme-cubic select,
+body.theme-cubic .sidebar,
+body.theme-cubic .h-dashboard {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+body.theme-cubic .portal-card,
+body.theme-cubic .station-card,
+body.theme-cubic .rep-form-box,
+body.theme-cubic .h-btn,
+body.theme-cubic .rep-btn,
+body.theme-cubic .rep-input,
+body.theme-cubic input,
+body.theme-cubic select {
+  border: 1px solid #1a1a1a !important;
+}
+body.theme-cubic .rep-btn-primary {
+  background: #1a1a1a !important;
+  color: #f5f5f5 !important;
+  border: 1px solid #1a1a1a !important;
+}
+body.theme-cubic .h-btn:hover {
+  background: #1a1a1a !important;
+  color: #f5f5f5 !important;
+}
+body.theme-cubic .h-table th {
+  border-bottom: 2px solid #1a1a1a !important;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+body.theme-cubic .sidebar {
+  border-right: 2px solid #1a1a1a !important;
+}
+body.theme-cubic .topbar,
+body.theme-cubic .h-toolbar {
+  border-bottom: 2px solid #1a1a1a !important;
+}
+body.theme-cubic .nav-tab.active {
+  border-left: 3px solid #1a1a1a !important;
+  background: #d8d8d8 !important;
+}

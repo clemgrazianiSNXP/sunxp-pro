@@ -5,7 +5,13 @@ const THEMES = [
   { id: 'dark',    label: 'Sombre (défaut)',  cls: '' },
   { id: 'light',   label: 'Clair',            cls: 'light-mode' },
   { id: 'blue',    label: 'Bleu nuit',        cls: 'theme-blue' },
-  { id: 'green',   label: 'Vert forêt',       cls: 'theme-green' }
+  { id: 'green',   label: 'Vert forêt',       cls: 'theme-green' },
+  { id: 'glassmorphism', label: '🪟 Glassmorphism', cls: 'theme-glass' },
+  { id: 'neon', label: '⚡ Néon Cyberpunk', cls: 'theme-neon' },
+  { id: 'minimal', label: '⬜ Flat Minimal', cls: 'theme-minimal' },
+  { id: 'soft', label: '🫧 Rounded Soft', cls: 'theme-soft' },
+  { id: 'warm', label: '🌅 Warm Sand', cls: 'theme-warm' },
+  { id: 'cubic', label: '⬛ Cubic', cls: 'theme-cubic' }
 ];
 
 const FONTS = [
@@ -18,6 +24,23 @@ const FONTS = [
 function renderParametres() {
   const wrap = document.createElement('div');
   wrap.style.cssText = 'padding:16px;display:flex;flex-direction:column;gap:20px;';
+
+  // ── Thème visuel ──
+  const visualSection = document.createElement('div');
+  visualSection.innerHTML = '<h3 style="font-size:14px;margin-bottom:10px;color:var(--accent);">🎨 Thème visuel</h3>';
+  const themeGrid = document.createElement('div');
+  themeGrid.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px;';
+  const currentThemeId = localStorage.getItem('sunxp-theme') || 'dark';
+  THEMES.forEach(t => {
+    const btn = document.createElement('button');
+    btn.className = 'menu-param-btn';
+    btn.style.cssText = currentThemeId === t.id ? 'border:2px solid var(--accent);font-weight:700;' : '';
+    btn.textContent = t.label;
+    btn.onclick = () => applyTheme(t);
+    themeGrid.appendChild(btn);
+  });
+  visualSection.appendChild(themeGrid);
+  wrap.appendChild(visualSection);
 
   // ── Couleur d'accent ──
   const themeSection = document.createElement('div');
@@ -280,11 +303,9 @@ function lighten(hex, amount) {
 }
 
 function applyTheme(theme) {
-  // Retirer toutes les classes de thème
-  document.body.classList.remove('light-mode', 'theme-blue', 'theme-green');
+  document.body.classList.remove('light-mode', 'theme-blue', 'theme-green', 'theme-glass', 'theme-neon', 'theme-minimal', 'theme-soft', 'theme-warm', 'theme-cubic');
   if (theme.cls) document.body.classList.add(theme.cls);
   localStorage.setItem('sunxp-theme', theme.id);
-  // Rafraîchir le panneau
   if (typeof setMenuTab === 'function') setMenuTab('parametres');
 }
 
@@ -298,7 +319,10 @@ function applyFont(font) {
 // Appliquer les préférences sauvegardées au chargement
 document.addEventListener('DOMContentLoaded', () => {
   const savedTheme = localStorage.getItem('sunxp-theme');
-  if (savedTheme === 'light') document.body.classList.add('light-mode');
+  if (savedTheme) {
+    const t = THEMES.find(th => th.id === savedTheme);
+    if (t && t.cls) document.body.classList.add(t.cls);
+  }
   const savedAccent = localStorage.getItem('sunxp-accent');
   if (savedAccent) applyAccentColor(savedAccent);
   const savedBg = localStorage.getItem('sunxp-bg');
