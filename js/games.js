@@ -118,9 +118,10 @@ function initGamesPage() {
 
   // Header
   const header = document.createElement('div');
-  header.style.cssText = 'display:flex;align-items:center;gap:12px;padding:14px 20px;background:var(--bg-sidebar);border-bottom:1px solid var(--border);flex-shrink:0;';
+  header.style.cssText = 'display:flex;align-items:center;gap:12px;padding:14px 20px;background:var(--bg-sidebar,#1e1e2e);border-bottom:1px solid var(--border,#333);flex-shrink:0;';
   const backBtn = document.createElement('button');
   backBtn.className = 'h-btn'; backBtn.textContent = '← Retour';
+  backBtn.style.cssText = 'padding:8px 14px;font-size:13px;cursor:pointer;background:var(--bg-primary,#12121a);color:var(--text-primary,#fff);border:1px solid var(--border,#444);border-radius:6px;';
   backBtn.onclick = () => { 
     gamesScreen.style.display = 'none'; 
     document.querySelectorAll('#chauffeur-portal, .app-layout, .chauffeur-portal-wrap').forEach(el => { if (el) el.style.display = ''; });
@@ -128,7 +129,7 @@ function initGamesPage() {
   };
   header.appendChild(backBtn);
   const title = document.createElement('span');
-  title.style.cssText = 'font-size:16px;font-weight:700;color:var(--text-primary);';
+  title.style.cssText = 'font-size:16px;font-weight:700;color:#fff;';
   title.textContent = '🎮 Mes Jeux';
   header.appendChild(title);
   // Global rank
