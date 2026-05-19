@@ -91,13 +91,11 @@ async function renderAdminMonitoring(container) {
     syncCard.style.cssText = 'background:var(--bg-sidebar);border:1px solid var(--border);border-radius:10px;padding:16px;';
     syncCard.innerHTML = '<div style="font-size:14px;font-weight:700;margin-bottom:12px;">🔄 Sync localStorage ↔ Supabase</div>';
     const syncGrid = document.createElement('div');
-    syncGrid.style.cssText = 'display:flex;flex-direction:column;gap:4px;';
+    syncGrid.style.cssText = 'display:flex;flex-direction:column;gap:6px;';
 
     const { data: stationsData } = await sb().from('stations').select('id, nom');
     const stationsList = stationsData || [];
 
-    // Mapping complet : table Supabase → { prefix, type }
-    // type: 'array' = localStorage est un JSON array, 'multi' = plusieurs clés, 'single' = une seule clé
     const SYNC_MAP = [
       { table: 'chauffeurs', label: 'Chauffeurs', lsKey: sid => sid + '-repertoire', type: 'array' },
       { table: 'responsables', label: 'Responsables', lsKey: sid => sid + '-responsables', type: 'array' },
@@ -123,52 +121,59 @@ async function renderAdminMonitoring(container) {
 
     for (const station of stationsList) {
       const sid = station.id;
+      let stationIssues = 0;
+      const rows = [];
 
       for (const mapping of SYNC_MAP) {
         let localCount = 0;
         let sbCount = 0;
-
         try {
-          // Compter localStorage
           if (mapping.type === 'multi') {
             const pfx = mapping.prefix(sid);
-            for (let i = 0; i < localStorage.length; i++) {
-              const k = localStorage.key(i);
-              if (k && k.startsWith(pfx)) {
-                if (mapping.exclude) {
-                  const excluded = mapping.exclude.some(ex => k.includes(ex));
-                  if (!excluded) localCount++;
-                } else {
-                  localCount++;
-                }
-              }
-            }
+            for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.startsWith(pfx)) { if (mapping.exclude) { if (!mapping.exclude.some(ex => k.includes(ex))) localCount++; } else localCount++; } }
           } else if (mapping.type === 'array') {
             const raw = localStorage.getItem(mapping.lsKey(sid));
             if (raw) { try { localCount = JSON.parse(raw).length || 0; } catch(_) {} }
           } else if (mapping.type === 'single') {
             if (localStorage.getItem(mapping.lsKey(sid))) localCount = 1;
           }
-
-          // Compter Supabase
           const { count, error } = await sb().from(mapping.table).select('*', { count: 'exact', head: true }).eq('station_id', sid);
           if (!error) sbCount = count || 0;
         } catch (_) {}
 
-        // Ne pas afficher si les deux sont à 0
         if (localCount === 0 && sbCount === 0) continue;
-
         const isSync = (mapping.type === 'array' || mapping.type === 'single') ? (localCount > 0) === (sbCount > 0) : localCount === sbCount;
-        if (!isSync) syncIssues++;
-
-        const row = document.createElement('div');
-        row.style.cssText = 'padding:5px 10px;background:var(--bg-primary);border-radius:6px;font-size:10px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;border:1px solid transparent;transition:border-color 0.15s;';
-        row.innerHTML = `<span><b>${station.nom}</b> — ${mapping.label}</span><span style="color:${isSync ? '#4ade80' : '#f87171'};font-family:monospace;">${isSync ? '✅' : '⚠️'} L:${localCount} | S:${sbCount}</span>`;
-        row.onmouseenter = () => row.style.borderColor = 'var(--accent)';
-        row.onmouseleave = () => row.style.borderColor = 'transparent';
-        row.onclick = () => showSyncDetail(mapping.table, sid, station.nom, localCount, sbCount);
-        syncGrid.appendChild(row);
+        if (!isSync) { stationIssues++; syncIssues++; }
+        rows.push({ label: mapping.label, table: mapping.table, localCount, sbCount, isSync });
       }
+
+      if (!rows.length) continue;
+
+      // Accordion par station
+      const stationBlock = document.createElement('div');
+      stationBlock.style.cssText = 'border:1px solid var(--border);border-radius:8px;overflow:hidden;';
+
+      const header = document.createElement('div');
+      header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bg-primary);cursor:pointer;user-select:none;';
+      header.innerHTML = `<span style="font-weight:700;font-size:12px;color:var(--text-primary);">📍 ${station.nom}</span><span style="font-size:10px;font-family:monospace;color:${stationIssues === 0 ? '#4ade80' : '#f87171'};">${stationIssues === 0 ? '✅ OK' : '⚠️ ' + stationIssues + ' diff'} · ${rows.length} tables ▾</span>`;
+
+      const body = document.createElement('div');
+      body.style.cssText = 'display:none;padding:6px 10px;display:flex;flex-direction:column;gap:3px;';
+      body.style.display = 'none';
+
+      rows.forEach(r => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:4px 8px;border-radius:4px;font-size:10px;background:var(--bg-sidebar);';
+        row.innerHTML = `<span style="color:var(--text-primary);">${r.label}</span><span style="color:${r.isSync ? '#4ade80' : '#f87171'};font-family:monospace;">${r.isSync ? '✅' : '⚠️'} L:${r.localCount} | S:${r.sbCount}</span>`;
+        row.style.cursor = 'pointer';
+        row.onclick = () => showSyncDetail(r.table, sid, station.nom, r.localCount, r.sbCount);
+        body.appendChild(row);
+      });
+
+      header.onclick = () => { body.style.display = body.style.display === 'none' ? 'flex' : 'none'; };
+      stationBlock.appendChild(header);
+      stationBlock.appendChild(body);
+      syncGrid.appendChild(stationBlock);
     }
 
     // Résumé sync
