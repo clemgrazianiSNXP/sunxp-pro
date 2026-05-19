@@ -5,8 +5,80 @@ let _logsPage = 0;
 let _logsFilters = { station: '', action: '', dateFrom: '', dateTo: '' };
 const LOGS_PER_PAGE = 50;
 
+/* ── Détection activité suspecte ──────────────────────────── */
+async function renderSuspiciousActivity(container) {
+  try {
+    const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const { data: logs } = await sb().from('activity_logs').select('*').gte('created_at', since).order('created_at', { ascending: false });
+    if (!logs) return;
+
+    const anomalies = [];
+
+    // 1. Plus de 5 suppressions par le même user en moins d'1h
+    const suppressions = logs.filter(l => l.action && l.action.includes('suppression'));
+    const byUserSupp = {};
+    suppressions.forEach(l => { if (!byUserSupp[l.email]) byUserSupp[l.email] = []; byUserSupp[l.email].push(new Date(l.created_at)); });
+    for (const [email, dates] of Object.entries(byUserSupp)) {
+      dates.sort((a, b) => a - b);
+      for (let i = 0; i <= dates.length - 5; i++) {
+        if (dates[i + 4] - dates[i] < 60 * 60 * 1000) {
+          anomalies.push({ type: '🗑 Suppressions massives', email, detail: `${dates.length} suppressions en < 1h`, time: dates[i + 4].toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' }) });
+          break;
+        }
+      }
+    }
+
+    // 2. Plus de 3 login_failed en moins de 30min
+    const failures = logs.filter(l => l.action === 'login_failed');
+    const byUserFail = {};
+    failures.forEach(l => { if (!byUserFail[l.email]) byUserFail[l.email] = []; byUserFail[l.email].push(new Date(l.created_at)); });
+    for (const [email, dates] of Object.entries(byUserFail)) {
+      dates.sort((a, b) => a - b);
+      for (let i = 0; i <= dates.length - 3; i++) {
+        if (dates[i + 2] - dates[i] < 30 * 60 * 1000) {
+          anomalies.push({ type: '🔐 Tentatives connexion', email, detail: `${dates.length} échecs en < 30min`, time: dates[i + 2].toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' }) });
+          break;
+        }
+      }
+    }
+
+    // 3. Connexion depuis une station inhabituelle
+    const logins = logs.filter(l => l.action === 'login' && l.station_id);
+    const byUserStation = {};
+    logins.forEach(l => {
+      if (!byUserStation[l.email]) byUserStation[l.email] = new Set();
+      byUserStation[l.email].add(l.station_id);
+    });
+    for (const [email, stations] of Object.entries(byUserStation)) {
+      if (stations.size > 1) {
+        anomalies.push({ type: '📍 Station inhabituelle', email, detail: `Connexion sur ${stations.size} stations différentes`, time: '' });
+      }
+    }
+
+    // Affichage
+    if (anomalies.length === 0) {
+      container.innerHTML = '<div style="padding:10px 14px;background:rgba(0,255,136,0.08);border:1px solid #4ade80;border-radius:8px;font-size:12px;color:#4ade80;font-weight:700;">✅ Aucune activité suspecte détectée (24h)</div>';
+    } else {
+      let html = '<div style="padding:12px 14px;background:rgba(255,61,61,0.08);border:1px solid #f87171;border-radius:8px;">';
+      html += '<div style="font-size:13px;font-weight:700;color:#f87171;margin-bottom:8px;">🚨 Activité suspecte détectée (' + anomalies.length + ')</div>';
+      anomalies.forEach(a => {
+        html += `<div style="display:flex;gap:8px;align-items:center;padding:4px 0;font-size:11px;border-bottom:1px solid rgba(255,61,61,0.15);"><span style="font-weight:700;color:#f87171;min-width:160px;">${a.type}</span><span style="color:var(--text-primary);flex:1;">${a.email}</span><span style="color:var(--text-muted);font-size:10px;">${a.detail}</span><span style="color:var(--accent);font-family:monospace;font-size:10px;">${a.time}</span></div>`;
+      });
+      html += '</div>';
+      container.innerHTML = html;
+    }
+  } catch (e) {
+    container.innerHTML = '<div style="font-size:11px;color:#f87171;">Erreur détection: ' + e.message + '</div>';
+  }
+}
+
 async function renderAdminLogs(container) {
   container.innerHTML = '<p style="color:var(--text-muted);">Chargement...</p>';
+
+  // Section activité suspecte
+  const suspiciousWrap = document.createElement('div');
+  suspiciousWrap.style.cssText = 'margin-bottom:14px;';
+  await renderSuspiciousActivity(suspiciousWrap);
 
   // Charger les stations et actions distinctes pour les filtres
   let stations = [];
@@ -81,6 +153,7 @@ async function renderAdminLogs(container) {
   wrap.appendChild(paginationBar);
 
   container.innerHTML = '';
+  container.appendChild(suspiciousWrap);
   container.appendChild(wrap);
 
   // Fonction de chargement des logs
