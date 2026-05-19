@@ -459,3 +459,181 @@
 #admin-screen ::-webkit-scrollbar-thumb:hover {
   background: var(--adm-accent);
 }
+
+
+/* ══════════════════════════════════════════════════════════════
+   OVERRIDE INLINE STYLES (force le thème sur tout le contenu admin)
+   ══════════════════════════════════════════════════════════════ */
+
+/* Toutes les divs avec background inline dans l'admin */
+#admin-screen div[style*="background:var(--bg-sidebar)"],
+#admin-screen div[style*="background: var(--bg-sidebar)"] {
+  background: var(--adm-card) !important;
+  border-color: var(--adm-border) !important;
+}
+
+#admin-screen div[style*="background:var(--bg-primary)"],
+#admin-screen div[style*="background: var(--bg-primary)"] {
+  background: #0a0e14 !important;
+}
+
+/* Textes */
+#admin-screen [style*="color:var(--text-primary)"],
+#admin-screen [style*="color: var(--text-primary)"] {
+  color: var(--adm-text) !important;
+}
+
+#admin-screen [style*="color:var(--text-muted)"],
+#admin-screen [style*="color: var(--text-muted)"] {
+  color: var(--adm-muted) !important;
+}
+
+#admin-screen [style*="color:var(--accent)"],
+#admin-screen [style*="color: var(--accent)"] {
+  color: var(--adm-accent) !important;
+}
+
+/* Bordures */
+#admin-screen [style*="border:1px solid var(--border)"],
+#admin-screen [style*="border: 1px solid var(--border)"] {
+  border-color: var(--adm-border) !important;
+}
+
+#admin-screen [style*="border-bottom:1px solid var(--border)"],
+#admin-screen [style*="border-bottom: 1px solid var(--border)"] {
+  border-bottom-color: var(--adm-border) !important;
+}
+
+/* Tables dans les modales de détail */
+#admin-screen table {
+  background: #050810;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+#admin-screen table th {
+  background: #0a0e14 !important;
+  color: var(--adm-accent) !important;
+  font-family: var(--adm-mono);
+  padding: 6px 8px !important;
+  border-bottom: 1px solid var(--adm-border) !important;
+  font-size: 10px !important;
+  white-space: nowrap;
+}
+
+#admin-screen table td {
+  background: transparent !important;
+  color: #a0ffb0 !important;
+  font-family: var(--adm-mono);
+  padding: 5px 8px !important;
+  border-bottom: 1px solid rgba(30, 45, 61, 0.5) !important;
+  font-size: 10px !important;
+}
+
+#admin-screen table tr:hover td {
+  background: rgba(0, 212, 255, 0.04) !important;
+}
+
+/* Grille des tables monitoring */
+#admin-screen div[style*="display:grid"] > div {
+  background: var(--adm-card) !important;
+  border: 1px solid var(--adm-border) !important;
+  border-radius: 8px !important;
+  transition: all 0.15s;
+}
+
+#admin-screen div[style*="display:grid"] > div:hover {
+  border-color: var(--adm-accent) !important;
+  box-shadow: 0 0 8px rgba(0, 212, 255, 0.15);
+}
+
+#admin-screen div[style*="display:grid"] > div b {
+  color: var(--adm-text);
+  font-family: var(--adm-mono);
+  font-size: 11px;
+}
+
+/* Lignes sync */
+#admin-screen div[style*="display:flex"][style*="justify-content:space-between"] {
+  border: 1px solid transparent;
+  transition: border-color 0.15s;
+}
+
+/* Boutons h-btn et rep-btn dans l'admin */
+#admin-screen .h-btn {
+  background: transparent !important;
+  border: 1px solid var(--adm-border) !important;
+  color: var(--adm-accent) !important;
+  border-radius: 6px;
+  transition: all 0.15s;
+}
+
+#admin-screen .h-btn:hover {
+  border-color: var(--adm-accent) !important;
+  box-shadow: 0 0 6px rgba(0, 212, 255, 0.2);
+}
+
+#admin-screen .rep-btn-primary {
+  background: var(--adm-accent) !important;
+  color: #000 !important;
+  border: none !important;
+  font-weight: 700;
+}
+
+#admin-screen .rep-btn-primary:hover {
+  background: #33e0ff !important;
+  box-shadow: 0 0 12px rgba(0, 212, 255, 0.4);
+}
+
+#admin-screen .rep-btn-delete {
+  background: transparent !important;
+  border: 1px solid var(--adm-red) !important;
+  color: var(--adm-red) !important;
+}
+
+#admin-screen .rep-btn-delete:hover {
+  background: rgba(255, 61, 61, 0.1) !important;
+  box-shadow: 0 0 8px rgba(255, 61, 61, 0.2);
+}
+
+/* Valeurs numériques monospace */
+#admin-screen span[style*="color:#4ade80"],
+#admin-screen span[style*="color: #4ade80"] {
+  color: var(--adm-green) !important;
+  font-family: var(--adm-mono);
+}
+
+#admin-screen span[style*="color:#fbbf24"],
+#admin-screen span[style*="color: #fbbf24"] {
+  color: var(--adm-orange) !important;
+  font-family: var(--adm-mono);
+}
+
+#admin-screen span[style*="color:#f87171"],
+#admin-screen span[style*="color: #f87171"] {
+  color: var(--adm-red) !important;
+  font-family: var(--adm-mono);
+}
+
+/* Logs rows */
+#admin-screen div[style*="padding:8px 10px"][style*="display:flex"][style*="gap:8px"] {
+  background: #050810 !important;
+  border-color: rgba(30, 45, 61, 0.5) !important;
+  font-family: var(--adm-mono);
+  transition: background 0.1s;
+}
+
+#admin-screen div[style*="padding:8px 10px"][style*="display:flex"][style*="gap:8px"]:hover {
+  background: rgba(0, 212, 255, 0.04) !important;
+}
+
+/* User rows */
+#admin-screen div[style*="display:flex"][style*="padding:10px"][style*="border-radius:8px"] {
+  background: var(--adm-card) !important;
+  border-color: var(--adm-border) !important;
+  transition: border-color 0.15s;
+}
+
+#admin-screen div[style*="display:flex"][style*="padding:10px"][style*="border-radius:8px"]:hover {
+  border-color: var(--adm-accent) !important;
+}
