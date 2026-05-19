@@ -15,7 +15,37 @@ function renderAdminSauvegarde(container) {
   restoreCard.style.cssText = 'background:var(--bg-sidebar);border:1px solid var(--border);border-radius:10px;padding:16px;';
   restoreCard.innerHTML = `<div style="font-size:14px;font-weight:700;margin-bottom:8px;">📤 Restaurer depuis un backup</div><p style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">Importe un fichier JSON pour restaurer les données.</p><input type="file" id="admin-restore-file" accept=".json" style="font-size:12px;"><div id="admin-restore-status" style="margin-top:8px;font-size:11px;color:var(--text-muted);"></div>`;
   wrap.appendChild(restoreCard);
+
+  // Historique des backups
+  const historyCard = document.createElement('div');
+  historyCard.style.cssText = 'background:var(--bg-sidebar);border:1px solid var(--border);border-radius:10px;padding:16px;';
+  historyCard.innerHTML = '<div style="font-size:14px;font-weight:700;margin-bottom:8px;">📋 Historique des backups</div><p style="font-size:11px;color:var(--text-muted);">Chargement...</p>';
+  wrap.appendChild(historyCard);
+
   container.appendChild(wrap);
+
+  // Charger l'historique
+  (async () => {
+    try {
+      const { data } = await sb().from('app_settings').select('value').eq('key', 'backup_history').maybeSingle();
+      const history = (data && data.value && Array.isArray(data.value)) ? data.value : [];
+      historyCard.innerHTML = '<div style="font-size:14px;font-weight:700;margin-bottom:10px;">📋 Historique des backups</div>';
+      if (!history.length) {
+        historyCard.innerHTML += '<div style="padding:10px;background:rgba(255,170,0,0.1);border:1px solid #ffaa00;border-radius:6px;font-size:11px;color:#ffaa00;">⚠️ Aucun backup enregistré. Pensez à exporter régulièrement vos données.</div>';
+      } else {
+        const list = document.createElement('div');
+        list.style.cssText = 'display:flex;flex-direction:column;gap:4px;';
+        history.slice(0, 10).forEach(h => {
+          const row = document.createElement('div');
+          row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:6px 8px;background:var(--bg-primary);border-radius:6px;font-size:11px;';
+          const date = h.date ? new Date(h.date).toLocaleString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '?';
+          row.innerHTML = `<span style="color:var(--text-primary);">📦 ${date}</span><span style="color:var(--text-muted);font-family:monospace;font-size:10px;">${h.email || '?'} · ${h.tables || '?'} tables</span>`;
+          list.appendChild(row);
+        });
+        historyCard.appendChild(list);
+      }
+    } catch (_) { historyCard.innerHTML += '<p style="color:#f87171;font-size:11px;">Erreur chargement historique</p>'; }
+  })();
 
   setTimeout(() => {
     document.getElementById('admin-export-btn')?.addEventListener('click', async () => {
@@ -35,6 +65,14 @@ function renderAdminSauvegarde(container) {
       a.download = 'sunxp-backup-' + new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19) + '.json';
       a.click(); URL.revokeObjectURL(url);
       if (window.logActivity) window.logActivity('admin_export', { tables: Object.keys(backup.tables).length });
+      // Sauvegarder dans l'historique des backups
+      try {
+        const { data: histData } = await sb().from('app_settings').select('value').eq('key', 'backup_history').maybeSingle();
+        const history = (histData && histData.value && Array.isArray(histData.value)) ? histData.value : [];
+        history.unshift({ date: new Date().toISOString(), email: currentUser?.email || '', tables: Object.keys(backup.tables).length });
+        if (history.length > 20) history.length = 20;
+        await sb().from('app_settings').upsert({ key: 'backup_history', value: history, updated_at: new Date().toISOString(), updated_by: currentUser?.email || '' });
+      } catch (_) {}
     });
 
     document.getElementById('admin-restore-file')?.addEventListener('change', async (e) => {
