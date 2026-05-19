@@ -16,6 +16,55 @@ function renderAdminSauvegarde(container) {
   restoreCard.innerHTML = `<div style="font-size:14px;font-weight:700;margin-bottom:8px;">📤 Restaurer depuis un backup</div><p style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">Importe un fichier JSON pour restaurer les données.</p><input type="file" id="admin-restore-file" accept=".json" style="font-size:12px;"><div id="admin-restore-status" style="margin-top:8px;font-size:11px;color:var(--text-muted);"></div>`;
   wrap.appendChild(restoreCard);
 
+  // Card sauvegarde automatique par email
+  const autoCard = document.createElement('div');
+  autoCard.style.cssText = 'background:var(--bg-sidebar);border:1px solid var(--border);border-radius:10px;padding:16px;';
+  autoCard.innerHTML = '<div style="font-size:14px;font-weight:700;margin-bottom:8px;">📧 Sauvegarde automatique</div><p style="font-size:11px;color:var(--text-muted);">Chargement...</p>';
+  wrap.appendChild(autoCard);
+
+  // Charger les infos auto-backup
+  (async () => {
+    try {
+      const { data: histData } = await sb().from('app_settings').select('value').eq('key', 'backup_history').maybeSingle();
+      const history = (histData && histData.value && Array.isArray(histData.value)) ? histData.value : [];
+      const lastAuto = history.find(h => h.email && h.email.includes('auto'));
+
+      const { data: freqData } = await sb().from('app_settings').select('value').eq('key', 'backup_frequency').maybeSingle();
+      const freq = (freqData && freqData.value) ? freqData.value.frequency || 'hebdomadaire' : 'hebdomadaire';
+
+      let html = '<div style="font-size:14px;font-weight:700;margin-bottom:10px;">📧 Sauvegarde automatique</div>';
+
+      if (lastAuto) {
+        const d = new Date(lastAuto.date).toLocaleString('fr-FR');
+        const statusIcon = lastAuto.status === 'sent' ? '✅ Envoyé' : '❌ Échec';
+        const statusColor = lastAuto.status === 'sent' ? '#4ade80' : '#f87171';
+        html += `<div style="padding:8px 10px;background:var(--bg-primary);border-radius:6px;margin-bottom:10px;font-size:11px;"><div>Dernier backup auto : <span style="font-family:monospace;color:var(--accent);">${d}</span></div><div>Statut : <span style="color:${statusColor};font-weight:700;">${statusIcon}</span></div>${lastAuto.error ? `<div style="color:#f87171;font-size:10px;margin-top:2px;">${lastAuto.error}</div>` : ''}</div>`;
+      } else {
+        html += '<div style="padding:8px 10px;background:rgba(255,170,0,0.1);border:1px solid #fbbf24;border-radius:6px;margin-bottom:10px;font-size:11px;color:#fbbf24;">⚠️ Aucun backup automatique envoyé pour le moment</div>';
+      }
+
+      html += `<div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;"><label style="font-size:11px;color:var(--text-muted);">Fréquence :</label><select id="admin-backup-freq" style="font-size:11px;padding:4px 8px;border-radius:4px;"><option value="hebdomadaire" ${freq === 'hebdomadaire' ? 'selected' : ''}>Hebdomadaire (lundi 8h)</option><option value="mensuel" ${freq === 'mensuel' ? 'selected' : ''}>Mensuel (1er du mois)</option></select></div>`;
+      html += '<button id="admin-test-backup" class="rep-btn rep-btn-primary" style="font-size:11px;padding:6px 14px;">📧 Tester l\'envoi maintenant</button>';
+
+      autoCard.innerHTML = html;
+
+      autoCard.querySelector('#admin-backup-freq').onchange = async (e) => {
+        await sb().from('app_settings').upsert({ key: 'backup_frequency', value: { frequency: e.target.value }, updated_at: new Date().toISOString(), updated_by: currentUser?.email || '' });
+      };
+
+      autoCard.querySelector('#admin-test-backup').onclick = async () => {
+        const btn = autoCard.querySelector('#admin-test-backup');
+        btn.textContent = '⏳ Envoi en cours...'; btn.disabled = true;
+        try {
+          const { data, error } = await sb().functions.invoke('weekly-backup');
+          if (error) { btn.textContent = '❌ Erreur: ' + error.message; }
+          else { btn.textContent = '✅ Envoyé !'; btn.style.background = '#4ade80'; }
+        } catch (e) { btn.textContent = '❌ ' + e.message; }
+        setTimeout(() => { btn.disabled = false; }, 3000);
+      };
+    } catch (_) { autoCard.querySelector('p').textContent = '❌ Erreur chargement'; }
+  })();
+
   // Historique des backups
   const historyCard = document.createElement('div');
   historyCard.style.cssText = 'background:var(--bg-sidebar);border:1px solid var(--border);border-radius:10px;padding:16px;';
