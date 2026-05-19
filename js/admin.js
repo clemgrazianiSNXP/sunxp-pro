@@ -112,7 +112,7 @@ function openAdminPanel() {
   if (!adminScreen) {
     adminScreen = document.createElement('div');
     adminScreen.id = 'admin-screen';
-    adminScreen.style.cssText = 'position:fixed;inset:0;z-index:9999;background:var(--bg-primary);display:flex;flex-direction:column;overflow:hidden;';
+    adminScreen.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;overflow:hidden;';
     document.body.appendChild(adminScreen);
   }
   adminScreen.hidden = false;
@@ -121,8 +121,8 @@ function openAdminPanel() {
 
   // Topbar
   const topbar = document.createElement('div');
-  topbar.style.cssText = 'display:flex;align-items:center;gap:12px;padding:12px 20px;background:var(--bg-sidebar);border-bottom:1px solid var(--border);flex-shrink:0;';
-  topbar.innerHTML = `<button id="admin-back-btn" class="h-btn" style="font-size:14px;">← Retour</button><span style="font-size:16px;font-weight:700;color:var(--text-primary);">⚙️ Administration</span>`;
+  topbar.className = 'adm-topbar';
+  topbar.innerHTML = `<button class="adm-btn" id="admin-back-btn">← Retour</button><span class="adm-topbar-title"><span class="adm-pulse">⚙️</span> Administration</span><span class="adm-topbar-email">${currentUser?.email || ''}</span>`;
   topbar.querySelector('#admin-back-btn').onclick = () => {
     adminScreen.hidden = true;
     adminScreen.style.display = 'none';
@@ -132,11 +132,10 @@ function openAdminPanel() {
 
   // Sous-onglets
   const toolbar = document.createElement('div');
-  toolbar.style.cssText = 'display:flex;gap:4px;padding:10px 16px;border-bottom:1px solid var(--border);background:var(--bg-sidebar);flex-shrink:0;flex-wrap:wrap;';
+  toolbar.className = 'adm-tabs';
   [['monitoring','📊 Monitoring'],['sauvegarde','💾 Sauvegarde'],['utilisateurs','👥 Utilisateurs'],['logs','📋 Logs'],['maintenance','🔧 Maintenance']].forEach(([id, label]) => {
     const btn = document.createElement('button');
-    btn.className = 'h-btn';
-    btn.style.cssText = `padding:6px 12px;font-size:11px;border-radius:6px;${adminTab === id ? 'background:var(--accent);color:#fff;' : ''}`;
+    btn.className = 'adm-tab' + (adminTab === id ? ' adm-tab-active' : '');
     btn.textContent = label;
     btn.onclick = () => { adminTab = id; openAdminPanel(); };
     toolbar.appendChild(btn);

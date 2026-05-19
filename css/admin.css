@@ -1,0 +1,461 @@
+/* css/admin.css — Thème dashboard informaticien moderne (scoped #admin-screen) */
+
+/* ══════════════════════════════════════════════════════════════
+   VARIABLES & BASE
+   ══════════════════════════════════════════════════════════════ */
+#admin-screen {
+  --adm-bg: #080c10;
+  --adm-card: #0d1117;
+  --adm-border: #1e2d3d;
+  --adm-accent: #00d4ff;
+  --adm-green: #00ff88;
+  --adm-red: #ff3d3d;
+  --adm-orange: #ffaa00;
+  --adm-text: #e6edf3;
+  --adm-muted: #7d8590;
+  --adm-mono: 'Courier New', monospace;
+  background: var(--adm-bg) !important;
+  color: var(--adm-text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   TOPBAR
+   ══════════════════════════════════════════════════════════════ */
+#admin-screen .adm-topbar {
+  background: #080c10;
+  border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+#admin-screen .adm-topbar-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--adm-text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#admin-screen .adm-topbar-title .adm-pulse {
+  display: inline-block;
+  animation: adm-pulse 2s ease-in-out infinite;
+}
+
+@keyframes adm-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+#admin-screen .adm-topbar-email {
+  margin-left: auto;
+  font-family: var(--adm-mono);
+  font-size: 11px;
+  color: var(--adm-muted);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   TABS
+   ══════════════════════════════════════════════════════════════ */
+#admin-screen .adm-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--adm-border);
+  background: #0a0e14;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+#admin-screen .adm-tab {
+  padding: 6px 14px;
+  font-size: 11px;
+  border-radius: 6px;
+  border: 1px solid var(--adm-border);
+  background: transparent;
+  color: var(--adm-muted);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+#admin-screen .adm-tab:hover {
+  border-color: var(--adm-accent);
+  color: var(--adm-accent);
+}
+
+#admin-screen .adm-tab-active {
+  background: var(--adm-accent);
+  color: #000;
+  border-color: var(--adm-accent);
+  font-weight: 700;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   CARDS
+   ══════════════════════════════════════════════════════════════ */
+#admin-screen .adm-card {
+  background: var(--adm-card);
+  border: 1px solid var(--adm-border);
+  border-radius: 10px;
+  padding: 16px;
+  position: relative;
+  transition: box-shadow 0.2s;
+}
+
+#admin-screen .adm-card-ok {
+  box-shadow: 0 0 12px rgba(0, 255, 136, 0.08), inset 0 0 0 1px rgba(0, 255, 136, 0.1);
+}
+
+#admin-screen .adm-card-error {
+  box-shadow: 0 0 12px rgba(255, 61, 61, 0.12), inset 0 0 0 1px rgba(255, 61, 61, 0.15);
+}
+
+#admin-screen .adm-card-warning {
+  box-shadow: 0 0 12px rgba(255, 170, 0, 0.1), inset 0 0 0 1px rgba(255, 170, 0, 0.12);
+}
+
+#admin-screen .adm-status-badge {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--adm-mono);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+#admin-screen .adm-status-badge::before {
+  content: '●';
+  font-size: 8px;
+}
+
+#admin-screen .adm-status-online { color: var(--adm-green); }
+#admin-screen .adm-status-online::before { color: var(--adm-green); }
+#admin-screen .adm-status-error { color: var(--adm-red); }
+#admin-screen .adm-status-error::before { color: var(--adm-red); }
+#admin-screen .adm-status-warning { color: var(--adm-orange); }
+#admin-screen .adm-status-warning::before { color: var(--adm-orange); }
+
+#admin-screen .adm-card-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--adm-text);
+  margin-bottom: 10px;
+}
+
+#admin-screen .adm-big-number {
+  font-family: var(--adm-mono);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--adm-accent);
+}
+
+#admin-screen .adm-mono {
+  font-family: var(--adm-mono);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   GRID TABLES (monitoring)
+   ══════════════════════════════════════════════════════════════ */
+#admin-screen .adm-table-cell {
+  padding: 10px;
+  background: var(--adm-card);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+#admin-screen .adm-table-cell:hover {
+  border-color: var(--adm-accent);
+  box-shadow: 0 0 8px rgba(0, 212, 255, 0.15);
+}
+
+#admin-screen .adm-table-cell b {
+  color: var(--adm-text);
+  display: block;
+  margin-bottom: 4px;
+}
+
+#admin-screen .adm-table-cell .adm-count {
+  font-family: var(--adm-mono);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+#admin-screen .adm-table-cell .adm-count-ok { color: var(--adm-green); }
+#admin-screen .adm-table-cell .adm-count-zero { color: var(--adm-orange); }
+#admin-screen .adm-table-cell .adm-count-error { color: var(--adm-red); }
+
+/* ══════════════════════════════════════════════════════════════
+   LOGS (style terminal)
+   ══════════════════════════════════════════════════════════════ */
+#admin-screen .adm-logs-wrap {
+  background: #050810;
+  border: 1px solid var(--adm-border);
+  border-radius: 10px;
+  padding: 12px;
+  overflow: auto;
+}
+
+#admin-screen .adm-log-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: var(--adm-mono);
+  transition: background 0.1s;
+}
+
+#admin-screen .adm-log-row:hover {
+  background: rgba(0, 212, 255, 0.04);
+}
+
+#admin-screen .adm-log-time {
+  color: var(--adm-accent);
+  min-width: 90px;
+  font-size: 10px;
+}
+
+#admin-screen .adm-log-action {
+  font-weight: 700;
+  min-width: 120px;
+}
+
+#admin-screen .adm-log-action-login { color: var(--adm-green); }
+#admin-screen .adm-log-action-delete,
+#admin-screen .adm-log-action-suppression { color: var(--adm-red); }
+#admin-screen .adm-log-action-modif,
+#admin-screen .adm-log-action-update { color: var(--adm-orange); }
+#admin-screen .adm-log-action-default { color: #a0ffb0; }
+
+#admin-screen .adm-log-email {
+  flex: 1;
+  color: #a0ffb0;
+}
+
+#admin-screen .adm-log-station {
+  color: var(--adm-muted);
+  font-size: 10px;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SYNC ROWS
+   ══════════════════════════════════════════════════════════════ */
+#admin-screen .adm-sync-row {
+  padding: 8px 12px;
+  background: var(--adm-card);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-size: 11px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+#admin-screen .adm-sync-row:hover {
+  border-color: var(--adm-accent);
+  box-shadow: 0 0 6px rgba(0, 212, 255, 0.1);
+}
+
+#admin-screen .adm-sync-ok { color: var(--adm-green); font-family: var(--adm-mono); }
+#admin-screen .adm-sync-warn { color: var(--adm-orange); font-family: var(--adm-mono); }
+#admin-screen .adm-sync-err { color: var(--adm-red); font-family: var(--adm-mono); }
+
+/* ══════════════════════════════════════════════════════════════
+   BUTTONS
+   ══════════════════════════════════════════════════════════════ */
+#admin-screen .adm-btn {
+  padding: 6px 14px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 6px;
+  border: 1px solid var(--adm-accent);
+  background: transparent;
+  color: var(--adm-accent);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+#admin-screen .adm-btn:hover {
+  background: rgba(0, 212, 255, 0.1);
+  box-shadow: 0 0 8px rgba(0, 212, 255, 0.2);
+}
+
+#admin-screen .adm-btn-green {
+  border-color: var(--adm-green);
+  color: var(--adm-green);
+}
+
+#admin-screen .adm-btn-green:hover {
+  background: rgba(0, 255, 136, 0.1);
+  box-shadow: 0 0 8px rgba(0, 255, 136, 0.2);
+}
+
+#admin-screen .adm-btn-red {
+  border-color: var(--adm-red);
+  color: var(--adm-red);
+}
+
+#admin-screen .adm-btn-red:hover {
+  background: rgba(255, 61, 61, 0.1);
+  box-shadow: 0 0 8px rgba(255, 61, 61, 0.2);
+}
+
+#admin-screen .adm-btn-orange {
+  border-color: var(--adm-orange);
+  color: var(--adm-orange);
+}
+
+#admin-screen .adm-btn-orange:hover {
+  background: rgba(255, 170, 0, 0.1);
+  box-shadow: 0 0 8px rgba(255, 170, 0, 0.2);
+}
+
+#admin-screen .adm-btn-filled {
+  background: var(--adm-accent);
+  color: #000;
+  border-color: var(--adm-accent);
+  font-weight: 700;
+}
+
+#admin-screen .adm-btn-filled:hover {
+  background: #33e0ff;
+  box-shadow: 0 0 12px rgba(0, 212, 255, 0.4);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   USER ROWS (utilisateurs)
+   ══════════════════════════════════════════════════════════════ */
+#admin-screen .adm-user-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--adm-card);
+  border: 1px solid var(--adm-border);
+  border-radius: 8px;
+  font-size: 12px;
+  transition: border-color 0.15s;
+}
+
+#admin-screen .adm-user-row:hover {
+  border-color: var(--adm-accent);
+}
+
+#admin-screen .adm-badge-actif {
+  background: var(--adm-green);
+  color: #000;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+#admin-screen .adm-badge-alumni {
+  background: #6b7280;
+  color: #fff;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MAINTENANCE
+   ══════════════════════════════════════════════════════════════ */
+#admin-screen .adm-maint-active {
+  color: var(--adm-red);
+  font-family: var(--adm-mono);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+#admin-screen .adm-maint-inactive {
+  color: var(--adm-green);
+  font-family: var(--adm-mono);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MODALS
+   ══════════════════════════════════════════════════════════════ */
+#admin-screen .adm-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(2px);
+}
+
+#admin-screen .adm-modal {
+  background: var(--adm-card);
+  border: 1px solid var(--adm-border);
+  border-radius: 14px;
+  padding: 24px;
+  max-width: 700px;
+  width: 90%;
+  max-height: 80vh;
+  overflow: auto;
+  box-shadow: 0 0 40px rgba(0, 212, 255, 0.1);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   INPUTS (scoped admin)
+   ══════════════════════════════════════════════════════════════ */
+#admin-screen input[type="text"],
+#admin-screen input[type="date"],
+#admin-screen input[type="file"],
+#admin-screen select {
+  background: #0a0e14;
+  border: 1px solid var(--adm-border);
+  color: var(--adm-text);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 12px;
+  transition: border-color 0.15s;
+}
+
+#admin-screen input[type="text"]:focus,
+#admin-screen input[type="date"]:focus,
+#admin-screen select:focus {
+  border-color: var(--adm-accent);
+  outline: none;
+  box-shadow: 0 0 6px rgba(0, 212, 255, 0.15);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SCROLLBAR (admin only)
+   ══════════════════════════════════════════════════════════════ */
+#admin-screen ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+#admin-screen ::-webkit-scrollbar-track {
+  background: var(--adm-bg);
+}
+
+#admin-screen ::-webkit-scrollbar-thumb {
+  background: var(--adm-border);
+  border-radius: 3px;
+}
+
+#admin-screen ::-webkit-scrollbar-thumb:hover {
+  background: var(--adm-accent);
+}

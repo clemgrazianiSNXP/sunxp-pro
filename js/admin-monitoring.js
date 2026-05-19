@@ -8,12 +8,12 @@ async function renderAdminMonitoring(container) {
 
   // Test connexion
   const connCard = document.createElement('div');
-  connCard.style.cssText = 'background:var(--bg-sidebar);border:1px solid var(--border);border-radius:10px;padding:16px;';
   let connected = false;
   try {
     if (sb()) { const { error } = await sb().from('stations').select('id').limit(1); connected = !error; }
   } catch (_) {}
-  connCard.innerHTML = `<div style="font-size:14px;font-weight:700;margin-bottom:8px;">Connexion Supabase</div><div style="font-size:24px;">${connected ? '🟢 Connecté' : '🔴 Déconnecté'}</div>`;
+  connCard.className = 'adm-card ' + (connected ? 'adm-card-ok' : 'adm-card-error');
+  connCard.innerHTML = `<span class="adm-status-badge ${connected ? 'adm-status-online' : 'adm-status-error'}">${connected ? 'ONLINE' : 'OFFLINE'}</span><div class="adm-card-title">Connexion Supabase</div><div class="adm-big-number">${connected ? '🟢' : '🔴'}</div>`;
   wrap.appendChild(connCard);
 
   // Statut tables + alertes
