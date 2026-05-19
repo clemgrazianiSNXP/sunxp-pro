@@ -245,3 +245,11 @@ function openGame(gameId) {
     alert('🎮 Ce jeu arrive bientôt !');
   }
 }
+
+// Exports globaux
+window.initGamesPage = initGamesPage;
+window.openGame = openGame;
+window.saveScore = saveScore;
+window.loadStationScores = loadStationScores;
+window.getPlayerRank = getPlayerRank;
+window.getPlayerScore = getPlayerScore;
