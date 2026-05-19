@@ -1194,25 +1194,24 @@ body.theme-neon {
   --bg-sidebar: #0a0a1a;
   --bg-tab-active: #1a0a2a;
   --bg-tab-hover: #0f0a1f;
-  --accent: #ff00ff;
-  --accent-dim: rgba(255,0,255,0.15);
-  --border: rgba(255,0,255,0.3);
+  --accent-dim: color-mix(in srgb, var(--accent) 15%, transparent);
+  --border: color-mix(in srgb, var(--accent) 30%, transparent);
   --text-primary: #e0e0ff;
   --text-muted: #8080b0;
 }
 body.theme-neon .portal-card,
 body.theme-neon .station-card,
 body.theme-neon .rep-form-box {
-  border: 1px solid rgba(255,0,255,0.3) !important;
-  box-shadow: 0 0 10px rgba(255,0,255,0.1);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent) !important;
+  box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 20%, transparent);
 }
 body.theme-neon .rep-btn-primary,
 body.theme-neon .h-btn:hover {
   box-shadow: 0 0 12px var(--accent);
 }
 body.theme-neon .h-table th {
-  color: #ff00ff !important;
-  text-shadow: 0 0 8px #ff00ff;
+  color: var(--accent) !important;
+  text-shadow: 0 0 8px var(--accent);
 }
 
 /* ══════════════════════════════════════════════════════════════

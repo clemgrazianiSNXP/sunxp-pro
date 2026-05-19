@@ -83,34 +83,16 @@ function renderParametres() {
   modeBtn.className = 'menu-param-btn';
   modeBtn.textContent = isLight ? '🌙 Passer en mode sombre' : '☀️ Passer en mode clair';
   modeBtn.onclick = () => {
+    // Retirer tous les thèmes custom avant de toggler
+    document.body.classList.remove('theme-blue', 'theme-green', 'theme-glass', 'theme-neon', 'theme-minimal', 'theme-soft', 'theme-warm', 'theme-cubic');
     document.body.classList.toggle('light-mode');
     localStorage.setItem('sunxp-theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
     // Réappliquer les couleurs custom après le toggle
     const savedAccent = localStorage.getItem('sunxp-accent');
-    if (savedAccent) {
-      applyAccentColor(savedAccent);
-    } else {
-      // Retirer l'override inline pour laisser le CSS du thème s'appliquer
-      document.body.style.removeProperty('--accent');
-      document.body.style.removeProperty('--accent-dim');
-      document.documentElement.style.removeProperty('--accent');
-      document.documentElement.style.removeProperty('--accent-dim');
-    }
+    if (savedAccent) applyAccentColor(savedAccent);
     const savedBg = localStorage.getItem('sunxp-bg');
-    if (savedBg) {
-      applyBgColor(savedBg);
-    } else {
-      document.body.style.removeProperty('--bg-primary');
-      document.body.style.removeProperty('--bg-sidebar');
-      document.body.style.removeProperty('--bg-tab-hover');
-      document.body.style.removeProperty('--bg-tab-active');
-      document.documentElement.style.removeProperty('--bg-primary');
-      document.documentElement.style.removeProperty('--bg-sidebar');
-      document.documentElement.style.removeProperty('--bg-tab-hover');
-      document.documentElement.style.removeProperty('--bg-tab-active');
-    }
+    if (savedBg) applyBgColor(savedBg);
     if (typeof setMenuTab === 'function') setMenuTab('parametres');
-    // Re-render heures pour adapter les couleurs au nouveau mode
     if (typeof renderHeures === 'function' && document.getElementById('module-heures')) {
       if (typeof heuresFirstRender !== 'undefined') heuresFirstRender = true;
       renderHeures();
@@ -303,9 +285,23 @@ function lighten(hex, amount) {
 }
 
 function applyTheme(theme) {
+  // Retirer toutes les classes de thème
   document.body.classList.remove('light-mode', 'theme-blue', 'theme-green', 'theme-glass', 'theme-neon', 'theme-minimal', 'theme-soft', 'theme-warm', 'theme-cubic');
+  // Retirer tous les overrides inline de couleur
+  ['--bg-primary','--bg-sidebar','--bg-tab-hover','--bg-tab-active','--accent','--accent-dim'].forEach(p => {
+    document.body.style.removeProperty(p);
+    document.documentElement.style.removeProperty(p);
+  });
+  localStorage.removeItem('sunxp-bg');
+  // Appliquer la classe du thème
   if (theme.cls) document.body.classList.add(theme.cls);
   localStorage.setItem('sunxp-theme', theme.id);
+  // Pour le thème neon, appliquer l'accent custom ou défaut magenta
+  if (theme.id === 'neon') {
+    const savedAccent = localStorage.getItem('sunxp-accent') || '#ff00ff';
+    applyAccentColor(savedAccent);
+  }
+  // Rafraîchir le panneau
   if (typeof setMenuTab === 'function') setMenuTab('parametres');
 }
 
@@ -319,14 +315,22 @@ function applyFont(font) {
 // Appliquer les préférences sauvegardées au chargement
 document.addEventListener('DOMContentLoaded', () => {
   const savedTheme = localStorage.getItem('sunxp-theme');
-  if (savedTheme) {
+  const isCustomTheme = savedTheme && ['glassmorphism','neon','minimal','soft','warm','cubic'].includes(savedTheme);
+  if (isCustomTheme) {
     const t = THEMES.find(th => th.id === savedTheme);
     if (t && t.cls) document.body.classList.add(t.cls);
+    // Pour neon, appliquer l'accent
+    if (savedTheme === 'neon') {
+      const savedAccent = localStorage.getItem('sunxp-accent') || '#ff00ff';
+      applyAccentColor(savedAccent);
+    }
+  } else {
+    if (savedTheme === 'light') document.body.classList.add('light-mode');
+    const savedAccent = localStorage.getItem('sunxp-accent');
+    if (savedAccent) applyAccentColor(savedAccent);
+    const savedBg = localStorage.getItem('sunxp-bg');
+    if (savedBg) applyBgColor(savedBg);
   }
-  const savedAccent = localStorage.getItem('sunxp-accent');
-  if (savedAccent) applyAccentColor(savedAccent);
-  const savedBg = localStorage.getItem('sunxp-bg');
-  if (savedBg) applyBgColor(savedBg);
   const savedFont = localStorage.getItem('sunxp-font');
   if (savedFont) {
     const f = FONTS.find(fo => fo.id === savedFont);
