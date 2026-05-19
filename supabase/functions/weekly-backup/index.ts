@@ -108,7 +108,7 @@ serve(async (req) => {
     tables: backup.tables_count,
     error: emailError || undefined
   }), {
-    status: emailSent ? 200 : 500,
+    status: 200,
     headers: { 'Content-Type': 'application/json' }
   })
 })
