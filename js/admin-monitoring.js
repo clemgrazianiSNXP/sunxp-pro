@@ -86,60 +86,89 @@ async function renderAdminMonitoring(container) {
     tableCard.appendChild(grid);
     wrap.appendChild(tableCard);
 
-    // Vérification sync localStorage vs Supabase
+    // Vérification sync localStorage vs Supabase (exhaustive)
     const syncCard = document.createElement('div');
     syncCard.style.cssText = 'background:var(--bg-sidebar);border:1px solid var(--border);border-radius:10px;padding:16px;';
     syncCard.innerHTML = '<div style="font-size:14px;font-weight:700;margin-bottom:12px;">🔄 Sync localStorage ↔ Supabase</div>';
     const syncGrid = document.createElement('div');
-    syncGrid.style.cssText = 'display:flex;flex-direction:column;gap:6px;';
+    syncGrid.style.cssText = 'display:flex;flex-direction:column;gap:4px;';
 
     const { data: stationsData } = await sb().from('stations').select('id, nom');
     const stationsList = stationsData || [];
 
+    // Mapping complet : table Supabase → { prefix, type }
+    // type: 'array' = localStorage est un JSON array, 'multi' = plusieurs clés, 'single' = une seule clé
+    const SYNC_MAP = [
+      { table: 'chauffeurs', label: 'Chauffeurs', lsKey: sid => sid + '-repertoire', type: 'array' },
+      { table: 'responsables', label: 'Responsables', lsKey: sid => sid + '-responsables', type: 'array' },
+      { table: 'heures', label: 'Heures', prefix: sid => sid + '-heures-', type: 'multi' },
+      { table: 'planning', label: 'Planning', prefix: sid => sid + '-planning-', exclude: ['-meta-', '-published'], type: 'multi' },
+      { table: 'planning_meta', label: 'Planning Meta', prefix: sid => sid + '-planning-meta-', type: 'multi' },
+      { table: 'planning_published', label: 'Planning Published', lsKey: sid => sid + '-planning-published', type: 'single' },
+      { table: 'primes', label: 'Primes', prefix: sid => sid + '-primes-', type: 'multi' },
+      { table: 'stats', label: 'Stats', prefix: sid => sid + '-stats-', type: 'multi' },
+      { table: 'camions', label: 'Camions', lsKey: sid => sid + '-camions', type: 'single' },
+      { table: 'degats', label: 'Dégâts', lsKey: sid => sid + '-degats', type: 'array' },
+      { table: 'acomptes', label: 'Acomptes', lsKey: sid => sid + '-acomptes', type: 'single' },
+      { table: 'repos_demandes', label: 'Repos Demandes', lsKey: sid => sid + '-repos-demandes', type: 'single' },
+      { table: 'conges_payes', label: 'Congés Payés', lsKey: sid => sid + '-conges-payes', type: 'single' },
+      { table: 'cles_codes', label: 'Clés & Codes', lsKey: sid => sid + '-cles-codes', type: 'single' },
+      { table: 'eos', label: 'EOS', prefix: sid => sid + '-eos-', type: 'multi' },
+      { table: 'concessions', label: 'Concessions', prefix: sid => sid + '-concessions-', type: 'multi' },
+      { table: 'retards', label: 'Retards', prefix: sid => sid + '-retards-', type: 'multi' },
+      { table: 'activite', label: 'Activité', prefix: sid => sid + '-activite-', type: 'multi' }
+    ];
+
     let syncIssues = 0;
+
     for (const station of stationsList) {
       const sid = station.id;
 
-      // Vérifier chauffeurs
-      const localCh = (() => { try { const r = localStorage.getItem(sid + '-repertoire'); return r ? JSON.parse(r) : []; } catch(_) { return []; } })();
-      const { count: sbChCount } = await sb().from('chauffeurs').select('*', { count: 'exact', head: true }).eq('station_id', sid);
-      const chSync = localCh.length === (sbChCount || 0);
-      if (!chSync) syncIssues++;
-      const chDiv = document.createElement('div');
-      chDiv.style.cssText = 'padding:6px 10px;background:var(--bg-primary);border-radius:6px;font-size:11px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;border:1px solid transparent;transition:border-color 0.15s;';
-      chDiv.innerHTML = `<span><b>${station.nom}</b> — Chauffeurs</span><span style="color:${chSync ? '#4ade80' : '#f87171'};">${chSync ? '✅' : '⚠️'} Local: ${localCh.length} | Supabase: ${sbChCount || 0}</span>`;
-      chDiv.onmouseenter = () => chDiv.style.borderColor = 'var(--accent)';
-      chDiv.onmouseleave = () => chDiv.style.borderColor = 'transparent';
-      chDiv.onclick = () => showSyncDetail('chauffeurs', sid, station.nom, localCh.length, sbChCount || 0);
-      syncGrid.appendChild(chDiv);
+      for (const mapping of SYNC_MAP) {
+        let localCount = 0;
+        let sbCount = 0;
 
-      // Vérifier heures
-      let localHeuresCount = 0;
-      for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.startsWith(sid + '-heures-')) localHeuresCount++; }
-      const { count: sbHeuresCount } = await sb().from('heures').select('*', { count: 'exact', head: true }).eq('station_id', sid);
-      const hSync = localHeuresCount === (sbHeuresCount || 0);
-      if (!hSync) syncIssues++;
-      const hDiv = document.createElement('div');
-      hDiv.style.cssText = 'padding:6px 10px;background:var(--bg-primary);border-radius:6px;font-size:11px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;border:1px solid transparent;transition:border-color 0.15s;';
-      hDiv.innerHTML = `<span><b>${station.nom}</b> — Heures</span><span style="color:${hSync ? '#4ade80' : '#fbbf24'};">${hSync ? '✅' : '⚠️'} Local: ${localHeuresCount} | Supabase: ${sbHeuresCount || 0}</span>`;
-      hDiv.onmouseenter = () => hDiv.style.borderColor = 'var(--accent)';
-      hDiv.onmouseleave = () => hDiv.style.borderColor = 'transparent';
-      hDiv.onclick = () => showSyncDetail('heures', sid, station.nom, localHeuresCount, sbHeuresCount || 0);
-      syncGrid.appendChild(hDiv);
+        try {
+          // Compter localStorage
+          if (mapping.type === 'multi') {
+            const pfx = mapping.prefix(sid);
+            for (let i = 0; i < localStorage.length; i++) {
+              const k = localStorage.key(i);
+              if (k && k.startsWith(pfx)) {
+                if (mapping.exclude) {
+                  const excluded = mapping.exclude.some(ex => k.includes(ex));
+                  if (!excluded) localCount++;
+                } else {
+                  localCount++;
+                }
+              }
+            }
+          } else if (mapping.type === 'array') {
+            const raw = localStorage.getItem(mapping.lsKey(sid));
+            if (raw) { try { localCount = JSON.parse(raw).length || 0; } catch(_) {} }
+          } else if (mapping.type === 'single') {
+            if (localStorage.getItem(mapping.lsKey(sid))) localCount = 1;
+          }
 
-      // Vérifier planning
-      let localPlanCount = 0;
-      for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.startsWith(sid + '-planning-') && !k.includes('-meta-')) localPlanCount++; }
-      const { count: sbPlanCount } = await sb().from('planning').select('*', { count: 'exact', head: true }).eq('station_id', sid);
-      const pSync = localPlanCount === (sbPlanCount || 0);
-      if (!pSync) syncIssues++;
-      const pDiv = document.createElement('div');
-      pDiv.style.cssText = 'padding:6px 10px;background:var(--bg-primary);border-radius:6px;font-size:11px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;border:1px solid transparent;transition:border-color 0.15s;';
-      pDiv.innerHTML = `<span><b>${station.nom}</b> — Planning</span><span style="color:${pSync ? '#4ade80' : '#fbbf24'};">${pSync ? '✅' : '⚠️'} Local: ${localPlanCount} | Supabase: ${sbPlanCount || 0}</span>`;
-      pDiv.onmouseenter = () => pDiv.style.borderColor = 'var(--accent)';
-      pDiv.onmouseleave = () => pDiv.style.borderColor = 'transparent';
-      pDiv.onclick = () => showSyncDetail('planning', sid, station.nom, localPlanCount, sbPlanCount || 0);
-      syncGrid.appendChild(pDiv);
+          // Compter Supabase
+          const { count, error } = await sb().from(mapping.table).select('*', { count: 'exact', head: true }).eq('station_id', sid);
+          if (!error) sbCount = count || 0;
+        } catch (_) {}
+
+        // Ne pas afficher si les deux sont à 0
+        if (localCount === 0 && sbCount === 0) continue;
+
+        const isSync = (mapping.type === 'array' || mapping.type === 'single') ? (localCount > 0) === (sbCount > 0) : localCount === sbCount;
+        if (!isSync) syncIssues++;
+
+        const row = document.createElement('div');
+        row.style.cssText = 'padding:5px 10px;background:var(--bg-primary);border-radius:6px;font-size:10px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;border:1px solid transparent;transition:border-color 0.15s;';
+        row.innerHTML = `<span><b>${station.nom}</b> — ${mapping.label}</span><span style="color:${isSync ? '#4ade80' : '#f87171'};font-family:monospace;">${isSync ? '✅' : '⚠️'} L:${localCount} | S:${sbCount}</span>`;
+        row.onmouseenter = () => row.style.borderColor = 'var(--accent)';
+        row.onmouseleave = () => row.style.borderColor = 'transparent';
+        row.onclick = () => showSyncDetail(mapping.table, sid, station.nom, localCount, sbCount);
+        syncGrid.appendChild(row);
+      }
     }
 
     // Résumé sync
