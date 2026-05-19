@@ -103,14 +103,18 @@ function initGamesPage() {
   // Hide portal
   const portalScreen = document.getElementById('chauffeur-portal');
   if (portalScreen) portalScreen.style.display = 'none';
+  // Also hide the app layout if visible
+  const appLayout = document.querySelector('.app-layout');
+  if (appLayout) appLayout.style.display = 'none';
 
   let gamesScreen = document.getElementById('games-screen');
   if (!gamesScreen) {
     gamesScreen = document.createElement('div');
     gamesScreen.id = 'games-screen';
-    gamesScreen.style.cssText = 'position:fixed;inset:0;z-index:9998;background:var(--bg-primary);display:flex;flex-direction:column;overflow:hidden;';
+    gamesScreen.style.cssText = 'position:fixed;inset:0;z-index:99990;background:var(--bg-primary);display:flex;flex-direction:column;overflow:hidden;';
     document.body.appendChild(gamesScreen);
   }
+  gamesScreen.hidden = false;
   gamesScreen.style.display = 'flex';
   gamesScreen.innerHTML = '';
 
@@ -119,7 +123,12 @@ function initGamesPage() {
   header.style.cssText = 'display:flex;align-items:center;gap:12px;padding:14px 20px;background:var(--bg-sidebar);border-bottom:1px solid var(--border);flex-shrink:0;';
   const backBtn = document.createElement('button');
   backBtn.className = 'h-btn'; backBtn.textContent = '← Retour';
-  backBtn.onclick = () => { gamesScreen.style.display = 'none'; if (portalScreen) portalScreen.style.display = ''; };
+  backBtn.onclick = () => { 
+    gamesScreen.style.display = 'none'; 
+    if (portalScreen) portalScreen.style.display = ''; 
+    // Re-render portal
+    if (typeof renderPortal === 'function') renderPortal();
+  };
   header.appendChild(backBtn);
   const title = document.createElement('span');
   title.style.cssText = 'font-size:16px;font-weight:700;color:var(--text-primary);';
