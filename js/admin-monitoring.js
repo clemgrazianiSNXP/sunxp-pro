@@ -16,6 +16,39 @@ async function renderAdminMonitoring(container) {
   connCard.innerHTML = `<span class="adm-status-badge ${connected ? 'adm-status-online' : 'adm-status-error'}">${connected ? 'ONLINE' : 'OFFLINE'}</span><div class="adm-card-title">Connexion Supabase</div><div class="adm-big-number">${connected ? '🟢' : '🔴'}</div>`;
   wrap.appendChild(connCard);
 
+  // Card Activité par station
+  if (connected) {
+    const actCard = document.createElement('div');
+    actCard.style.cssText = 'background:var(--bg-sidebar);border:1px solid var(--border);border-radius:10px;padding:16px;';
+    actCard.innerHTML = '<div style="font-size:14px;font-weight:700;margin-bottom:12px;">📍 Activité par station</div>';
+    try {
+      const { data: stList } = await sb().from('stations').select('id, nom');
+      const stationsAct = stList || [];
+      const actGrid = document.createElement('div');
+      actGrid.style.cssText = 'display:flex;flex-direction:column;gap:6px;';
+      for (const st of stationsAct) {
+        const { data: lastLog } = await sb().from('activity_logs').select('*').eq('station_id', st.id).order('created_at', { ascending: false }).limit(1);
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--bg-primary);border-radius:6px;font-size:11px;';
+        if (lastLog && lastLog.length) {
+          const log = lastLog[0];
+          const logDate = new Date(log.created_at);
+          const hoursAgo = (Date.now() - logDate.getTime()) / (1000 * 60 * 60);
+          let color = '#4ade80'; // vert < 24h
+          if (hoursAgo > 72) color = '#f87171'; // rouge > 3 jours
+          else if (hoursAgo > 24) color = '#fbbf24'; // orange > 24h
+          const dateStr = logDate.toLocaleString('fr-FR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+          row.innerHTML = `<span style="font-weight:700;color:var(--text-primary);">${st.nom}</span><span style="color:${color};font-family:monospace;font-size:10px;">${dateStr} · ${log.email || '?'} · ${log.action || '?'}</span>`;
+        } else {
+          row.innerHTML = `<span style="font-weight:700;color:var(--text-primary);">${st.nom}</span><span style="color:var(--text-muted);font-style:italic;font-size:10px;">Aucune activité enregistrée</span>`;
+        }
+        actGrid.appendChild(row);
+      }
+      actCard.appendChild(actGrid);
+    } catch (_) { actCard.innerHTML += '<p style="color:#f87171;font-size:11px;">Erreur chargement activité</p>'; }
+    wrap.appendChild(actCard);
+  }
+
   // Statut tables + alertes
   if (connected) {
     const tables = ['stations','chauffeurs','heures','stats','primes','activite','planning','planning_meta','degats','camions','repos_demandes','acomptes','conges_payes','user_profiles','push_subscriptions','activity_logs','app_settings'];
