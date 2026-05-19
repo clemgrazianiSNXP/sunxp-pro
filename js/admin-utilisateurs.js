@@ -5,9 +5,79 @@ async function renderAdminUtilisateurs(container) {
   container.innerHTML = '<p style="color:var(--text-muted);">Chargement...</p>';
   try {
     const { data: profiles } = await sb().from('user_profiles').select('*');
+
+    // ── Section "Chauffeurs sans compte" ──
+    const { data: allChauffeurs } = await sb().from('chauffeurs').select('*');
+    const profileIds = (profiles || []).map(p => p.chauffeur_id).filter(Boolean);
+    const sansCompte = (allChauffeurs || []).filter(c => c.email && c.id_amazon && !profileIds.includes(c.id_amazon));
+
     const wrap = document.createElement('div');
     wrap.style.cssText = 'display:flex;flex-direction:column;gap:8px;';
-    wrap.innerHTML = `<div style="font-size:14px;font-weight:700;margin-bottom:8px;">👥 Comptes utilisateurs (${(profiles||[]).length})</div>`;
+
+    if (sansCompte.length > 0) {
+      const scSection = document.createElement('div');
+      scSection.style.cssText = 'background:var(--bg-sidebar);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px;';
+      scSection.innerHTML = `<div style="font-size:13px;font-weight:700;color:#fbbf24;margin-bottom:10px;">⚠️ Chauffeurs sans compte (${sansCompte.length})</div>`;
+      const scList = document.createElement('div');
+      scList.style.cssText = 'display:flex;flex-direction:column;gap:6px;';
+
+      sansCompte.forEach(c => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 8px;background:var(--bg-primary);border-radius:6px;font-size:11px;';
+        row.innerHTML = `
+          <span style="font-weight:700;flex:1;color:var(--text-primary);">${c.prenom || ''} ${c.nom || ''}</span>
+          <span style="color:var(--text-muted);font-size:10px;">${c.station_id || ''}</span>
+          <span style="color:var(--accent);font-size:10px;font-family:monospace;">${c.id_amazon || ''}</span>
+          <span style="color:var(--text-muted);font-size:10px;">${c.email || ''}</span>
+        `;
+        const createBtn = document.createElement('button');
+        createBtn.className = 'h-btn';
+        createBtn.style.cssText = 'font-size:9px;padding:3px 8px;color:#4ade80;border-color:#4ade80;white-space:nowrap;';
+        createBtn.textContent = '+ Créer le compte';
+        createBtn.onclick = async () => {
+          const email = c.email;
+          const amazonPart = (c.id_amazon || '').slice(0, 4);
+          const telDigits = (c.telephone || '').replace(/\D/g, '');
+          const telPart = telDigits.slice(-4);
+          const mdp = amazonPart + telPart;
+          if (mdp.length < 6) { alert('Impossible : mot de passe trop court (ID Amazon ou téléphone manquant)'); return; }
+          createBtn.textContent = '⏳...'; createBtn.disabled = true;
+          try {
+            // Créer le compte via un client séparé
+            const signUpClient = window.supabase.createClient(
+              'https://uqgwmrvtjulpbblucrht.supabase.co',
+              'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVxZ3dtcnZ0anVscGJibHVjcmh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3ODA0MDcsImV4cCI6MjA5MjM1NjQwN30.h1NkKsNuqFubREY0Zzt2VIJYqjJHKn14BUALocVwk5s',
+              { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } }
+            );
+            const { data: signUpData, error: signUpErr } = await signUpClient.auth.signUp({
+              email: email,
+              password: mdp,
+              options: { data: { nom: c.nom, prenom: c.prenom, role: 'chauffeur' } }
+            });
+            if (signUpErr) { alert('Erreur: ' + signUpErr.message); createBtn.textContent = '+ Créer le compte'; createBtn.disabled = false; return; }
+            const userId = signUpData?.user?.id;
+            if (signUpData?.user?.identities?.length === 0) { alert('Ce compte existe déjà: ' + email); createBtn.textContent = '⚠️ Existe'; createBtn.disabled = false; return; }
+            // Insérer dans user_profiles
+            if (userId) {
+              await sb().from('user_profiles').upsert({
+                id: userId, role: 'chauffeur', station_id: c.station_id || '',
+                chauffeur_id: c.id_amazon || '', nom: c.nom || '', prenom: c.prenom || ''
+              });
+            }
+            createBtn.textContent = '✅ Créé';
+            createBtn.style.color = '#4ade80';
+            if (window.logActivity) window.logActivity('admin_create_account', { email, nom: c.prenom + ' ' + c.nom, station: c.station_id });
+          } catch (err) { alert('Erreur: ' + err.message); createBtn.textContent = '+ Créer le compte'; createBtn.disabled = false; }
+        };
+        row.appendChild(createBtn);
+        scList.appendChild(row);
+      });
+
+      scSection.appendChild(scList);
+      wrap.appendChild(scSection);
+    }
+
+    wrap.innerHTML += `<div style="font-size:14px;font-weight:700;margin-bottom:8px;">👥 Comptes utilisateurs (${(profiles||[]).length})</div>`;
     if (profiles && profiles.length) {
       profiles.forEach(p => {
         const div = document.createElement('div');
