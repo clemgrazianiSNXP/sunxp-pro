@@ -109,7 +109,7 @@ function initGamesPage() {
   if (!gamesScreen) {
     gamesScreen = document.createElement('div');
     gamesScreen.id = 'games-screen';
-    gamesScreen.style.cssText = 'position:fixed;inset:0;z-index:99990;background:var(--bg-primary,#12121a);display:flex;flex-direction:column;overflow:hidden;';
+    gamesScreen.style.cssText = 'position:fixed;inset:0;z-index:99990;background:var(--bg-primary,#12121a);display:flex;flex-direction:column;overflow-y:auto;min-height:100vh;';
     document.body.appendChild(gamesScreen);
   }
   gamesScreen.hidden = false;
