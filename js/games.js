@@ -153,8 +153,6 @@ function buildGamesContent(container) {
   ];
 
   let cardsHtml = games.map(function(g) {
-    const scores = loadLocalScores(portalStationId || '', g.id);
-    const top3 = scores.slice(0, 3);
     const myScore = typeof getPlayerScore === 'function' ? getPlayerScore(g.id) : 0;
     return '<div style="background:var(--bg-sidebar);border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center;position:relative;">'
       + '<button onclick="event.stopPropagation();toggleGameInfo(\'' + g.id + '\')" style="position:absolute;top:6px;right:6px;width:20px;height:20px;background:rgba(255,255,255,0.1);border:1px solid var(--border);border-radius:50%;color:var(--text-muted);font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;">ℹ</button>'
@@ -169,11 +167,6 @@ function buildGamesContent(container) {
       + (myScore > 0 ? '<div style="font-size:9px;color:#fbbf24;margin-top:2px;">🏆 ' + myScore + '</div>' : '')
       + '<button style="margin-top:6px;padding:3px 10px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:9px;cursor:pointer;">▶ Jouer</button>'
       + '</div>'
-      + '<details style="margin-top:6px;text-align:left;" onclick="event.stopPropagation();">'
-      + '<summary style="font-size:9px;color:var(--text-muted);cursor:pointer;">🏆 Classement</summary>'
-      + '<div style="margin-top:4px;">'
-      + (top3.length > 0 ? top3.map(function(s,i){return '<div style="display:flex;justify-content:space-between;font-size:9px;padding:2px 0;border-bottom:1px solid rgba(255,255,255,0.05);"><span>' + (i===0?'🥇':i===1?'🥈':'🥉') + ' ' + (s.chauffeur_nom||'?').split(' ')[0] + '</span><span style="color:#fbbf24;">' + s.score + '</span></div>';}).join('') : '<div style="font-size:9px;color:#6b7280;">Aucun score</div>')
-      + '</div></details>'
       + '</div>';
   }).join('');
 
@@ -197,19 +190,52 @@ function buildGamesContent(container) {
         <div style="font-size:16px;font-weight:900;margin-top:6px;background:linear-gradient(90deg,#f97316,#fbbf24);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">LIVREUR PARFAIT</div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Le défi ultime — 5 étapes enchaînées</div>
         <button style="margin-top:10px;padding:8px 20px;background:linear-gradient(135deg,#f97316,#ef4444);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">⚡ RELEVER LE DÉFI</button>
-        <details style="margin-top:10px;text-align:left;" onclick="event.stopPropagation();">
-          <summary style="font-size:10px;color:#d1d5db;cursor:pointer;">🏆 Classement Station</summary>
-          <div id="lp-leaderboard" style="margin-top:6px;"></div>
-        </details>
+      </div>
+      <div style="margin-top:20px;">
+        <div style="font-size:16px;font-weight:700;margin-bottom:12px;">🏆 Classements Station</div>
+        <div id="games-leaderboards" style="display:flex;flex-direction:column;gap:8px;">
+          <p style="font-size:11px;color:var(--text-muted);">Chargement...</p>
+        </div>
       </div>
     </div>
   `;
-  // Load livreur-parfait leaderboard
-  var lpScores = loadLocalScores(portalStationId || '', 'livreur-parfait').slice(0, 5);
-  var lpEl = document.getElementById('lp-leaderboard');
-  if (lpEl) {
-    lpEl.innerHTML = lpScores.length > 0 ? lpScores.map(function(s,i){return '<div style="display:flex;justify-content:space-between;font-size:10px;padding:2px 0;border-bottom:1px solid rgba(255,255,255,0.05);"><span>' + (i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)+'.') + ' ' + (s.chauffeur_nom||'?') + '</span><span style="color:#fbbf24;">' + s.score + '</span></div>';}).join('') : '<div style="font-size:9px;color:#6b7280;">Aucun score</div>';
+  // Load leaderboards from Supabase
+  loadAllLeaderboards(games.concat([{id:'livreur-parfait',icon:'🎯',name:'Livreur Parfait'}]));
+}
+
+async function loadAllLeaderboards(games) {
+  const container = document.getElementById('games-leaderboards');
+  if (!container) return;
+  const sid = (typeof portalStationId !== 'undefined' && portalStationId) ? portalStationId : '';
+  if (!sid) { container.innerHTML = '<p style="font-size:11px;color:#6b7280;">Station non définie</p>'; return; }
+
+  let allScores = [];
+  // Try Supabase first
+  if (typeof sb === 'function' && sb()) {
+    try {
+      const { data } = await sb().from('game_scores').select('*').eq('station_id', sid).order('score', { ascending: false });
+      if (data) allScores = data;
+    } catch(_) {}
   }
+
+  let html = '';
+  games.forEach(function(g) {
+    const gameScores = allScores.filter(function(s){return s.game_id === g.id;}).slice(0, 5);
+    html += '<details style="background:var(--bg-sidebar);border:1px solid var(--border);border-radius:10px;padding:10px 12px;">'
+      + '<summary style="font-size:12px;font-weight:700;cursor:pointer;color:var(--text-primary);">' + g.icon + ' ' + g.name + ' <span style="font-size:10px;color:var(--text-muted);font-weight:400;">(' + gameScores.length + ' joueurs)</span></summary>'
+      + '<div style="margin-top:8px;">';
+    if (gameScores.length > 0) {
+      gameScores.forEach(function(s, i) {
+        html += '<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:11px;border-bottom:1px solid rgba(255,255,255,0.05);">'
+          + '<span>' + (i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)+'.') + ' ' + (s.chauffeur_nom||'Joueur') + '</span>'
+          + '<span style="color:#fbbf24;font-weight:700;">' + s.score + '</span></div>';
+      });
+    } else {
+      html += '<div style="font-size:10px;color:#6b7280;padding:4px 0;">Aucun score</div>';
+    }
+    html += '</div></details>';
+  });
+  container.innerHTML = html;
 }
 
 window.toggleGameInfo = function(gameId) {
