@@ -200,7 +200,17 @@ function buildGamesContent(container) {
     </div>
   `;
   // Load leaderboards from Supabase
-  loadAllLeaderboards(games.concat([{id:'livreur-parfait',icon:'🎯',name:'Livreur Parfait'}]));
+  var leaderboardGames = [
+    {id:'enveloppe',icon:'📬',name:"L'Enveloppe"},
+    {id:'scan',icon:'⚡',name:'Scan Express'},
+    {id:'colis',icon:'🏃',name:'Dernier Colis'},
+    {id:'boite',icon:'🚪',name:'Bonne Boîte'},
+    {id:'chargement',icon:'🏗️',name:'Chargement Parfait'},
+    {id:'gps',icon:'🗺️',name:'GPS Cassé'},
+    {id:'memoire',icon:'🧠',name:'Mémoire Tournée'},
+    {id:'livreur-parfait',icon:'🎯',name:'Livreur Parfait'}
+  ];
+  loadAllLeaderboards(leaderboardGames);
 }
 
 async function loadAllLeaderboards(games) {
