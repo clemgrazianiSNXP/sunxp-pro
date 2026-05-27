@@ -208,7 +208,7 @@ async function renderAdminNotifications(container) {
         </select>
         <select id="notif-station" class="rep-input" style="padding:8px;font-size:12px;margin-top:4px;display:none;"></select>
       </div>
-      <button id="notif-send-btn" class="rep-btn rep-btn-primary" style="padding:10px;">📤 Envoyer</button>
+      <button onclick="sendAdminNotif()" class="rep-btn rep-btn-primary" style="padding:10px;">📤 Envoyer</button>
     </div>
   `;
   wrap.appendChild(formCard);
@@ -229,35 +229,34 @@ async function renderAdminNotifications(container) {
     });
   }
 
-  // Send handler
-  wrap.querySelector('#notif-send-btn').onclick = async () => {
-    const type = wrap.querySelector('#notif-type').value;
-    const titre = wrap.querySelector('#notif-titre').value.trim();
-    const message = wrap.querySelector('#notif-message').value.trim();
-    let cible = wrap.querySelector('#notif-cible').value;
-    let station_id = null;
-    if (cible === 'station') {
-      station_id = wrap.querySelector('#notif-station').value;
-      cible = station_id;
-    }
-    if (!titre) { alert('Titre requis'); return; }
-
-    try {
-      const { error } = await sb().from('admin_notifications').insert({
-        titre, message, type, cible, station_id,
-        created_at: new Date().toISOString(),
-        created_by: currentUser.email
-      });
-      if (error) throw error;
-      wrap.querySelector('#notif-titre').value = '';
-      wrap.querySelector('#notif-message').value = '';
-      alert('✅ Notification envoyée !');
-      loadNotifHistory();
-    } catch (e) { alert('Erreur: ' + (e.message || JSON.stringify(e))); }
-  };
-
   loadNotifHistory();
 }
+
+window.sendAdminNotif = async function() {
+  const type = document.querySelector('#notif-type').value;
+  const titre = document.querySelector('#notif-titre').value.trim();
+  const message = document.querySelector('#notif-message').value.trim();
+  let cible = document.querySelector('#notif-cible').value;
+  let station_id = null;
+  if (cible === 'station') {
+    station_id = document.querySelector('#notif-station').value;
+    cible = station_id;
+  }
+  if (!titre) { alert('Titre requis'); return; }
+
+  try {
+    const { error } = await sb().from('admin_notifications').insert({
+      titre, message, type, cible, station_id,
+      created_at: new Date().toISOString(),
+      created_by: currentUser.email
+    });
+    if (error) throw error;
+    document.querySelector('#notif-titre').value = '';
+    document.querySelector('#notif-message').value = '';
+    alert('✅ Notification envoyée !');
+    loadNotifHistory();
+  } catch (e) { alert('Erreur: ' + (e.message || JSON.stringify(e))); }
+};
 
 window.toggleStationSelect = function() {
   const cible = document.querySelector('#notif-cible');
