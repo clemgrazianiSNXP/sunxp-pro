@@ -75,13 +75,21 @@ function renderNotificationsBadge() {
 
   if (count <= 0) return;
 
-  // Add badge button
+  // Try to place in topbar-left, fallback to fixed position
+  const topbarLeft = document.getElementById('topbar-left');
   const badge = document.createElement('button');
   badge.id = 'notif-badge-btn';
-  badge.style.cssText = 'position:fixed;top:12px;right:12px;z-index:10000;background:var(--accent,#7c6af7);color:#fff;border:none;border-radius:50%;width:36px;height:36px;font-size:14px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;';
-  badge.innerHTML = '📢<span style="position:absolute;top:-4px;right:-4px;background:#ef4444;color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;display:flex;align-items:center;justify-content:center;font-weight:900;">' + count + '</span>';
   badge.onclick = () => renderNotificationsPanel();
-  document.body.appendChild(badge);
+
+  if (topbarLeft) {
+    badge.style.cssText = 'position:relative;background:var(--accent,#7c6af7);color:#fff;border:none;border-radius:50%;width:30px;height:30px;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;';
+    badge.innerHTML = '📢<span style="position:absolute;top:-4px;right:-4px;background:#ef4444;color:#fff;border-radius:50%;width:16px;height:16px;font-size:9px;display:flex;align-items:center;justify-content:center;font-weight:900;">' + count + '</span>';
+    topbarLeft.prepend(badge);
+  } else {
+    badge.style.cssText = 'position:fixed;top:12px;left:12px;z-index:10000;background:var(--accent,#7c6af7);color:#fff;border:none;border-radius:50%;width:36px;height:36px;font-size:14px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;';
+    badge.innerHTML = '📢<span style="position:absolute;top:-4px;right:-4px;background:#ef4444;color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;display:flex;align-items:center;justify-content:center;font-weight:900;">' + count + '</span>';
+    document.body.appendChild(badge);
+  }
 }
 
 function renderNotificationsPanel() {

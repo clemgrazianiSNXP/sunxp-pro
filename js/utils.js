@@ -77,11 +77,12 @@ document.addEventListener('DOMContentLoaded', initNavigation);
     'padding:0 16px','font-size:12px','color:var(--text-muted)'
   ].join(';');
 
-  // Gauche : heure uniquement (date et météo supprimées pour mobile)
+  // Gauche : emplacement pour le badge notification
   const left = document.createElement('div');
-  left.style.cssText = 'display:flex;align-items:center;gap:14px;';
+  left.id = 'topbar-left';
+  left.style.cssText = 'display:flex;align-items:center;gap:8px;';
   const dateEl = document.createElement('span'); dateEl.id = 'topbar-date'; dateEl.style.display = 'none';
-  const timeEl = document.createElement('span'); timeEl.id = 'topbar-time'; timeEl.style.fontWeight='600';
+  const timeEl = document.createElement('span'); timeEl.id = 'topbar-time'; timeEl.style.display = 'none';
 
   // Météo (cachée)
   const center = document.createElement('div');
