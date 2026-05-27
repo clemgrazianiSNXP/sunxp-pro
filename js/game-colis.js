@@ -466,8 +466,14 @@ function startGameDernier() {
   }
 
   function showGameOver(storageKey) {
+    // Read from the key saveScore uses (portalStationId-game-scores-colis)
     let top5 = [];
     try { top5 = JSON.parse(localStorage.getItem(storageKey)) || []; } catch(_){}
+    // Also try the portalStationId key if different
+    if (top5.length === 0 && typeof portalStationId !== 'undefined' && portalStationId) {
+      const altKey = portalStationId + '-game-scores-colis';
+      try { top5 = JSON.parse(localStorage.getItem(altKey)) || []; } catch(_){}
+    }
     top5 = top5.slice(0, 5);
 
     portal.innerHTML = `
