@@ -9,7 +9,12 @@ function startGameBoite() {
   let timerInterval = null, timeLeft = 4000, bonusTime = 0;
   let gameActive = true, correctLabel = '';
 
-  function getLevel() { return Math.floor(questionNum / 4) + 1; }
+  function getLevel() { return Math.floor(questionNum / 3) + 1; }
+
+  function getTimeForLevel(lvl) {
+    // Chrono diminue avec le niveau: 4s -> 3.5s -> 3s -> 2.5s -> 2s min
+    return Math.max(2000, 4000 - (lvl - 1) * 200) + bonusTime;
+  }
 
   function generateLabels(lvl) {
     let labels = [];
@@ -54,11 +59,11 @@ function startGameBoite() {
       }
       labels = allPossible.slice(0, count);
     } else {
-      // Level 10+ : complex codes - 12 boxes
-      const count = 12;
+      // Level 10+ : complex codes - 16 boxes with very similar codes
+      const count = Math.min(16, 12 + Math.floor((lvl - 10) / 2));
       const allPossible = [];
-      const letters = ['A', 'B', 'C', 'D', 'E'];
-      const nums = [112, 121, 211, 122, 212, 221, 113, 131, 311, 123, 132, 213];
+      const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+      const nums = [112, 121, 211, 122, 212, 221, 113, 131, 311, 123, 132, 213, 231, 312, 321, 111];
       for (let n of nums) for (let l of letters) allPossible.push(n + l);
       for (let i = allPossible.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -73,7 +78,7 @@ function startGameBoite() {
     if (!gameActive) return;
     questionNum++;
     level = getLevel();
-    timeLeft = 4000 + bonusTime;
+    timeLeft = getTimeForLevel(level);
 
     const labels = generateLabels(level);
     // Shuffle for level 10+
@@ -91,7 +96,7 @@ function startGameBoite() {
   function startTimer() {
     if (timerInterval) clearInterval(timerInterval);
     const startTime = Date.now();
-    const totalTime = 4000 + bonusTime;
+    const totalTime = timeLeft;
     timerInterval = setInterval(() => {
       const elapsed = Date.now() - startTime;
       timeLeft = Math.max(0, totalTime - elapsed);
