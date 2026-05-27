@@ -77,17 +77,17 @@ document.addEventListener('DOMContentLoaded', initNavigation);
     'padding:0 16px','font-size:12px','color:var(--text-muted)'
   ].join(';');
 
-  // Gauche : date + heure
+  // Gauche : heure uniquement (date et météo supprimées pour mobile)
   const left = document.createElement('div');
   left.style.cssText = 'display:flex;align-items:center;gap:14px;';
-  const dateEl = document.createElement('span'); dateEl.id = 'topbar-date';
+  const dateEl = document.createElement('span'); dateEl.id = 'topbar-date'; dateEl.style.display = 'none';
   const timeEl = document.createElement('span'); timeEl.id = 'topbar-time'; timeEl.style.fontWeight='600';
 
-  // Météo
+  // Météo (cachée)
   const center = document.createElement('div');
   center.id = 'topbar-weather';
-  center.style.cssText = 'display:flex;align-items:center;gap:6px;';
-  center.textContent = '🌡 —';
+  center.style.cssText = 'display:none;';
+  center.textContent = '';
 
   left.appendChild(dateEl); left.appendChild(timeEl); left.appendChild(center);
 
