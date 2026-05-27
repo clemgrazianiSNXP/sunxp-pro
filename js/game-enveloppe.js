@@ -220,27 +220,6 @@ function startGameEnveloppe() {
     }
   }
 
-  function drawGameOver() {
-    ctx.fillStyle = 'rgba(0,0,0,0.75)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.textAlign = 'center';
-    ctx.font = 'bold 36px sans-serif';
-    ctx.fillStyle = '#F87171';
-    ctx.fillText('💥 RATÉ !', canvas.width / 2, canvas.height / 2 - 60);
-    ctx.font = 'bold 24px sans-serif';
-    ctx.fillStyle = '#FFF';
-    ctx.fillText('Score: ' + (distance - 5) + 'm', canvas.width / 2, canvas.height / 2 - 10);
-    ctx.font = '14px sans-serif';
-    ctx.fillStyle = '#FFD700';
-    ctx.fillText('Meilleur: ' + bestScore + 'm', canvas.width / 2, canvas.height / 2 + 20);
-    ctx.font = '14px sans-serif';
-    ctx.fillStyle = '#AAA';
-    ctx.fillText('Touchez pour rejouer', canvas.width / 2, canvas.height / 2 + 60);
-    ctx.fillText('ou', canvas.width / 2, canvas.height / 2 + 80);
-    ctx.fillStyle = '#60A5FA';
-    ctx.fillText('Double-tap pour retour aux jeux', canvas.width / 2, canvas.height / 2 + 100);
-  }
-
   // Collision detection
   function checkCollision() {
     const bx = getBoxX();
@@ -256,7 +235,6 @@ function startGameEnveloppe() {
 
   // Game loop
   let animId;
-  let lastTap = 0;
 
   function gameLoop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -305,42 +283,35 @@ function startGameEnveloppe() {
     }
 
     if (gameOver) {
-      drawGameOver();
+      // Stop the game loop and show HTML game over
+      cancelAnimationFrame(animId);
+      showGameOverHTML();
+      return;
     }
 
     animId = requestAnimationFrame(gameLoop);
   }
 
-  // Restart on tap when game over
-  function onRestart(e) {
-    if (!gameOver) return;
-    const now = Date.now();
-    if (now - lastTap < 400) {
-      // Double tap = back to games
-      cancelAnimationFrame(animId);
-      screen.style.display = 'none';
-      canvas.removeEventListener('mousedown', onPointerDown);
-      canvas.removeEventListener('mousemove', onPointerMove);
-      canvas.removeEventListener('mouseup', onPointerUp);
-      window.removeEventListener('resize', resize);
-      if (typeof initGamesPage === 'function') initGamesPage();
-      return;
-    }
-    lastTap = now;
-    // Single tap = restart
-    setTimeout(() => {
-      if (Date.now() - lastTap >= 350) {
-        distance = 5;
-        gameOver = false;
-        launched = false;
-        charging = false;
-        power = 0;
-        showResult = '';
-      }
-    }, 400);
+  async function showGameOverHTML() {
+    const finalScore = distance - 5;
+    const scores = await loadStationScores('enveloppe');
+    const top5 = scores.slice(0, 5);
+    screen.innerHTML = '';
+    screen.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#0a0a1a;display:flex;flex-direction:column;overflow:auto;';
+    screen.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:20px;color:#fff;text-align:center;">'
+      + '<div style="font-size:48px;margin-bottom:10px;">📬💥</div>'
+      + '<h2 style="font-size:22px;margin:0 0 8px;">Game Over!</h2>'
+      + '<p style="font-size:28px;font-weight:bold;color:#fbbf24;margin:0 0 4px;">' + finalScore + ' m</p>'
+      + '<p style="font-size:13px;color:#9ca3af;margin:0 0 20px;">Meilleur: ' + bestScore + 'm</p>'
+      + '<div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:16px;width:100%;max-width:300px;margin-bottom:20px;">'
+      + '<h3 style="font-size:14px;margin:0 0 10px;color:#f97316;">🏆 Top 5 Station</h3>'
+      + (top5.length > 0 ? top5.map(function(s, i) { return '<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.1);"><span>' + (i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)+'.') + ' ' + (s.chauffeur_nom||'Joueur') + '</span><span style="color:#fbbf24;">' + s.score + 'm</span></div>'; }).join('') : '<p style="font-size:12px;color:#6b7280;">Aucun score</p>')
+      + '</div>'
+      + '<div style="display:flex;gap:12px;">'
+      + '<button onclick="document.getElementById(\'game-enveloppe-screen\').remove();startGameEnveloppe();" style="padding:12px 24px;background:#4ade80;color:#000;border:none;border-radius:8px;font-weight:bold;font-size:14px;cursor:pointer;">🔄 Rejouer</button>'
+      + '<button onclick="document.getElementById(\'game-enveloppe-screen\').remove();initGamesPage();" style="padding:12px 24px;background:#374151;color:#fff;border:1px solid #6b7280;border-radius:8px;font-size:14px;cursor:pointer;">← Retour aux jeux</button>'
+      + '</div></div>';
   }
-  canvas.addEventListener('click', onRestart);
-  canvas.addEventListener('touchend', onRestart);
 
   gameLoop();
 }
