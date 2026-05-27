@@ -452,12 +452,13 @@ function startGameDernier() {
 
   async function showGameOver() {
     const sid = typeof portalStationId !== 'undefined' ? portalStationId : '';
-    let scores = await loadStationScores('colis');
-    // Fallback: read localStorage directly if Supabase returned empty
-    if (scores.length === 0 && sid) {
-      try { scores = JSON.parse(localStorage.getItem(sid + '-game-scores-colis')) || []; } catch(_) {}
-    }
-    const top5 = scores.slice(0, 5);
+    // Read scores directly from localStorage - no async call that could fail
+    let top5 = [];
+    try {
+      const key = sid + '-game-scores-colis';
+      const stored = localStorage.getItem(key);
+      if (stored) top5 = JSON.parse(stored).slice(0, 5);
+    } catch(_) {}
 
     portal.innerHTML = `
       <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:20px;color:#fff;text-align:center;">
