@@ -277,40 +277,12 @@ function buildPortalPause(sid, nom, now) {
       <div style="font-size:14px;font-weight:800;color:var(--accent);margin-top:4px;">Tu dois reprendre à ${repriseStr}</div>
       <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Bonne pause ! ☀️</div>
     `;
-    // Bouton annuler pause (test)
-    const cancelBtn = document.createElement('button');
-    cancelBtn.style.cssText = 'margin-top:8px;background:transparent;border:1px solid #f87171;color:#f87171;border-radius:8px;padding:6px 12px;font-size:10px;cursor:pointer;';
-    cancelBtn.textContent = '🔄 Annuler pause (test)';
-    cancelBtn.onclick = async () => {
-      const pauseKey = sid + '-pause-' + nom + '-' + dateStr;
-      localStorage.removeItem(pauseKey);
-      // Effacer pauseHeure dans les données Heures (local + Supabase)
-      try {
-        const raw = localStorage.getItem(dk);
-        if (raw) {
-          const data = JSON.parse(raw);
-          if (data.rows) {
-            const rowKey = Object.keys(data.rows).find(k => data.rows[k].nom && data.rows[k].nom.trim() === nom.trim());
-            if (rowKey) { delete data.rows[rowKey].heurePause; localStorage.setItem(dk, JSON.stringify(data)); }
-          }
-        }
-      } catch (_) {}
-      // Effacer dans Supabase aussi
-      if (typeof sb === 'function' && sb()) {
-        try {
-          const { data: sbData } = await sb().from('heures').select('data').eq('station_id', sid).eq('date_jour', dateStr).maybeSingle();
-          if (sbData && sbData.data && sbData.data.rows) {
-            const rowKey = Object.keys(sbData.data.rows).find(k => sbData.data.rows[k].nom && sbData.data.rows[k].nom.trim() === nom.trim());
-            if (rowKey) {
-              delete sbData.data.rows[rowKey].heurePause;
-              await sb().from('heures').update({ data: sbData.data }).eq('station_id', sid).eq('date_jour', dateStr);
-            }
-          }
-        } catch (_) {}
-      }
-      renderPortal();
-    };
-    section.appendChild(cancelBtn);
+    // Bouton jouer pendant la pause
+    const gamesBtn = document.createElement('button');
+    gamesBtn.style.cssText = 'margin-top:10px;background:linear-gradient(135deg,#7c6af7,#a78bfa);color:#fff;border:none;border-radius:10px;padding:10px 20px;font-size:13px;font-weight:700;cursor:pointer;width:100%;';
+    gamesBtn.textContent = '🎮 Jouer pendant la pause';
+    gamesBtn.onclick = () => { if (typeof initGamesPage === 'function') initGamesPage(); };
+    section.appendChild(gamesBtn);
   } else {
     const btn = document.createElement('button');
     btn.style.cssText = 'background:var(--accent);color:#fff;border:none;border-radius:12px;padding:14px 28px;font-size:15px;font-weight:700;cursor:pointer;transition:transform 0.15s;width:100%;';
