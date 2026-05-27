@@ -42,13 +42,13 @@ function renderAdmin() {
 
   const toolbar = document.createElement('div');
   toolbar.className = 'h-toolbar';
-  toolbar.innerHTML = `<div class="h-toolbar-left">
+  toolbar.innerHTML = `<div class="h-toolbar-left" style="flex-wrap:wrap;gap:4px;">
     <button class="h-btn rh-tab-btn ${adminTab==='monitoring'?'rh-tab-active':''}" data-admtab="monitoring">📊 Monitoring</button>
     <button class="h-btn rh-tab-btn ${adminTab==='sauvegarde'?'rh-tab-active':''}" data-admtab="sauvegarde">💾 Sauvegarde</button>
     <button class="h-btn rh-tab-btn ${adminTab==='utilisateurs'?'rh-tab-active':''}" data-admtab="utilisateurs">👥 Utilisateurs</button>
     <button class="h-btn rh-tab-btn ${adminTab==='logs'?'rh-tab-active':''}" data-admtab="logs">📋 Logs</button>
     <button class="h-btn rh-tab-btn ${adminTab==='maintenance'?'rh-tab-active':''}" data-admtab="maintenance">🔧 Maintenance</button>
-    <button class="h-btn rh-tab-btn ${adminTab==='notifications'?'rh-tab-active':''}" data-admtab="notifications">📢 Notifications</button>
+    <button class="h-btn rh-tab-btn ${adminTab==='notifications'?'rh-tab-active':''}" data-admtab="notifications">📢 Notifs</button>
   </div><div class="h-toolbar-center"></div><div class="h-toolbar-right"></div>`;
   toolbar.querySelectorAll('.rh-tab-btn').forEach(b => {
     b.onclick = () => { adminTab = b.dataset.admtab; renderAdmin(); };
