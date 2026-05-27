@@ -435,7 +435,7 @@ function startGameDernier() {
     }
   }
 
-  function endGame() {
+  async function endGame() {
     gameOver = true;
     if (animFrame) cancelAnimationFrame(animFrame);
     document.removeEventListener('keydown', keyDown);
@@ -443,7 +443,7 @@ function startGameDernier() {
 
     // Save score
     if (typeof saveScore === 'function') {
-      saveScore('colis', score);
+      await saveScore('colis', score);
     }
 
     // Show game over screen
