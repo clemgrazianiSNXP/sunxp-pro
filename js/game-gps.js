@@ -237,7 +237,7 @@ function startGameGPS() {
     setTimeout(() => {
       fb.remove();
       gameActive = true;
-      if (round >= 5) {
+      if (round >= 10) {
         endGame();
       } else {
         startRound();
