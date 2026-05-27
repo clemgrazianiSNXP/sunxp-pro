@@ -111,14 +111,30 @@ function startGameLivreurParfait() {
   }
 
   function stage1Play(addrs) {
-    var nextIdx = 0, pts = 0;
+    var nextIdx = 0, pts = 0, errors = 0;
     var html = addrs.map(function(a){return '<div class="lp1-addr" data-order="'+a.order+'" style="position:absolute;left:'+a.x+'%;top:'+a.y+'%;transform:translate(-50%,-50%);cursor:pointer;"><div style="width:30px;height:30px;background:#9ca3af;border-radius:6px;border:2px solid #6b7280;display:flex;align-items:center;justify-content:center;font-size:10px;">🏠</div><div class="lp1-badge" style="position:absolute;top:-8px;right:-8px;width:16px;height:16px;background:#374151;color:#6b7280;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:900;">?</div></div>';}).join('');
-    portal.innerHTML = '<div style="display:flex;flex-direction:column;height:100%;background:#0a0a1a;color:#fff;">' + stageHeader(0) + '<div style="padding:4px;text-align:center;font-size:11px;color:#4ade80;">Cliquez dans l\'ordre! Prochain: #<span id="lp1-next">1</span></div><div style="flex:1;position:relative;background:#e5e7eb;margin:6px;border-radius:6px;overflow:hidden;">' + html + '</div></div>';
+    portal.innerHTML = '<div style="display:flex;flex-direction:column;height:100%;background:#0a0a1a;color:#fff;">' + stageHeader(0) + '<div style="padding:4px;text-align:center;font-size:11px;color:#4ade80;">Cliquez dans l\'ordre! #<span id="lp1-next">1</span> | Vies: <span id="lp1-lives">❤️❤️❤️</span></div><div style="flex:1;position:relative;background:#e5e7eb;margin:6px;border-radius:6px;overflow:hidden;">' + html + '</div></div>';
     startStageTimer(function(){ completeStage(pts); });
     document.querySelectorAll('.lp1-addr').forEach(function(el){
       el.onclick = function(){
         var o = parseInt(el.dataset.order);
-        if (o === nextIdx+1) { pts += 200; nextIdx++; el.querySelector('div').style.background='#4ade80'; el.querySelector('.lp1-badge').textContent=o; el.querySelector('.lp1-badge').style.background='#4ade80'; el.querySelector('.lp1-badge').style.color='#fff'; el.style.cursor='default'; el.onclick=null; var ne=document.getElementById('lp1-next'); if(ne)ne.textContent=nextIdx+1; if(nextIdx>=10)completeStage(pts); }
+        if (o === nextIdx+1) {
+          pts += 200; nextIdx++;
+          el.querySelector('div').style.background='#4ade80';
+          el.querySelector('.lp1-badge').textContent=o;
+          el.querySelector('.lp1-badge').style.background='#4ade80';
+          el.querySelector('.lp1-badge').style.color='#fff';
+          el.style.cursor='default'; el.onclick=null;
+          var ne=document.getElementById('lp1-next'); if(ne)ne.textContent=nextIdx+1;
+          if(nextIdx>=10)completeStage(pts);
+        } else {
+          errors++;
+          el.querySelector('div').style.background='#ef4444';
+          setTimeout(function(){el.querySelector('div').style.background='#9ca3af';},400);
+          var livesEl=document.getElementById('lp1-lives');
+          if(livesEl) livesEl.textContent='❤️'.repeat(Math.max(0,3-errors))+'🖤'.repeat(Math.min(3,errors));
+          if(errors>=3) completeStage(pts);
+        }
       };
     });
   }
@@ -137,7 +153,9 @@ function startGameLivreurParfait() {
     function render2(){
       var cs=Math.min(32,Math.floor((portal.clientWidth-60)/cols));
       var gh='';for(var r=0;r<rows;r++)for(var c=0;c<cols;c++){var f=grid[r][c]!==0;gh+='<div class="lp2-cell" data-r="'+r+'" data-c="'+c+'" style="width:'+cs+'px;height:'+cs+'px;background:'+(f?'#92400e':'rgba(255,255,255,0.05)')+';border:1px solid rgba(255,255,255,0.1);border-radius:2px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:8px;">'+(f?'📦':'')+'</div>';}
-      portal.innerHTML='<div style="display:flex;flex-direction:column;height:100%;background:#0a0a1a;color:#fff;">'+stageHeader(1)+'<div style="padding:4px;text-align:center;font-size:11px;color:#fbbf24;">Piece: '+curPiece[0]+'x'+curPiece[1]+' | Rempli: '+getPct()+'%</div><div style="flex:1;display:flex;align-items:center;justify-content:center;"><div style="display:grid;grid-template-columns:repeat('+cols+','+cs+'px);gap:1px;background:#374151;padding:6px;border-radius:6px;">'+gh+'</div></div></div>';
+      // Build piece preview
+      var piecePreview='';for(var pr=0;pr<curPiece[1];pr++)for(var pc=0;pc<curPiece[0];pc++)piecePreview+='<div style="width:14px;height:14px;background:#f59e0b;border:1px solid rgba(255,255,255,0.3);border-radius:2px;"></div>';
+      portal.innerHTML='<div style="display:flex;flex-direction:column;height:100%;background:#0a0a1a;color:#fff;">'+stageHeader(1)+'<div style="padding:6px;display:flex;align-items:center;justify-content:center;gap:12px;"><span style="font-size:10px;color:#9ca3af;">Colis:</span><div style="display:grid;grid-template-columns:repeat('+curPiece[0]+',14px);gap:1px;">'+piecePreview+'</div><span style="font-size:11px;color:#fbbf24;font-weight:700;">'+curPiece[0]+'x'+curPiece[1]+'</span><span style="font-size:11px;color:#4ade80;margin-left:8px;">'+getPct()+'%</span></div><div style="flex:1;display:flex;align-items:center;justify-content:center;"><div style="display:grid;grid-template-columns:repeat('+cols+','+cs+'px);gap:1px;background:#374151;padding:6px;border-radius:6px;">'+gh+'</div></div></div>';
       document.querySelectorAll('.lp2-cell').forEach(function(cell){
         cell.onclick=function(){
           var r=parseInt(cell.dataset.r),c=parseInt(cell.dataset.c);
