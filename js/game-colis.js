@@ -141,6 +141,7 @@ function startGameDernier() {
   // Main loop
   function update(timestamp) {
     if (gameOver) return;
+    if (!window._gameActive) { if (animFrame) cancelAnimationFrame(animFrame); return; }
     if (!lastTime) lastTime = timestamp;
     const dt = Math.min((timestamp - lastTime) / 1000, 0.05);
     lastTime = timestamp;

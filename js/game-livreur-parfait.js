@@ -52,13 +52,14 @@ function startGameLivreurParfait() {
       + '<div style="font-size:11px;color:#fbbf24;margin-top:8px;">30 secondes max</div>'
       + '<div style="display:flex;gap:4px;margin-top:16px;">' + [0,1,2,3,4].map(function(i){return '<div style="width:30px;height:4px;border-radius:2px;background:' + (i < idx ? '#4ade80' : i === idx ? '#f97316' : '#374151') + ';"></div>';}).join('') + '</div>'
       + '</div>';
-    setTimeout(function(){ startStage(idx); }, 2000);
+    setTimeout(function(){ if (window._gameActive) startStage(idx); }, 2000);
   }
 
   function startStageTimer(onEnd) {
     stageTimeLeft = 30;
     if (stageTimer) clearInterval(stageTimer);
     stageTimer = setInterval(function(){
+      if (!window._gameActive) { clearInterval(stageTimer); stageTimer = null; return; }
       stageTimeLeft--;
       var el = document.getElementById('lp-timer');
       if (el) { el.textContent = stageTimeLeft + 's'; el.style.color = stageTimeLeft <= 10 ? '#ef4444' : '#fff'; }
@@ -78,10 +79,11 @@ function startGameLivreurParfait() {
 
   function completeStage(pts) {
     if (stageTimer) { clearInterval(stageTimer); stageTimer = null; }
+    if (!window._gameActive) return;
     if (stageTimeLeft > 0) finishedEarly[currentStage] = true;
     stageScores[currentStage] = pts;
     totalScore += pts;
-    setTimeout(function(){ runStage(currentStage + 1); }, 300);
+    setTimeout(function(){ if (window._gameActive) runStage(currentStage + 1); }, 300);
   }
 
   function startStage(idx) {

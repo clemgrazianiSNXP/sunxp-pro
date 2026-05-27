@@ -103,6 +103,13 @@ function getGlobalRank() {
 /* ── Page principale des jeux ─────────────────────────────── */
 function initGamesPage() {
   console.log('initGamesPage appelé');
+  window._gameActive = false; // Reset game flag - stops all running game logic
+  // Kill any lingering game screen (enveloppe uses a separate div)
+  const envScreen = document.getElementById('game-enveloppe-screen');
+  if (envScreen) envScreen.remove();
+  // Hide hamburger menu during games
+  const hamburger = document.getElementById('hamburger-btn');
+  if (hamburger) hamburger.style.display = 'none';
   
   // Approche directe : injecter dans le portail chauffeur existant
   const portal = document.getElementById('chauffeur-portal');
@@ -181,6 +188,7 @@ function buildGamesContent(container) {
 
 /* ── Ouvrir un jeu ────────────────────────────────────────── */
 function openGame(gameId) {
+  window._gameActive = true;
   const fnMap = {
     enveloppe: 'startGameEnveloppe',
     tetris: 'startGameTetris',

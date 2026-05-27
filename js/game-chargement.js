@@ -116,6 +116,7 @@ function startGameChargement() {
   function startTimer() {
     if (timerInterval) clearInterval(timerInterval);
     timerInterval = setInterval(() => {
+      if (!window._gameActive) { clearInterval(timerInterval); return; }
       timeLeft--;
       const el = document.getElementById('charg-timer');
       if (el) {
