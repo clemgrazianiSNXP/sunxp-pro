@@ -14,48 +14,57 @@ function startGameBoite() {
   function generateLabels(lvl) {
     let labels = [];
     if (lvl < 3) {
-      // Simple numbers
+      // Simple numbers - 4 boxes
       const count = 4;
       const base = Math.floor(Math.random() * 8) + 1;
       for (let i = 0; i < count; i++) labels.push(String(base + i));
     } else if (lvl < 5) {
-      // Similar numbers
+      // Similar 2-digit numbers - 8 boxes
       const count = 8;
-      const digits = [1, 2, 3];
-      for (let i = 0; i < count; i++) {
-        let num = '';
-        const len = 2;
-        for (let j = 0; j < len; j++) num += digits[Math.floor(Math.random() * digits.length)];
-        if (!labels.includes(num)) labels.push(num);
-        else i--;
+      const allPossible = [];
+      const digits = [1, 2, 3, 4];
+      for (let a of digits) for (let b of digits) allPossible.push('' + a + b);
+      // Shuffle and pick
+      for (let i = allPossible.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [allPossible[i], allPossible[j]] = [allPossible[j], allPossible[i]];
       }
+      labels = allPossible.slice(0, count);
     } else if (lvl < 7) {
-      // Very similar 3-digit numbers
+      // Very similar 3-digit numbers - 12 boxes
       const count = 12;
-      const digits = [1, 2];
-      while (labels.length < count) {
-        let num = '';
-        for (let j = 0; j < 3; j++) num += digits[Math.floor(Math.random() * digits.length)];
-        if (!labels.includes(num)) labels.push(num);
+      const allPossible = [];
+      const digits = [1, 2, 3];
+      for (let a of digits) for (let b of digits) for (let c of digits) allPossible.push('' + a + b + c);
+      for (let i = allPossible.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [allPossible[i], allPossible[j]] = [allPossible[j], allPossible[i]];
       }
+      labels = allPossible.slice(0, count);
     } else if (lvl < 10) {
-      // Names + numbers
+      // Names + numbers - 12 boxes
       const count = 12;
+      const allPossible = [];
       const letters = ['A', 'B', 'C', 'D'];
-      const nums = [12, 21, 13, 31, 22, 23, 32, 11, 14, 41, 24, 42];
-      while (labels.length < count) {
-        const lbl = 'Apt ' + nums[Math.floor(Math.random() * nums.length)] + letters[Math.floor(Math.random() * letters.length)];
-        if (!labels.includes(lbl)) labels.push(lbl);
+      const nums = [12, 21, 13, 31, 22, 23, 32, 11];
+      for (let n of nums) for (let l of letters) allPossible.push('Apt ' + n + l);
+      for (let i = allPossible.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [allPossible[i], allPossible[j]] = [allPossible[j], allPossible[i]];
       }
+      labels = allPossible.slice(0, count);
     } else {
-      // Level 10+ : same as 7-9 but positions shuffle each time (handled in render)
+      // Level 10+ : complex codes - 12 boxes
       const count = 12;
+      const allPossible = [];
       const letters = ['A', 'B', 'C', 'D', 'E'];
-      const nums = [12, 21, 112, 121, 211, 122, 212, 221, 13, 31, 113, 131];
-      while (labels.length < count) {
-        const lbl = nums[Math.floor(Math.random() * nums.length)] + letters[Math.floor(Math.random() * letters.length)];
-        if (!labels.includes(lbl)) labels.push(lbl);
+      const nums = [112, 121, 211, 122, 212, 221, 113, 131, 311, 123, 132, 213];
+      for (let n of nums) for (let l of letters) allPossible.push(n + l);
+      for (let i = allPossible.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [allPossible[i], allPossible[j]] = [allPossible[j], allPossible[i]];
       }
+      labels = allPossible.slice(0, count);
     }
     return labels;
   }
