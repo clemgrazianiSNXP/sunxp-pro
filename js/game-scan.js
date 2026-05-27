@@ -118,8 +118,25 @@ function startGameScan() {
     gameActive = false;
     if (timerInterval) clearInterval(timerInterval);
     if (score > 0 && typeof saveScore === 'function') saveScore('scan', score);
+    showScanGameOver();
+  }
 
-    portal.innerHTML = '<div style="display:flex;flex-direction:column;height:100%;background:var(--bg-primary,#12121a);color:var(--text-primary,#fff);align-items:center;justify-content:center;padding:20px;text-align:center;"><div style="font-size:40px;margin-bottom:12px;">⚡</div><h2 style="margin:0 0 8px;font-size:20px;">Game Over !</h2><div style="font-size:12px;color:var(--text-muted);">' + questionNum + ' colis scannés</div><div style="font-size:32px;font-weight:700;color:var(--accent,#7c6af7);margin:16px 0;font-family:monospace;">' + score + ' pts</div><div style="display:flex;gap:10px;margin-top:16px;"><button onclick="startGameScan()" style="padding:10px 20px;background:var(--accent,#7c6af7);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">🔄 Rejouer</button><button onclick="initGamesPage()" style="padding:10px 20px;background:var(--bg-sidebar);color:var(--text-primary);border:1px solid var(--border);border-radius:8px;font-size:13px;cursor:pointer;">← Jeux</button></div></div>';
+  async function showScanGameOver() {
+    const scores = await loadStationScores('scan');
+    const top5 = scores.slice(0, 5);
+    portal.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:20px;color:#fff;text-align:center;background:var(--bg-primary,#12121a);">'
+      + '<div style="font-size:48px;margin-bottom:10px;">⚡</div>'
+      + '<h2 style="font-size:22px;margin:0 0 8px;">Game Over!</h2>'
+      + '<p style="font-size:12px;color:var(--text-muted);">' + questionNum + ' colis scannés</p>'
+      + '<p style="font-size:28px;font-weight:bold;color:#fbbf24;margin:8px 0;">' + score + ' pts</p>'
+      + '<div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:16px;width:100%;max-width:300px;margin:16px 0;">'
+      + '<h3 style="font-size:14px;margin:0 0 10px;color:#f97316;">🏆 Top 5 Station</h3>'
+      + (top5.length > 0 ? top5.map(function(s, i) { return '<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.1);"><span>' + (i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)+'.') + ' ' + (s.chauffeur_nom||'Joueur') + '</span><span style="color:#fbbf24;">' + s.score + ' pts</span></div>'; }).join('') : '<p style="font-size:12px;color:#6b7280;">Aucun score</p>')
+      + '</div>'
+      + '<div style="display:flex;gap:12px;">'
+      + '<button onclick="startGameScan()" style="padding:12px 24px;background:var(--accent,#7c6af7);color:#fff;border:none;border-radius:8px;font-weight:bold;font-size:14px;cursor:pointer;">🔄 Rejouer</button>'
+      + '<button onclick="initGamesPage()" style="padding:12px 24px;background:#374151;color:#fff;border:1px solid #6b7280;border-radius:8px;font-size:14px;cursor:pointer;">← Retour aux jeux</button>'
+      + '</div></div>';
   }
 
   function renderQuestion(options) {
