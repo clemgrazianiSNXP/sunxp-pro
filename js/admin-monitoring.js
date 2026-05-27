@@ -63,11 +63,23 @@ async function renderAdminMonitoring(container) {
         for (const bucket of buckets) {
           let fileCount = 0, bucketSize = 0;
           try {
-            const { data: files } = await sb().storage.from(bucket.name).list('', { limit: 1000 });
-            if (files) {
-              fileCount = files.length;
-              files.forEach(f => { if (f.metadata && f.metadata.size) bucketSize += f.metadata.size; });
-            }
+            // List files recursively (check subfolders too)
+            const listRecursive = async (path) => {
+              const { data: items } = await sb().storage.from(bucket.name).list(path, { limit: 1000 });
+              if (!items) return;
+              for (const item of items) {
+                if (item.id) {
+                  // It's a file
+                  fileCount++;
+                  const size = (item.metadata && item.metadata.size) ? item.metadata.size : (item.metadata && item.metadata.contentLength) ? item.metadata.contentLength : 0;
+                  bucketSize += size;
+                } else if (item.name && !item.id) {
+                  // It's a folder - recurse
+                  await listRecursive(path ? path + '/' + item.name : item.name);
+                }
+              }
+            };
+            await listRecursive('');
           } catch (_) {}
           totalBytes += bucketSize;
           bucketInfos.push({ name: bucket.name, files: fileCount, size: bucketSize });
