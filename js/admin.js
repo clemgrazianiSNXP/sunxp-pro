@@ -138,7 +138,7 @@ function openAdminPanel() {
   // Sous-onglets
   const toolbar = document.createElement('div');
   toolbar.className = 'adm-tabs';
-  [['monitoring','📊 Monitoring'],['sauvegarde','💾 Sauvegarde'],['utilisateurs','👥 Utilisateurs'],['logs','📋 Logs'],['maintenance','🔧 Maintenance']].forEach(([id, label]) => {
+  [['monitoring','📊 Monitoring'],['sauvegarde','💾 Sauvegarde'],['utilisateurs','👥 Utilisateurs'],['logs','📋 Logs'],['maintenance','🔧 Maintenance'],['notifications','📢 Notifs']].forEach(([id, label]) => {
     const btn = document.createElement('button');
     btn.className = 'adm-tab' + (adminTab === id ? ' adm-tab-active' : '');
     btn.textContent = label;
@@ -156,6 +156,7 @@ function openAdminPanel() {
   else if (adminTab === 'utilisateurs') { renderAdminUtilisateurs(content); }
   else if (adminTab === 'logs') { renderAdminLogs(content); }
   else if (adminTab === 'maintenance') { renderAdminMaintenance(content); }
+  else if (adminTab === 'notifications') { if (typeof renderAdminNotifications === 'function') renderAdminNotifications(content); }
 
   adminScreen.appendChild(content);
 }
