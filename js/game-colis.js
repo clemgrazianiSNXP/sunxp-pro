@@ -196,7 +196,7 @@ function startGameDernier() {
         let pts = 0;
         switch (c.type) {
           case COLIS_NORMAL: pts = 10; break;
-          case COLIS_GOLD: pts = 50; alertText = '⭐ DORÉ +50!'; alertTimer = 1; break;
+          case COLIS_GOLD: pts = 50; alertText = '⭐ GOLDEN +50!'; alertTimer = 1; break;
           case COLIS_RED: pts = 10; break;
           case COLIS_BLUE:
             pts = 10;
@@ -227,10 +227,10 @@ function startGameDernier() {
         combo = 0;
 
         if (c.type === COLIS_RED) {
-          lives--;
+          lives -= 2;
           screenFlash = 0.5; screenFlashColor = 'rgba(255,0,0,0.4)';
           addParticles(c.x + c.w / 2, H - 20, '#ef4444', 8);
-          alertText = '❌ FRAGILE! -1 vie'; alertTimer = 1.5;
+          alertText = '❌ FRAGILE! -2 vies'; alertTimer = 1.5;
         } else {
           lives--;
           screenFlash = 0.4; screenFlashColor = 'rgba(255,0,0,0.3)';

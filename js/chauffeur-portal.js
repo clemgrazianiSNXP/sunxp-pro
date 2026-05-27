@@ -31,6 +31,10 @@ function renderPortal() {
   if (!c) return;
   c.innerHTML = '';
   c.style.cssText = 'display:flex;flex-direction:column;min-height:100vh;background:var(--bg-primary);color:var(--text-primary);';
+  // Re-show hamburger when leaving games
+  const hamburger = document.getElementById('hamburger-btn');
+  if (hamburger) hamburger.style.display = '';
+  window._gameActive = false;
 
   // Header
   const header = document.createElement('div');

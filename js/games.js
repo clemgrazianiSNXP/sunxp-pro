@@ -134,7 +134,7 @@ function buildGamesContent(container) {
   const GAME_RULES = {
     enveloppe: "Lancez l'enveloppe dans la boîte aux lettres ! Maintenez pour charger la puissance, relâchez pour lancer. La boîte s'éloigne à chaque réussite. Score = distance atteinte.",
     scan: "Identifiez le bon code-barres parmi 4 choix ! 5 secondes par colis, 3 vies. Combo x2 après 5 bonnes réponses d'affilée.",
-    dernier: "Attrapez les colis qui tombent ! ⭐Doré=+50, 💙Bleu=+1vie, 💜Violet=ralentit, ❌Rouge=fragile(-1vie si raté). Combo x2 après 10 d'affilée.",
+    dernier: "Attrapez les colis qui tombent ! ⭐Golden=+50, 💙Bleu=+1vie, 💜Violet=ralentit, ❌Rouge=fragile(-2vies si raté). Combo x2 après 10 d'affilée.",
     boite: "Trouvez la bonne boîte aux lettres ! Les numéros se ressemblent pour piéger. Le chrono diminue avec les niveaux. 3 vies.",
     chargement: "Remplissez le camion avec les colis ! Cliquez sur la grille pour placer. 100%=niveau suivant. Score basé sur le % de remplissage.",
     gps: "Mémorisez les directions (⬆️⬇️⬅️➡️) puis cliquez votre case d'arrivée. Case exacte=1000pts, 1 case d'écart=700pts. 10 manches.",
@@ -197,9 +197,19 @@ function buildGamesContent(container) {
         <div style="font-size:16px;font-weight:900;margin-top:6px;background:linear-gradient(90deg,#f97316,#fbbf24);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">LIVREUR PARFAIT</div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Le défi ultime — 5 étapes enchaînées</div>
         <button style="margin-top:10px;padding:8px 20px;background:linear-gradient(135deg,#f97316,#ef4444);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">⚡ RELEVER LE DÉFI</button>
+        <details style="margin-top:10px;text-align:left;" onclick="event.stopPropagation();">
+          <summary style="font-size:10px;color:#d1d5db;cursor:pointer;">🏆 Classement Station</summary>
+          <div id="lp-leaderboard" style="margin-top:6px;"></div>
+        </details>
       </div>
     </div>
   `;
+  // Load livreur-parfait leaderboard
+  var lpScores = loadLocalScores(portalStationId || '', 'livreur-parfait').slice(0, 5);
+  var lpEl = document.getElementById('lp-leaderboard');
+  if (lpEl) {
+    lpEl.innerHTML = lpScores.length > 0 ? lpScores.map(function(s,i){return '<div style="display:flex;justify-content:space-between;font-size:10px;padding:2px 0;border-bottom:1px solid rgba(255,255,255,0.05);"><span>' + (i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)+'.') + ' ' + (s.chauffeur_nom||'?') + '</span><span style="color:#fbbf24;">' + s.score + '</span></div>';}).join('') : '<div style="font-size:9px;color:#6b7280;">Aucun score</div>';
+  }
 }
 
 window.toggleGameInfo = function(gameId) {
