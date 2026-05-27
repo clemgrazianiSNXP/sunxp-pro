@@ -73,7 +73,7 @@ async function renderAdminMonitoring(container) {
           bucketInfos.push({ name: bucket.name, files: fileCount, size: bucketSize });
         }
 
-        const totalMB = (totalBytes / (1024 * 1024)).toFixed(1);
+        const totalMB = (totalBytes / (1024 * 1024)).toFixed(3);
         const pct = Math.min(100, (totalBytes / (500 * 1024 * 1024)) * 100).toFixed(0);
         let gaugeColor = '#4ade80';
         if (totalMB > 400) gaugeColor = '#f87171';
@@ -92,7 +92,7 @@ async function renderAdminMonitoring(container) {
         // Liste buckets
         html += '<div style="display:flex;flex-direction:column;gap:4px;">';
         bucketInfos.forEach(b => {
-          const sizeMB = (b.size / (1024 * 1024)).toFixed(2);
+          const sizeMB = (b.size / (1024 * 1024)).toFixed(3);
           html += `<div style="display:flex;justify-content:space-between;padding:5px 8px;background:var(--bg-primary);border-radius:5px;font-size:10px;"><span style="color:var(--text-primary);font-weight:700;">📁 ${b.name}</span><span style="color:var(--text-muted);font-family:monospace;">${b.files} fichiers · ${sizeMB} MB</span></div>`;
         });
         html += '</div>';
