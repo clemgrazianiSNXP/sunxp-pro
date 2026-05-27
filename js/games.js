@@ -26,7 +26,7 @@ async function loadStationScores(gameId) {
   if (typeof sb === 'function' && sb()) {
     try {
       const { data } = await sb().from('game_scores').select('*').eq('station_id', sid).eq('game_id', gameId).order('score', { ascending: false });
-      if (data) { localStorage.setItem(getGameScoresKey(sid, gameId), JSON.stringify(data)); return data; }
+      if (data && data.length > 0) { localStorage.setItem(getGameScoresKey(sid, gameId), JSON.stringify(data)); return data; }
     } catch (_) {}
   }
   return loadLocalScores(sid, gameId);
@@ -43,7 +43,13 @@ async function saveScore(gameId, score) {
   const prev = existing.find(s => s.chauffeur_id === chauffeurId);
   if (prev && prev.score >= score) return; // Not a new high score
 
-  // Save to Supabase
+  // Update local cache FIRST (synchronous - always works)
+  if (prev) { prev.score = score; prev.created_at = new Date().toISOString(); }
+  else { existing.push({ chauffeur_nom: nom, chauffeur_id: chauffeurId, station_id: sid, game_id: gameId, score, created_at: new Date().toISOString() }); }
+  existing.sort((a, b) => b.score - a.score);
+  localStorage.setItem(getGameScoresKey(sid, gameId), JSON.stringify(existing));
+
+  // Then save to Supabase (async, can fail silently)
   if (typeof sb === 'function' && sb()) {
     try {
       await sb().from('game_scores').upsert({
@@ -56,12 +62,6 @@ async function saveScore(gameId, score) {
       }, { onConflict: 'chauffeur_id,station_id,game_id' });
     } catch (_) {}
   }
-
-  // Update local cache
-  if (prev) { prev.score = score; prev.created_at = new Date().toISOString(); }
-  else { existing.push({ chauffeur_nom: nom, chauffeur_id: chauffeurId, station_id: sid, game_id: gameId, score, created_at: new Date().toISOString() }); }
-  existing.sort((a, b) => b.score - a.score);
-  localStorage.setItem(getGameScoresKey(sid, gameId), JSON.stringify(existing));
 }
 
 function getPlayerRank(gameId) {
