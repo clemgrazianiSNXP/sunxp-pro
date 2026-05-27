@@ -441,21 +441,25 @@ function startGameDernier() {
     document.removeEventListener('keydown', keyDown);
     document.removeEventListener('keyup', keyUp);
 
-    // Save score directly to localStorage
     const sid = (typeof portalStationId !== 'undefined' && portalStationId) ? portalStationId : 'default';
+    const key = sid + '-game-scores-colis';
+
+    // Save score via global saveScore (writes localStorage + Supabase)
+    if (typeof saveScore === 'function' && score > 0) {
+      try { await saveScore('colis', score); } catch(_){}
+    }
+
+    // Fallback: ensure localStorage has the score even if saveScore failed
     const nom = (typeof portalChauffeur !== 'undefined' && portalChauffeur) ? ((portalChauffeur.prenom||'')+' '+(portalChauffeur.nom||'')).trim() : 'Joueur';
     const cid = (typeof portalChauffeur !== 'undefined' && portalChauffeur) ? (portalChauffeur.id_amazon||portalChauffeur.id||'anon') : 'anon';
-    const key = sid + '-game-scores-colis';
     let existing = [];
     try { existing = JSON.parse(localStorage.getItem(key)) || []; } catch(_){}
     const prev = existing.find(function(s){return s.chauffeur_id === cid;});
-    if (prev) { if (score > prev.score) { prev.score = score; prev.created_at = new Date().toISOString(); } }
-    else if (score > 0) { existing.push({ chauffeur_nom: nom, chauffeur_id: cid, station_id: sid, game_id: 'colis', score: score, created_at: new Date().toISOString() }); }
-    existing.sort(function(a,b){return b.score - a.score;});
-    localStorage.setItem(key, JSON.stringify(existing));
-
-    // Also try global saveScore (async, may fail)
-    if (typeof saveScore === 'function' && score > 0) { try { saveScore('colis', score); } catch(_){} }
+    if (!prev && score > 0) {
+      existing.push({ chauffeur_nom: nom, chauffeur_id: cid, station_id: sid, game_id: 'colis', score: score, created_at: new Date().toISOString() });
+      existing.sort(function(a,b){return b.score - a.score;});
+      localStorage.setItem(key, JSON.stringify(existing));
+    }
 
     // Show game over
     showGameOver(key);
