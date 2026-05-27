@@ -3,10 +3,7 @@ console.log('games.js chargé');
 
 const GAMES_LIST = [
   { id: 'enveloppe', icon: '📬', name: "L'Enveloppe" },
-  { id: 'tetris', icon: '📦', name: 'Tetris Colis' },
-  { id: 'slalom', icon: '🚛', name: 'Slalom Camion' },
   { id: 'scan', icon: '⚡', name: 'Scan Express' },
-  { id: 'tournee', icon: '🗺️', name: 'Tournée Parfaite' },
   { id: 'dernier', icon: '🏃', name: 'Dernier Colis' },
   { id: 'boite', icon: '🚪', name: 'Bonne Boîte' },
   { id: 'chargement', icon: '🏗️', name: 'Chargement Parfait' },
@@ -140,24 +137,9 @@ function buildGamesContent(container) {
           <div style="font-size:12px;font-weight:700;margin-top:6px;">L'Enveloppe</div>
           <button style="margin-top:8px;padding:4px 12px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:10px;cursor:pointer;">▶ Jouer</button>
         </div>
-        <div onclick="openGame('tetris')" style="background:var(--bg-sidebar);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center;cursor:pointer;">
-          <div style="font-size:32px;">📦</div>
-          <div style="font-size:12px;font-weight:700;margin-top:6px;">Tetris Colis</div>
-          <button style="margin-top:8px;padding:4px 12px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:10px;cursor:pointer;">▶ Jouer</button>
-        </div>
-        <div onclick="openGame('slalom')" style="background:var(--bg-sidebar);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center;cursor:pointer;">
-          <div style="font-size:32px;">🚛</div>
-          <div style="font-size:12px;font-weight:700;margin-top:6px;">Slalom Camion</div>
-          <button style="margin-top:8px;padding:4px 12px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:10px;cursor:pointer;">▶ Jouer</button>
-        </div>
         <div onclick="openGame('scan')" style="background:var(--bg-sidebar);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center;cursor:pointer;">
           <div style="font-size:32px;">⚡</div>
           <div style="font-size:12px;font-weight:700;margin-top:6px;">Scan Express</div>
-          <button style="margin-top:8px;padding:4px 12px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:10px;cursor:pointer;">▶ Jouer</button>
-        </div>
-        <div onclick="openGame('tournee')" style="background:var(--bg-sidebar);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center;cursor:pointer;">
-          <div style="font-size:32px;">🗺️</div>
-          <div style="font-size:12px;font-weight:700;margin-top:6px;">Tournée Parfaite</div>
           <button style="margin-top:8px;padding:4px 12px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:10px;cursor:pointer;">▶ Jouer</button>
         </div>
         <div onclick="openGame('dernier')" style="background:var(--bg-sidebar);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center;cursor:pointer;">
