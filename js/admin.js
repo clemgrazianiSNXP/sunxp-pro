@@ -2,7 +2,7 @@
 console.log('admin.js chargé');
 
 const ADMIN_EMAILS = ['amazon.grazianisnxp@gmail.com'];
-const ADMIN_TABS = ['monitoring', 'sauvegarde', 'utilisateurs', 'logs', 'maintenance'];
+const ADMIN_TABS = ['monitoring', 'sauvegarde', 'utilisateurs', 'logs', 'maintenance', 'notifications'];
 
 let adminTab = 'monitoring';
 
@@ -48,6 +48,7 @@ function renderAdmin() {
     <button class="h-btn rh-tab-btn ${adminTab==='utilisateurs'?'rh-tab-active':''}" data-admtab="utilisateurs">👥 Utilisateurs</button>
     <button class="h-btn rh-tab-btn ${adminTab==='logs'?'rh-tab-active':''}" data-admtab="logs">📋 Logs</button>
     <button class="h-btn rh-tab-btn ${adminTab==='maintenance'?'rh-tab-active':''}" data-admtab="maintenance">🔧 Maintenance</button>
+    <button class="h-btn rh-tab-btn ${adminTab==='notifications'?'rh-tab-active':''}" data-admtab="notifications">📢 Notifications</button>
   </div><div class="h-toolbar-center"></div><div class="h-toolbar-right"></div>`;
   toolbar.querySelectorAll('.rh-tab-btn').forEach(b => {
     b.onclick = () => { adminTab = b.dataset.admtab; renderAdmin(); };
@@ -67,6 +68,9 @@ function renderAdmin() {
     content.innerHTML = '<p style="color:var(--text-muted);text-align:center;margin-top:40px;">📋 Logs — contenu à venir</p>';
   } else if (adminTab === 'maintenance') {
     content.innerHTML = '<p style="color:var(--text-muted);text-align:center;margin-top:40px;">🔧 Maintenance — contenu à venir</p>';
+  } else if (adminTab === 'notifications') {
+    content.innerHTML = '<p style="color:var(--text-muted);text-align:center;margin-top:40px;">📢 Notifications — contenu à venir</p>';
+    if (typeof renderAdminNotifications === 'function') renderAdminNotifications(content);
   }
 
   container.appendChild(content);
