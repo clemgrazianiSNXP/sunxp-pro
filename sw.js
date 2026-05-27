@@ -1,5 +1,5 @@
 /* Service Worker — SunXP Pro (mode hors-ligne) */
-const CACHE_NAME = 'sunxp-v2';
+const CACHE_NAME = 'sunxp-v3';
 const ASSETS = [
   '/',
   '/index.html',
@@ -53,7 +53,24 @@ const ASSETS = [
   '/js/repos-demandes.js',
   '/js/identifier-chauffeurs.js',
   '/js/checkTSM.js',
-  '/js/push-notifications.js'
+  '/js/push-notifications.js',
+  '/js/admin.js',
+  '/js/admin-monitoring.js',
+  '/js/admin-sauvegarde.js',
+  '/js/admin-utilisateurs.js',
+  '/js/admin-logs.js',
+  '/js/admin-maintenance.js',
+  '/js/notifications-centre.js',
+  '/js/games.js',
+  '/js/game-enveloppe.js',
+  '/js/game-scan.js',
+  '/js/game-colis.js',
+  '/js/game-boite.js',
+  '/js/game-chargement.js',
+  '/js/game-gps.js',
+  '/js/game-memoire.js',
+  '/js/game-livreur-parfait.js',
+  '/js/chauffeur-accueil.js'
 ];
 
 // Installation : mettre en cache tous les fichiers
