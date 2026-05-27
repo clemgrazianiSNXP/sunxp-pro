@@ -5,18 +5,18 @@ function startGameMemoire() {
   const portal = document.getElementById('chauffeur-portal');
   if (!portal) return;
 
-  let score = 0, level = 1, combo = 0, roundNum = 0;
+  let score = 0, level = 1, combo = 0, roundNum = 0, lives = 3;
   let gameActive = false;
   let addresses = [], nextClickIdx = 0, correctCount = 0;
 
   function getLevelConfig() {
-    if (level < 2) return { count: 5, memoTime: 20 };
-    if (level < 3) return { count: 7, memoTime: 18 };
-    if (level < 4) return { count: 9, memoTime: 15 };
+    if (level < 2) return { count: 5, memoTime: 12 };
+    if (level < 3) return { count: 7, memoTime: 12 };
+    if (level < 4) return { count: 9, memoTime: 12 };
     if (level < 5) return { count: 12, memoTime: 12 };
-    if (level < 7) return { count: 14, memoTime: 10 };
-    if (level < 10) return { count: 18, memoTime: 8 };
-    return { count: 22, memoTime: 6 };
+    if (level < 7) return { count: 14, memoTime: 12 };
+    if (level < 10) return { count: 18, memoTime: 12 };
+    return { count: 22, memoTime: 12 };
   }
 
   function generateAddresses(count) {
@@ -167,6 +167,7 @@ function startGameMemoire() {
     } else {
       // Wrong!
       combo = 0;
+      lives--;
       score = Math.max(0, score - 50);
 
       if (house) { house.style.background = '#ef4444'; house.style.animation = 'mem-shake 0.3s ease'; }
@@ -175,7 +176,12 @@ function startGameMemoire() {
       const scoreEl = document.getElementById('mem-score');
       if (scoreEl) scoreEl.textContent = score;
       const comboEl = document.getElementById('mem-combo');
-      if (comboEl) comboEl.textContent = '❌ -50 pts • Combo perdu';
+      if (comboEl) comboEl.textContent = '❌ -50 pts • Vies: ' + '❤️'.repeat(lives) + '🖤'.repeat(3 - lives);
+
+      if (lives <= 0) {
+        gameActive = false;
+        setTimeout(endGame, 800);
+      }
     }
   }
 
