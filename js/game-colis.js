@@ -103,6 +103,8 @@ function startGameDernier() {
   // Flash effects
   let screenFlash = 0;
   let screenFlashColor = '';
+  let alertText = '';
+  let alertTimer = 0;
 
   // Touch controls
   let touchLeft = false, touchRight = false;
@@ -147,6 +149,7 @@ function startGameDernier() {
     if (comboTimer > 0) { comboTimer -= dt; if (comboTimer <= 0) comboMultiplier = 1; }
     if (slowTimer > 0) { slowTimer -= dt; if (slowTimer <= 0) slowActive = false; }
     if (screenFlash > 0) screenFlash -= dt;
+    if (alertTimer > 0) alertTimer -= dt;
 
     // Move player
     const moving = moveLeft || touchLeft ? -1 : (moveRight || touchRight ? 1 : 0);
@@ -192,17 +195,18 @@ function startGameDernier() {
         let pts = 0;
         switch (c.type) {
           case COLIS_NORMAL: pts = 10; break;
-          case COLIS_GOLD: pts = 50; break;
+          case COLIS_GOLD: pts = 50; alertText = '⭐ DORÉ +50!'; alertTimer = 1; break;
           case COLIS_RED: pts = 10; break;
           case COLIS_BLUE:
             pts = 10;
-            if (lives < 3) { lives++; screenFlash = 0.3; screenFlashColor = 'rgba(0,150,255,0.3)'; }
+            if (lives < 3) { lives++; screenFlash = 0.3; screenFlashColor = 'rgba(0,150,255,0.3)'; alertText = '💙 +1 VIE!'; alertTimer = 1.2; }
             break;
           case COLIS_PURPLE:
             pts = 10;
             slowActive = true;
             slowTimer = 3;
             screenFlash = 0.3; screenFlashColor = 'rgba(150,0,255,0.3)';
+            alertText = '💜 RALENTI 3s!'; alertTimer = 1.2;
             break;
         }
         score += pts * comboMultiplier;
@@ -223,11 +227,14 @@ function startGameDernier() {
 
         if (c.type === COLIS_RED) {
           lives--;
-          screenFlash = 0.3; screenFlashColor = 'rgba(255,0,0,0.3)';
+          screenFlash = 0.5; screenFlashColor = 'rgba(255,0,0,0.4)';
           addParticles(c.x + c.w / 2, H - 20, '#ef4444', 8);
+          alertText = '❌ FRAGILE! -1 vie'; alertTimer = 1.5;
         } else {
           lives--;
+          screenFlash = 0.4; screenFlashColor = 'rgba(255,0,0,0.3)';
           addParticles(c.x + c.w / 2, H - 20, '#92400e', 5);
+          alertText = '💔 -1 vie!'; alertTimer = 1.2;
         }
 
         if (lives <= 0) {
@@ -415,6 +422,16 @@ function startGameDernier() {
     ctx.fillText('Niv. ' + level, W - 10, 48);
 
     ctx.shadowBlur = 0;
+
+    // Alert text (vie perdue ou bonus)
+    if (alertTimer > 0 && alertText) {
+      ctx.textAlign = 'center';
+      ctx.font = 'bold 20px sans-serif';
+      ctx.globalAlpha = Math.min(1, alertTimer);
+      ctx.fillStyle = alertText.includes('vie') || alertText.includes('FRAGILE') ? '#ef4444' : '#4ade80';
+      ctx.fillText(alertText, W / 2, H / 2);
+      ctx.globalAlpha = 1;
+    }
   }
 
   function endGame() {
