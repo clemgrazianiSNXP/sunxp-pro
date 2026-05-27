@@ -131,60 +131,81 @@ function initGamesPage() {
 }
 
 function buildGamesContent(container) {
-  // Version simplifiée — HTML statique pour garantir l'affichage
+  const GAME_RULES = {
+    enveloppe: "Lancez l'enveloppe dans la boîte aux lettres ! Maintenez pour charger la puissance, relâchez pour lancer. La boîte s'éloigne à chaque réussite. Score = distance atteinte.",
+    scan: "Identifiez le bon code-barres parmi 4 choix ! 5 secondes par colis, 3 vies. Combo x2 après 5 bonnes réponses d'affilée.",
+    dernier: "Attrapez les colis qui tombent ! ⭐Doré=+50, 💙Bleu=+1vie, 💜Violet=ralentit, ❌Rouge=fragile(-1vie si raté). Combo x2 après 10 d'affilée.",
+    boite: "Trouvez la bonne boîte aux lettres ! Les numéros se ressemblent pour piéger. Le chrono diminue avec les niveaux. 3 vies.",
+    chargement: "Remplissez le camion avec les colis ! Cliquez sur la grille pour placer. 100%=niveau suivant. Score basé sur le % de remplissage.",
+    gps: "Mémorisez les directions (⬆️⬇️⬅️➡️) puis cliquez votre case d'arrivée. Case exacte=1000pts, 1 case d'écart=700pts. 10 manches.",
+    memoire: "Mémorisez l'ordre des adresses en 12s puis cliquez-les dans le bon ordre. 3 vies, combo x points. Ordre parfait = score x2 !",
+    'livreur-parfait': "Le défi ultime ! 5 étapes de 30s : Mémoire → Chargement → Scan → Boîte → GPS. Bonus +1000 si tout est fini, +500 si rapide."
+  };
+
+  const games = [
+    {id:'enveloppe',icon:'📬',name:"L'Enveloppe"},
+    {id:'scan',icon:'⚡',name:'Scan Express'},
+    {id:'dernier',icon:'🏃',name:'Dernier Colis'},
+    {id:'boite',icon:'🚪',name:'Bonne Boîte'},
+    {id:'chargement',icon:'🏗️',name:'Chargement Parfait'},
+    {id:'gps',icon:'🗺️',name:'GPS Cassé'},
+    {id:'memoire',icon:'🧠',name:'Mémoire Tournée'}
+  ];
+
+  let cardsHtml = games.map(function(g) {
+    const scores = loadLocalScores(portalStationId || '', g.id);
+    const top3 = scores.slice(0, 3);
+    const myScore = typeof getPlayerScore === 'function' ? getPlayerScore(g.id) : 0;
+    return '<div style="background:var(--bg-sidebar);border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center;position:relative;">'
+      + '<button onclick="event.stopPropagation();toggleGameInfo(\'' + g.id + '\')" style="position:absolute;top:6px;right:6px;width:20px;height:20px;background:rgba(255,255,255,0.1);border:1px solid var(--border);border-radius:50%;color:var(--text-muted);font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;">ℹ</button>'
+      + '<div id="info-' + g.id + '" style="display:none;position:absolute;inset:0;background:var(--bg-sidebar);border-radius:14px;padding:12px;font-size:10px;color:var(--text-muted);text-align:left;z-index:2;overflow:auto;">'
+      + '<div style="font-weight:700;color:var(--text-primary);margin-bottom:4px;">' + g.icon + ' ' + g.name + '</div>'
+      + '<p style="margin:0 0 8px;">' + GAME_RULES[g.id] + '</p>'
+      + '<button onclick="event.stopPropagation();toggleGameInfo(\'' + g.id + '\')" style="padding:3px 8px;background:var(--accent);color:#fff;border:none;border-radius:4px;font-size:9px;cursor:pointer;">Fermer</button>'
+      + '</div>'
+      + '<div onclick="openGame(\'' + g.id + '\')" style="cursor:pointer;">'
+      + '<div style="font-size:28px;">' + g.icon + '</div>'
+      + '<div style="font-size:11px;font-weight:700;margin-top:4px;">' + g.name + '</div>'
+      + (myScore > 0 ? '<div style="font-size:9px;color:#fbbf24;margin-top:2px;">🏆 ' + myScore + '</div>' : '')
+      + '<button style="margin-top:6px;padding:3px 10px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:9px;cursor:pointer;">▶ Jouer</button>'
+      + '</div>'
+      + '<details style="margin-top:6px;text-align:left;" onclick="event.stopPropagation();">'
+      + '<summary style="font-size:9px;color:var(--text-muted);cursor:pointer;">🏆 Classement</summary>'
+      + '<div style="margin-top:4px;">'
+      + (top3.length > 0 ? top3.map(function(s,i){return '<div style="display:flex;justify-content:space-between;font-size:9px;padding:2px 0;border-bottom:1px solid rgba(255,255,255,0.05);"><span>' + (i===0?'🥇':i===1?'🥈':'🥉') + ' ' + (s.chauffeur_nom||'?').split(' ')[0] + '</span><span style="color:#fbbf24;">' + s.score + '</span></div>';}).join('') : '<div style="font-size:9px;color:#6b7280;">Aucun score</div>')
+      + '</div></details>'
+      + '</div>';
+  }).join('');
+
   container.innerHTML = `
-    <div style="padding:20px;color:var(--text-primary,#fff);">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+    <div style="padding:16px;color:var(--text-primary,#fff);">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
         <button onclick="renderPortal()" style="padding:8px 14px;background:var(--bg-sidebar);color:var(--text-primary);border:1px solid var(--border);border-radius:6px;cursor:pointer;">← Retour</button>
         <span style="font-size:18px;font-weight:700;">🎮 Mes Jeux</span>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;">
-        <div onclick="openGame('enveloppe')" style="background:var(--bg-sidebar);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center;cursor:pointer;">
-          <div style="font-size:32px;">📬</div>
-          <div style="font-size:12px;font-weight:700;margin-top:6px;">L'Enveloppe</div>
-          <button style="margin-top:8px;padding:4px 12px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:10px;cursor:pointer;">▶ Jouer</button>
-        </div>
-        <div onclick="openGame('scan')" style="background:var(--bg-sidebar);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center;cursor:pointer;">
-          <div style="font-size:32px;">⚡</div>
-          <div style="font-size:12px;font-weight:700;margin-top:6px;">Scan Express</div>
-          <button style="margin-top:8px;padding:4px 12px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:10px;cursor:pointer;">▶ Jouer</button>
-        </div>
-        <div onclick="openGame('dernier')" style="background:var(--bg-sidebar);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center;cursor:pointer;">
-          <div style="font-size:32px;">🏃</div>
-          <div style="font-size:12px;font-weight:700;margin-top:6px;">Dernier Colis</div>
-          <button style="margin-top:8px;padding:4px 12px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:10px;cursor:pointer;">▶ Jouer</button>
-        </div>
-        <div onclick="openGame('boite')" style="background:var(--bg-sidebar);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center;cursor:pointer;">
-          <div style="font-size:32px;">🚪</div>
-          <div style="font-size:12px;font-weight:700;margin-top:6px;">Bonne Boîte</div>
-          <button style="margin-top:8px;padding:4px 12px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:10px;cursor:pointer;">▶ Jouer</button>
-        </div>
-        <div onclick="openGame('chargement')" style="background:var(--bg-sidebar);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center;cursor:pointer;">
-          <div style="font-size:32px;">🏗️</div>
-          <div style="font-size:12px;font-weight:700;margin-top:6px;">Chargement Parfait</div>
-          <button style="margin-top:8px;padding:4px 12px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:10px;cursor:pointer;">▶ Jouer</button>
-        </div>
-        <div onclick="openGame('gps')" style="background:var(--bg-sidebar);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center;cursor:pointer;">
-          <div style="font-size:32px;">🗺️</div>
-          <div style="font-size:12px;font-weight:700;margin-top:6px;">GPS Cassé</div>
-          <button style="margin-top:8px;padding:4px 12px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:10px;cursor:pointer;">▶ Jouer</button>
-        </div>
-        <div onclick="openGame('memoire')" style="background:var(--bg-sidebar);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center;cursor:pointer;">
-          <div style="font-size:32px;">🧠</div>
-          <div style="font-size:12px;font-weight:700;margin-top:6px;">Mémoire Tournée</div>
-          <button style="margin-top:8px;padding:4px 12px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:10px;cursor:pointer;">▶ Jouer</button>
-        </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;">
+        ${cardsHtml}
       </div>
-      <p style="text-align:center;color:var(--text-muted);margin-top:20px;font-size:12px;">🏆 Classement à venir — jouez pour enregistrer vos scores !</p>
-      <div onclick="openGame('livreur-parfait')" style="margin-top:16px;background:linear-gradient(135deg,rgba(249,115,22,0.15),rgba(239,68,68,0.15));border:2px solid #f97316;border-radius:16px;padding:20px;text-align:center;cursor:pointer;">
+      <div onclick="openGame('livreur-parfait')" style="margin-top:16px;background:linear-gradient(135deg,rgba(249,115,22,0.15),rgba(239,68,68,0.15));border:2px solid #f97316;border-radius:16px;padding:20px;text-align:center;cursor:pointer;position:relative;">
+        <button onclick="event.stopPropagation();toggleGameInfo('livreur-parfait')" style="position:absolute;top:8px;right:8px;width:22px;height:22px;background:rgba(255,255,255,0.1);border:1px solid #f97316;border-radius:50%;color:#f97316;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;">ℹ</button>
+        <div id="info-livreur-parfait" style="display:none;position:absolute;inset:0;background:rgba(10,10,26,0.95);border-radius:16px;padding:16px;font-size:11px;color:#d1d5db;text-align:left;z-index:2;overflow:auto;">
+          <div style="font-weight:700;color:#f97316;margin-bottom:6px;">🎯 Livreur Parfait</div>
+          <p style="margin:0 0 8px;">${GAME_RULES['livreur-parfait']}</p>
+          <button onclick="event.stopPropagation();toggleGameInfo('livreur-parfait')" style="padding:4px 10px;background:#f97316;color:#fff;border:none;border-radius:4px;font-size:10px;cursor:pointer;">Fermer</button>
+        </div>
         <div style="font-size:40px;">🎯</div>
         <div style="font-size:16px;font-weight:900;margin-top:6px;background:linear-gradient(90deg,#f97316,#fbbf24);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">LIVREUR PARFAIT</div>
-        <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Le défi ultime — 5 étapes enchaînées • Seuls les meilleurs le finissent</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Le défi ultime — 5 étapes enchaînées</div>
         <button style="margin-top:10px;padding:8px 20px;background:linear-gradient(135deg,#f97316,#ef4444);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">⚡ RELEVER LE DÉFI</button>
       </div>
     </div>
   `;
 }
+
+window.toggleGameInfo = function(gameId) {
+  var el = document.getElementById('info-' + gameId);
+  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+};
 
 /* ── Ouvrir un jeu ────────────────────────────────────────── */
 function openGame(gameId) {
