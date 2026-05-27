@@ -152,8 +152,12 @@ function buildGamesContent(container) {
     {id:'memoire',icon:'🧠',name:'Mémoire Tournée'}
   ];
 
+  // Map game card ids to Supabase game_ids
+  const cardToGameId = {enveloppe:'enveloppe',scan:'scan',dernier:'colis',boite:'boite',chargement:'chargement',gps:'gps',memoire:'memoire'};
+
   let cardsHtml = games.map(function(g) {
-    const myScore = typeof getPlayerScore === 'function' ? getPlayerScore(g.id) : 0;
+    const gid = cardToGameId[g.id] || g.id;
+    const myScore = typeof getPlayerScore === 'function' ? getPlayerScore(gid) : 0;
     return '<div style="background:var(--bg-sidebar);border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center;position:relative;">'
       + '<button onclick="event.stopPropagation();toggleGameInfo(\'' + g.id + '\')" style="position:absolute;top:6px;right:6px;width:20px;height:20px;background:rgba(255,255,255,0.1);border:1px solid var(--border);border-radius:50%;color:var(--text-muted);font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;">ℹ</button>'
       + '<div id="info-' + g.id + '" style="display:none;position:absolute;inset:0;background:var(--bg-sidebar);border-radius:14px;padding:12px;font-size:10px;color:var(--text-muted);text-align:left;z-index:2;overflow:auto;">'
@@ -164,7 +168,7 @@ function buildGamesContent(container) {
       + '<div onclick="openGame(\'' + g.id + '\')" style="cursor:pointer;">'
       + '<div style="font-size:28px;">' + g.icon + '</div>'
       + '<div style="font-size:11px;font-weight:700;margin-top:4px;">' + g.name + '</div>'
-      + (myScore > 0 ? '<div style="font-size:9px;color:#fbbf24;margin-top:2px;">🏆 ' + myScore + '</div>' : '')
+      + '<div class="game-my-score" data-gid="' + gid + '" style="font-size:9px;color:#fbbf24;margin-top:2px;min-height:14px;">' + (myScore > 0 ? '🏆 ' + myScore : '') + '</div>'
       + '<button style="margin-top:6px;padding:3px 10px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:9px;cursor:pointer;">▶ Jouer</button>'
       + '</div>'
       + '</div>';
@@ -220,13 +224,20 @@ async function loadAllLeaderboards(games) {
   if (!sid) { container.innerHTML = '<p style="font-size:11px;color:#6b7280;">Station non définie</p>'; return; }
 
   let allScores = [];
-  // Try Supabase first
   if (typeof sb === 'function' && sb()) {
     try {
       const { data } = await sb().from('game_scores').select('*').eq('station_id', sid).order('score', { ascending: false });
       if (data) allScores = data;
     } catch(_) {}
   }
+
+  // Update personal scores on game cards
+  const chauffeurId = (typeof portalChauffeur !== 'undefined' && portalChauffeur) ? (portalChauffeur.id_amazon||portalChauffeur.id||'') : '';
+  document.querySelectorAll('.game-my-score').forEach(function(el) {
+    const gid = el.dataset.gid;
+    const myEntry = allScores.find(function(s){return s.game_id === gid && s.chauffeur_id === chauffeurId;});
+    if (myEntry) el.textContent = '🏆 ' + myEntry.score;
+  });
 
   let html = '';
   games.forEach(function(g) {
