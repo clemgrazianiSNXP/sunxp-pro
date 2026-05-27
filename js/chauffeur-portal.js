@@ -24,6 +24,8 @@ function initChauffeurPortal(chauffeur, stationId) {
   if (typeof initNotificationsCentre === 'function') setTimeout(initNotificationsCentre, 2000);
   // Précharger les données depuis Supabase (stats, heures, etc.)
   if (typeof preloadStationData === 'function') preloadStationData(stationId).then(() => { if (typeof renderPortal === 'function') renderPortal(); });
+  // Nettoyer les scores de jeux locaux (la source de vérité est Supabase)
+  for (let i = localStorage.length - 1; i >= 0; i--) { const k = localStorage.key(i); if (k && k.includes('-game-scores-')) localStorage.removeItem(k); }
   // Charger les semaines publiées depuis Supabase
   if (typeof loadPublishedFromSupabase === 'function') loadPublishedFromSupabase(stationId).then(() => renderPortal());
   else renderPortal();
