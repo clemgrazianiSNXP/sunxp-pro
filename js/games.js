@@ -10,7 +10,8 @@ const GAMES_LIST = [
   { id: 'dernier', icon: '🏃', name: 'Dernier Colis' },
   { id: 'boite', icon: '🚪', name: 'Bonne Boîte' },
   { id: 'chargement', icon: '🏗️', name: 'Chargement Parfait' },
-  { id: 'gps', icon: '🗺️', name: 'GPS Cassé' }
+  { id: 'gps', icon: '🗺️', name: 'GPS Cassé' },
+  { id: 'memoire', icon: '🧠', name: 'Mémoire Tournée' }
 ];
 
 /* ── Scores ───────────────────────────────────────────────── */
@@ -178,6 +179,11 @@ function buildGamesContent(container) {
           <div style="font-size:12px;font-weight:700;margin-top:6px;">GPS Cassé</div>
           <button style="margin-top:8px;padding:4px 12px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:10px;cursor:pointer;">▶ Jouer</button>
         </div>
+        <div onclick="openGame('memoire')" style="background:var(--bg-sidebar);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center;cursor:pointer;">
+          <div style="font-size:32px;">🧠</div>
+          <div style="font-size:12px;font-weight:700;margin-top:6px;">Mémoire Tournée</div>
+          <button style="margin-top:8px;padding:4px 12px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:10px;cursor:pointer;">▶ Jouer</button>
+        </div>
       </div>
       <p style="text-align:center;color:var(--text-muted);margin-top:20px;font-size:12px;">🏆 Classement à venir — jouez pour enregistrer vos scores !</p>
     </div>
@@ -195,7 +201,8 @@ function openGame(gameId) {
     dernier: 'startGameDernier',
     boite: 'startGameBoite',
     chargement: 'startGameChargement',
-    gps: 'startGameGPS'
+    gps: 'startGameGPS',
+    memoire: 'startGameMemoire'
   };
   const fn = fnMap[gameId];
   if (fn && typeof window[fn] === 'function') {
