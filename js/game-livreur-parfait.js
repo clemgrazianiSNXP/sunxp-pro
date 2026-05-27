@@ -210,6 +210,7 @@ function startGameLivreurParfait() {
   // === STAGE 5: GPS ===
   function stage5GPS() {
     var gridSize=8;
+    var stage5Done = false;
     var dirs=[{n:'haut',icon:'⬆️',dx:0,dy:-1},{n:'droite',icon:'➡️',dx:1,dy:0},{n:'bas',icon:'⬇️',dx:0,dy:1},{n:'gauche',icon:'⬅️',dx:-1,dy:0}];
     var x=Math.floor(gridSize/2),y=Math.floor(gridSize/2);
     var startX=x,startY=y;
@@ -223,9 +224,10 @@ function startGameLivreurParfait() {
     var endX=x,endY=y;
     var idx=0;
     portal.innerHTML='<div style="display:flex;flex-direction:column;height:100%;background:#0a0a1a;color:#fff;">'+stageHeader(4)+'<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:20px;"><div style="font-size:28px;">📡</div><div style="font-size:11px;color:#9ca3af;">Memorisez les directions...</div><div id="lp5-instr" style="font-size:18px;font-weight:700;padding:12px 20px;background:#1e1e2e;border-radius:10px;border:1px solid #444;min-width:200px;text-align:center;"></div><div id="lp5-prog" style="font-size:11px;color:#6b7280;"></div></div></div>';
-    startStageTimer(function(){ completeStage(0); });
+    startStageTimer(function(){ if(!stage5Done){stage5Done=true;completeStage(0);} });
     function showI(){
-      if(idx>=instructions.length){setTimeout(function(){showGPSGuess(startX,startY,endX,endY,gridSize);},500);return;}
+      if(stage5Done || !window._gameActive) return;
+      if(idx>=instructions.length){setTimeout(function(){if(!stage5Done && window._gameActive) showGPSGuess(startX,startY,endX,endY,gridSize,function(pts){if(!stage5Done){stage5Done=true;completeStage(pts);}});},500);return;}
       var el=document.getElementById('lp5-instr');
       if(el) el.textContent=instructions[idx].icon+' 1 case vers le '+instructions[idx].n;
       var p=document.getElementById('lp5-prog');if(p)p.textContent=(idx+1)+'/'+instructions.length;
@@ -234,7 +236,7 @@ function startGameLivreurParfait() {
     showI();
   }
 
-  function showGPSGuess(startX,startY,endX,endY,gridSize) {
+  function showGPSGuess(startX,startY,endX,endY,gridSize,onComplete) {
     var cs=Math.min(28,Math.floor((portal.clientWidth-50)/gridSize));
     var gh='';for(var r=0;r<gridSize;r++)for(var c=0;c<gridSize;c++){
       var isS=(c===startX&&r===startY);
@@ -248,7 +250,7 @@ function startGameLivreurParfait() {
         var pts=dist===0?500:dist===1?300:0;
         document.querySelectorAll('.lp5-cell').forEach(function(c2){var r2=parseInt(c2.dataset.r),c2c=parseInt(c2.dataset.c);if(c2c===endX&&r2===endY){c2.style.background='#4ade80';c2.textContent='🎯';}});
         if(gc!==endX||gr!==endY){cell.style.background='#ef4444';cell.textContent='❌';}
-        setTimeout(function(){completeStage(pts);},1000);
+        setTimeout(function(){if(onComplete)onComplete(pts);},1000);
       };
     });
   }
