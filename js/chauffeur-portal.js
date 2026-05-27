@@ -22,6 +22,8 @@ function initChauffeurPortal(chauffeur, stationId) {
   if (typeof initPushNotifications === 'function') setTimeout(initPushNotifications, 1500);
   // Initialiser le centre de notifications admin
   if (typeof initNotificationsCentre === 'function') setTimeout(initNotificationsCentre, 2000);
+  // Précharger les données depuis Supabase (stats, heures, etc.)
+  if (typeof preloadStationData === 'function') preloadStationData(stationId).then(() => { if (typeof renderPortal === 'function') renderPortal(); });
   // Charger les semaines publiées depuis Supabase
   if (typeof loadPublishedFromSupabase === 'function') loadPublishedFromSupabase(stationId).then(() => renderPortal());
   else renderPortal();
