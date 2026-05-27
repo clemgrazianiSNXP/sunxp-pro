@@ -20,6 +20,8 @@ function initChauffeurPortal(chauffeur, stationId) {
   if (typeof initRealtime === 'function') setTimeout(initRealtime, 500);
   // Initialiser les push notifications
   if (typeof initPushNotifications === 'function') setTimeout(initPushNotifications, 1500);
+  // Initialiser le centre de notifications admin
+  if (typeof initNotificationsCentre === 'function') setTimeout(initNotificationsCentre, 2000);
   // Charger les semaines publiées depuis Supabase
   if (typeof loadPublishedFromSupabase === 'function') loadPublishedFromSupabase(stationId).then(() => renderPortal());
   else renderPortal();
