@@ -10,11 +10,13 @@ function startGameMemoire() {
   let addresses = [], nextClickIdx = 0, correctCount = 0;
 
   function getLevelConfig() {
-    if (level < 3) return { count: 8, memoTime: 15 };
+    if (level < 2) return { count: 5, memoTime: 20 };
+    if (level < 3) return { count: 7, memoTime: 18 };
+    if (level < 4) return { count: 9, memoTime: 15 };
     if (level < 5) return { count: 12, memoTime: 12 };
-    if (level < 7) return { count: 16, memoTime: 10 };
-    if (level < 10) return { count: 20, memoTime: 8 };
-    return { count: 25, memoTime: 6 };
+    if (level < 7) return { count: 14, memoTime: 10 };
+    if (level < 10) return { count: 18, memoTime: 8 };
+    return { count: 22, memoTime: 6 };
   }
 
   function generateAddresses(count) {
@@ -190,8 +192,8 @@ function startGameMemoire() {
       </div>
     `;
 
-    // Max 5 rounds
-    if (roundNum >= 5) {
+    // Max 8 rounds
+    if (roundNum >= 8) {
       setTimeout(endGame, 2500);
     } else {
       setTimeout(startLevel, 3000);
