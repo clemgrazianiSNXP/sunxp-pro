@@ -11,7 +11,8 @@ const GAMES_LIST = [
   { id: 'boite', icon: '🚪', name: 'Bonne Boîte' },
   { id: 'chargement', icon: '🏗️', name: 'Chargement Parfait' },
   { id: 'gps', icon: '🗺️', name: 'GPS Cassé' },
-  { id: 'memoire', icon: '🧠', name: 'Mémoire Tournée' }
+  { id: 'memoire', icon: '🧠', name: 'Mémoire Tournée' },
+  { id: 'livreur-parfait', icon: '🎯', name: 'Livreur Parfait' }
 ];
 
 /* ── Scores ───────────────────────────────────────────────── */
@@ -186,6 +187,12 @@ function buildGamesContent(container) {
         </div>
       </div>
       <p style="text-align:center;color:var(--text-muted);margin-top:20px;font-size:12px;">🏆 Classement à venir — jouez pour enregistrer vos scores !</p>
+      <div onclick="openGame('livreur-parfait')" style="margin-top:16px;background:linear-gradient(135deg,rgba(249,115,22,0.15),rgba(239,68,68,0.15));border:2px solid #f97316;border-radius:16px;padding:20px;text-align:center;cursor:pointer;">
+        <div style="font-size:40px;">🎯</div>
+        <div style="font-size:16px;font-weight:900;margin-top:6px;background:linear-gradient(90deg,#f97316,#fbbf24);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">LIVREUR PARFAIT</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Le défi ultime — 5 étapes enchaînées • Seuls les meilleurs le finissent</div>
+        <button style="margin-top:10px;padding:8px 20px;background:linear-gradient(135deg,#f97316,#ef4444);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">⚡ RELEVER LE DÉFI</button>
+      </div>
     </div>
   `;
 }
@@ -202,7 +209,8 @@ function openGame(gameId) {
     boite: 'startGameBoite',
     chargement: 'startGameChargement',
     gps: 'startGameGPS',
-    memoire: 'startGameMemoire'
+    memoire: 'startGameMemoire',
+    'livreur-parfait': 'startGameLivreurParfait'
   };
   const fn = fnMap[gameId];
   if (fn && typeof window[fn] === 'function') {
