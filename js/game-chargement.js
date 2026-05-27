@@ -46,6 +46,24 @@ function startGameChargement() {
       }
     }
     checkAlignBonus();
+    // Check if 100% full -> next level
+    if (getUsedPercent() >= 100) {
+      score += calcScore();
+      level++;
+      if (level >= LEVELS.length) { endGame(); return; }
+      // Reset grid for next level
+      const cfg = getLevelConfig();
+      cols = cfg.cols;
+      rows = cfg.rows;
+      timeLeft = cfg.time;
+      grid = Array(rows).fill(null).map(() => Array(cols).fill(0));
+      totalPlaced = 0;
+      currentPiece = genPiece();
+      nextPiece = genPiece();
+      if (stageTimer) clearInterval(stageTimer);
+      initGame();
+      return;
+    }
     currentPiece = nextPiece;
     nextPiece = genPiece();
     if (!canFitAnywhere(currentPiece)) {
@@ -114,7 +132,7 @@ function startGameChargement() {
   function endGame() {
     gameActive = false;
     if (timerInterval) clearInterval(timerInterval);
-    score = calcScore();
+    score += calcScore(); // Add current level score
     if (score > 0 && typeof saveScore === 'function') saveScore('chargement', score);
     showGameOver();
   }
