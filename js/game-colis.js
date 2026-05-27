@@ -441,24 +441,30 @@ function startGameDernier() {
     document.removeEventListener('keydown', keyDown);
     document.removeEventListener('keyup', keyUp);
 
-    // Save score
-    if (typeof saveScore === 'function') {
-      await saveScore('colis', score);
-    }
+    // Save score directly to localStorage
+    const sid = (typeof portalStationId !== 'undefined' && portalStationId) ? portalStationId : 'default';
+    const nom = (typeof portalChauffeur !== 'undefined' && portalChauffeur) ? ((portalChauffeur.prenom||'')+' '+(portalChauffeur.nom||'')).trim() : 'Joueur';
+    const cid = (typeof portalChauffeur !== 'undefined' && portalChauffeur) ? (portalChauffeur.id_amazon||portalChauffeur.id||'anon') : 'anon';
+    const key = sid + '-game-scores-colis';
+    let existing = [];
+    try { existing = JSON.parse(localStorage.getItem(key)) || []; } catch(_){}
+    const prev = existing.find(function(s){return s.chauffeur_id === cid;});
+    if (prev) { if (score > prev.score) { prev.score = score; prev.created_at = new Date().toISOString(); } }
+    else if (score > 0) { existing.push({ chauffeur_nom: nom, chauffeur_id: cid, station_id: sid, game_id: 'colis', score: score, created_at: new Date().toISOString() }); }
+    existing.sort(function(a,b){return b.score - a.score;});
+    localStorage.setItem(key, JSON.stringify(existing));
 
-    // Show game over screen
-    showGameOver();
+    // Also try global saveScore (async, may fail)
+    if (typeof saveScore === 'function' && score > 0) { try { saveScore('colis', score); } catch(_){} }
+
+    // Show game over
+    showGameOver(key);
   }
 
-  async function showGameOver() {
-    const sid = typeof portalStationId !== 'undefined' ? portalStationId : '';
-    // Read scores directly from localStorage - no async call that could fail
+  function showGameOver(storageKey) {
     let top5 = [];
-    try {
-      const key = sid + '-game-scores-colis';
-      const stored = localStorage.getItem(key);
-      if (stored) top5 = JSON.parse(stored).slice(0, 5);
-    } catch(_) {}
+    try { top5 = JSON.parse(localStorage.getItem(storageKey)) || []; } catch(_){}
+    top5 = top5.slice(0, 5);
 
     portal.innerHTML = `
       <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:20px;color:#fff;text-align:center;">
