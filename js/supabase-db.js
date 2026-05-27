@@ -504,11 +504,7 @@ window.preloadStationData = async function (stationId) {
     // Heures
     const { data: heuresData } = await sb().from('heures').select('date_jour, data').eq('station_id', stationId);
     if (heuresData) {
-      const supabaseKeys = new Set(heuresData.map(h => stationId + '-heures-' + h.date_jour));
-      for (let i = localStorage.length - 1; i >= 0; i--) {
-        const k = localStorage.key(i);
-        if (k && k.startsWith(stationId + '-heures-') && !supabaseKeys.has(k)) localStorage.removeItem(k);
-      }
+      // Only ADD/UPDATE from Supabase, never delete local data
       heuresData.forEach(h => {
         const key = stationId + '-heures-' + h.date_jour;
         localStorage.setItem(key, JSON.stringify(h.data));
