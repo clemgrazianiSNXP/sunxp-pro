@@ -246,9 +246,26 @@ window.sendAdminNotif = async function() {
       created_by: currentUser.email
     });
     if (error) throw error;
+
+    // Send push notification
+    const typeInfo = NOTIF_TYPES[type] || NOTIF_TYPES.annonce;
+    const pushTitle = typeInfo.icon + ' ' + titre;
+    const pushBody = message || '';
+    if (typeof sendPushToStation === 'function') {
+      if (cible === 'tous' || cible === 'chauffeurs') {
+        // Send to all stations
+        const stations = typeof window._chauffeurs === 'object' ? Object.keys(window._chauffeurs) : [];
+        for (const sid of stations) {
+          await sendPushToStation(sid, pushTitle, pushBody);
+        }
+      } else if (station_id) {
+        await sendPushToStation(station_id, pushTitle, pushBody);
+      }
+    }
+
     document.querySelector('#notif-titre').value = '';
     document.querySelector('#notif-message').value = '';
-    alert('✅ Notification envoyée !');
+    alert('✅ Notification envoyée + push !');
     loadNotifHistory();
   } catch (e) { alert('Erreur: ' + (e.message || JSON.stringify(e))); }
 };
