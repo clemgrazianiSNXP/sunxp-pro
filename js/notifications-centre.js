@@ -222,7 +222,7 @@ async function renderAdminNotifications(container) {
   container.appendChild(wrap);
 
   // Populate stations
-  const stationSelect = document.getElementById('notif-station');
+  const stationSelect = wrap.querySelector('#notif-station');
   if (stationSelect && typeof window._chauffeurs === 'object') {
     Object.keys(window._chauffeurs).forEach(sid => {
       stationSelect.innerHTML += '<option value="' + sid + '">' + sid + '</option>';
@@ -230,37 +230,38 @@ async function renderAdminNotifications(container) {
   }
 
   // Send handler
-  document.getElementById('notif-send-btn').onclick = async () => {
-    const type = document.getElementById('notif-type').value;
-    const titre = document.getElementById('notif-titre').value.trim();
-    const message = document.getElementById('notif-message').value.trim();
-    let cible = document.getElementById('notif-cible').value;
+  wrap.querySelector('#notif-send-btn').onclick = async () => {
+    const type = wrap.querySelector('#notif-type').value;
+    const titre = wrap.querySelector('#notif-titre').value.trim();
+    const message = wrap.querySelector('#notif-message').value.trim();
+    let cible = wrap.querySelector('#notif-cible').value;
     let station_id = null;
     if (cible === 'station') {
-      station_id = document.getElementById('notif-station').value;
+      station_id = wrap.querySelector('#notif-station').value;
       cible = station_id;
     }
     if (!titre) { alert('Titre requis'); return; }
 
     try {
-      await sb().from('admin_notifications').insert({
+      const { error } = await sb().from('admin_notifications').insert({
         titre, message, type, cible, station_id,
         created_at: new Date().toISOString(),
         created_by: currentUser.email
       });
-      document.getElementById('notif-titre').value = '';
-      document.getElementById('notif-message').value = '';
+      if (error) throw error;
+      wrap.querySelector('#notif-titre').value = '';
+      wrap.querySelector('#notif-message').value = '';
       alert('✅ Notification envoyée !');
       loadNotifHistory();
-    } catch (e) { alert('Erreur: ' + e.message); }
+    } catch (e) { alert('Erreur: ' + (e.message || JSON.stringify(e))); }
   };
 
   loadNotifHistory();
 }
 
 window.toggleStationSelect = function() {
-  const cible = document.getElementById('notif-cible');
-  const station = document.getElementById('notif-station');
+  const cible = document.querySelector('#notif-cible');
+  const station = document.querySelector('#notif-station');
   if (cible && station) station.style.display = cible.value === 'station' ? 'block' : 'none';
 };
 
