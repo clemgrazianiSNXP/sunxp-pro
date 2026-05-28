@@ -670,6 +670,38 @@ window.preloadStationData = async function (stationId) {
       console.log(`  Docs chauffeurs: ${docsChData.length} chauffeurs`);
     }
 
+    // Contacts
+    const { data: contactsData } = await sb().from('contacts').select('data').eq('station_id', stationId).maybeSingle();
+    if (contactsData && contactsData.data) {
+      localStorage.setItem(stationId + '-contacts', JSON.stringify(contactsData.data));
+    }
+
+    // Suivi papiers
+    const { data: papiersData } = await sb().from('suivi_papiers').select('data').eq('station_id', stationId).maybeSingle();
+    if (papiersData && papiersData.data) {
+      localStorage.setItem(stationId + '-suivi-papiers', JSON.stringify(papiersData.data));
+    }
+
+    // Suivi entretien
+    const { data: entretienData } = await sb().from('suivi_entretien').select('data').eq('station_id', stationId).maybeSingle();
+    if (entretienData && entretienData.data) {
+      localStorage.setItem(stationId + '-suivi-entretien', JSON.stringify(entretienData.data));
+    }
+
+    // Documents bureau
+    const { data: documentsData } = await sb().from('documents').select('data').eq('station_id', stationId).maybeSingle();
+    if (documentsData && documentsData.data) {
+      localStorage.setItem(stationId + '-documents', JSON.stringify(documentsData.data));
+    }
+
+    // Docs employés
+    const { data: docsEmpData } = await sb().from('docs_employes').select('chauffeur_nom, data').eq('station_id', stationId);
+    if (docsEmpData && docsEmpData.length) {
+      docsEmpData.forEach(d => {
+        localStorage.setItem(stationId + '-docs-employes-' + d.chauffeur_nom, JSON.stringify(d.data));
+      });
+    }
+
     // Clés & Codes
     const { data: clesData } = await sb().from('cles_codes').select('data').eq('station_id', stationId).maybeSingle();
     if (clesData && clesData.data) {
@@ -718,16 +750,17 @@ window.preloadStationData = async function (stationId) {
       console.log('  Planning published: chargé');
     }
 
-    // Attribution (derniers 7 jours pour l'accueil chauffeur)
+    // Attribution (aujourd'hui seulement)
     const today = new Date();
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(today); d.setDate(d.getDate() - i);
-      const dateStr = d.toISOString().slice(0, 10);
-      const attrKey = stationId + '-attribution-' + dateStr;
-      const { data: attrData } = await sb().from('attribution').select('data').eq('station_id', stationId).eq('date_jour', dateStr).maybeSingle();
-      if (attrData && attrData.data) {
-        localStorage.setItem(attrKey, JSON.stringify(attrData.data));
-      }
+    const todayDateStr = today.toISOString().slice(0, 10);
+    const attrKey = stationId + '-attribution-' + todayDateStr;
+    const { data: attrData } = await sb().from('attribution')
+      .select('data')
+      .eq('station_id', stationId)
+      .eq('date_jour', todayDateStr)
+      .maybeSingle();
+    if (attrData && attrData.data) {
+      localStorage.setItem(attrKey, JSON.stringify(attrData.data));
     }
 
     console.log('✅ Préchargement terminé');

@@ -2,6 +2,7 @@
 console.log('flotte-attribution.js chargé');
 
 let attrDate = new Date();
+let attrSearchNoData = false;
 
 /* ── Persistance ──────────────────────────────────────────── */
 function attrKey(sid, d) { return sid + '-attribution-' + d.toISOString().slice(0, 10); }
@@ -23,14 +24,24 @@ function renderAttribution() {
   try { chauffeurs = JSON.parse(localStorage.getItem(sid + '-repertoire')) || []; } catch (_) {}
   const chauffeurNames = chauffeurs.map(c => (c.prenom + ' ' + c.nom).trim());
 
-  let rows = loadAttr(sid, attrDate);
-  if (!rows) {
-    rows = camions.map(c => ({ plaque: c.plaque, modele: (c.marque || '') + ' ' + (c.modele || ''), bva: c.bva || false, chauffeur: '', pda: '', trs: '', lic: '', clef: '', vigik: '', com: '' }));
-    saveAttr(sid, attrDate, rows);
+  let rows = [];
+  if (!attrSearchNoData) {
+    rows = loadAttr(sid, attrDate);
+    if (!rows) {
+      rows = camions.map(c => ({ plaque: c.plaque, modele: (c.marque || '') + ' ' + (c.modele || ''), bva: c.bva || false, chauffeur: '', pda: '', trs: '', lic: '', clef: '', vigik: '', com: '' }));
+      saveAttr(sid, attrDate, rows);
+    }
   }
 
   // Toolbar
   wrap.appendChild(buildAttrToolbar(sid, rows));
+  if (attrSearchNoData) {
+    const message = document.createElement('p');
+    message.style.cssText = 'color:var(--text-muted);text-align:center;padding:20px;font-size:13px;';
+    message.textContent = 'Aucune attribution enregistrée pour cette date';
+    wrap.appendChild(message);
+    return wrap;
+  }
 
   // Tableau scrollable
   const tableWrap = document.createElement('div');
@@ -294,7 +305,7 @@ function buildAttrToolbar(sid, rows) {
   // Navigation date
   var prev = document.createElement('button');
   prev.className = 'h-btn h-nav'; prev.textContent = '◀';
-  prev.onclick = function() { attrDate.setDate(attrDate.getDate() - 1); if (typeof renderFlotte === 'function') renderFlotte(); };
+  prev.onclick = function() { attrSearchNoData = false; attrDate.setDate(attrDate.getDate() - 1); if (typeof renderFlotte === 'function') renderFlotte(); };
 
   var label = document.createElement('span');
   label.style.cssText = 'font-size:13px;font-weight:700;min-width:140px;text-align:center;';
@@ -302,11 +313,50 @@ function buildAttrToolbar(sid, rows) {
 
   var next = document.createElement('button');
   next.className = 'h-btn h-nav'; next.textContent = '▶';
-  next.onclick = function() { attrDate.setDate(attrDate.getDate() + 1); if (typeof renderFlotte === 'function') renderFlotte(); };
+  next.onclick = function() { attrSearchNoData = false; attrDate.setDate(attrDate.getDate() + 1); if (typeof renderFlotte === 'function') renderFlotte(); };
 
   var todayBtn = document.createElement('button');
   todayBtn.className = 'h-btn'; todayBtn.textContent = "Aujourd'hui";
-  todayBtn.onclick = function() { attrDate = new Date(); if (typeof renderFlotte === 'function') renderFlotte(); };
+  todayBtn.onclick = function() { attrSearchNoData = false; attrDate = new Date(); if (typeof renderFlotte === 'function') renderFlotte(); };
+
+  var dateSearch = document.createElement('input');
+  dateSearch.type = 'date';
+  dateSearch.value = attrDate.toISOString().slice(0, 10);
+  dateSearch.style.cssText = 'width:150px;padding:6px 10px;font-size:12px;border:1px solid var(--border);border-radius:4px;background:var(--bg-primary);color:var(--text-primary);';
+  dateSearch.onchange = function() { attrSearchNoData = false; attrDate = new Date(dateSearch.value); };
+  dateSearch.addEventListener('keydown', function(e) { if (e.key === 'Enter') searchBtn.click(); });
+
+  var searchBtn = document.createElement('button');
+  searchBtn.className = 'h-btn';
+  searchBtn.textContent = 'Chercher';
+  searchBtn.style.cssText = 'padding:6px 12px;';
+  searchBtn.onclick = async function() {
+    if (!dateSearch.value || !sb()) return;
+    attrSearchNoData = false;
+    attrDate = new Date(dateSearch.value);
+    label.textContent = '⏳ Recherche...';
+    dateSearch.disabled = true;
+    searchBtn.disabled = true;
+
+    try {
+      const dateStr = dateSearch.value;
+      const { data: attrData } = await sb().from('attribution').select('data').eq('station_id', sid).eq('date_jour', dateStr).maybeSingle();
+      if (attrData && attrData.data && Array.isArray(attrData.data) && attrData.data.length) {
+        saveAttr(sid, attrDate, attrData.data);
+        attrSearchNoData = false;
+      } else {
+        attrSearchNoData = true;
+        localStorage.removeItem(attrKey(sid, attrDate));
+      }
+    } catch (e) {
+      console.warn('Recherche attribution Supabase:', e.message);
+      attrSearchNoData = true;
+    } finally {
+      dateSearch.disabled = false;
+      searchBtn.disabled = false;
+      if (typeof renderFlotte === 'function') renderFlotte();
+    }
+  };
 
   // Dupliquer veille
   var dupBtn = document.createElement('button');
@@ -314,6 +364,7 @@ function buildAttrToolbar(sid, rows) {
   dupBtn.style.cssText = 'font-size:11px;padding:6px 12px;margin-left:auto;';
   dupBtn.textContent = '📋 Dupliquer veille';
   dupBtn.onclick = function() {
+    attrSearchNoData = false;
     var yest = new Date(attrDate); yest.setDate(yest.getDate() - 1);
     var prevData = loadAttr(sid, yest);
     if (!prevData) { alert('Pas de données la veille.'); return; }
@@ -322,7 +373,7 @@ function buildAttrToolbar(sid, rows) {
   };
 
   bar.appendChild(prev); bar.appendChild(label); bar.appendChild(next);
-  bar.appendChild(todayBtn); bar.appendChild(dupBtn);
+  bar.appendChild(todayBtn); bar.appendChild(dateSearch); bar.appendChild(searchBtn); bar.appendChild(dupBtn);
 
   // Compteur vans par statut
   var countOK = 0, countBU = 0, countX = 0;

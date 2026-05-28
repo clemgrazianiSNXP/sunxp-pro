@@ -13,6 +13,7 @@ function loadDocs() {
 
 function saveDocs(docs) {
   try { localStorage.setItem(getDocsKey(), JSON.stringify(docs)); } catch (_) {}
+  if (typeof dbSave === 'function') dbSave('documents', getDocsKey(), { station_id: window.getActiveStationId ? window.getActiveStationId() : 'default' }, docs);
 }
 
 function renderDocuments() {
