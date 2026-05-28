@@ -106,7 +106,21 @@ function renderAdminSauvegarde(container) {
   setTimeout(() => {
     document.getElementById('admin-export-btn')?.addEventListener('click', async () => {
       const prog = document.getElementById('admin-export-progress');
-      const tables = ['stations','chauffeurs','heures','stats','primes','activite','planning','planning_meta','planning_published','degats','camions','repos_demandes','acomptes','conges_payes','cles_codes','problemes_camions','user_profiles','responsables','eos','concessions','retards','absences'];
+      const tables = [
+        'stations', 'chauffeurs', 'responsables',
+        'heures', 'stats', 'primes', 'activite',
+        'planning', 'planning_meta', 'planning_published',
+        'degats', 'camions', 'attribution',
+        'repos_demandes', 'acomptes', 'conges_payes',
+        'cles_codes', 'contacts', 'problemes_camions',
+        'concessions', 'retards', 'absences', 'eos',
+        'docs_chauffeurs', 'docs_employes', 'documents',
+        'suivi_papiers', 'suivi_entretien',
+        'user_profiles', 'push_subscriptions',
+        'activity_logs', 'app_settings',
+        'admin_notifications', 'admin_notifications_lues',
+        'game_scores'
+      ];
       const backup = { version: '1.0', exported_at: new Date().toISOString(), exported_by: currentUser?.email || '', tables: {} };
       let done = 0;
       for (const t of tables) {
@@ -141,8 +155,38 @@ function renderAdminSauvegarde(container) {
         if (!confirm(`Restaurer ${tableNames.length} tables ? (${tableNames.join(', ')})`)) return;
         status.textContent = 'Restauration en cours...';
 
-        const CONFLICT_MAP = { stations:'id', heures:'station_id,date_jour', stats:'station_id,type,semaine', primes:'station_id,annee,mois', activite:'station_id,date_jour', concessions:'station_id,semaine', retards:'station_id,semaine', camions:'station_id', documents:'station_id', repos_demandes:'station_id', eos:'station_id,date_jour', acomptes:'station_id', conges_payes:'station_id', cles_codes:'station_id', problemes_camions:'station_id', user_profiles:'id', app_settings:'key', absences:'station_id,semaine' };
-        const DELETE_INSERT_TABLES = ['chauffeurs','degats','activity_logs','responsables','planning','planning_meta'];
+        const CONFLICT_MAP = {
+          stations: 'id',
+          heures: 'station_id,date_jour',
+          stats: 'station_id,type,semaine',
+          primes: 'station_id,annee,mois',
+          activite: 'station_id,date_jour',
+          concessions: 'station_id,semaine',
+          retards: 'station_id,semaine',
+          camions: 'station_id',
+          documents: 'station_id',
+          repos_demandes: 'station_id',
+          eos: 'station_id,date_jour',
+          acomptes: 'station_id',
+          conges_payes: 'station_id',
+          cles_codes: 'station_id',
+          contacts: 'station_id',
+          problemes_camions: 'station_id',
+          suivi_papiers: 'station_id',
+          suivi_entretien: 'station_id',
+          attribution: 'station_id,date_jour',
+          user_profiles: 'id',
+          app_settings: 'key',
+          absences: 'station_id,semaine',
+          admin_notifications: 'id',
+          game_scores: 'chauffeur_id,station_id,game_id'
+        };
+        const DELETE_INSERT_TABLES = [
+          'chauffeurs', 'degats', 'activity_logs', 'responsables',
+          'planning', 'planning_meta', 'planning_published',
+          'push_subscriptions', 'admin_notifications_lues',
+          'docs_chauffeurs', 'docs_employes'
+        ];
         // Tables à structure inconnue — try/catch séparé
         const FRAGILE_TABLES = ['planning_published', 'push_subscriptions'];
 
@@ -187,6 +231,26 @@ function renderAdminSauvegarde(container) {
                 }
               }
 
+              // Sync localStorage docs_chauffeurs
+              if (table === 'docs_chauffeurs') {
+                for (const row of rows) {
+                  if (row.station_id && row.chauffeur && row.data) {
+                    localStorage.setItem(row.station_id + '-docs-chauffeur-' + row.chauffeur, JSON.stringify(row.data));
+                    lsUpdated++;
+                  }
+                }
+              }
+
+              // Sync localStorage docs_employes
+              if (table === 'docs_employes') {
+                for (const row of rows) {
+                  if (row.station_id && row.chauffeur_nom && row.data) {
+                    localStorage.setItem(row.station_id + '-docs-employes-' + row.chauffeur_nom, JSON.stringify(row.data));
+                    lsUpdated++;
+                  }
+                }
+              }
+
             } else if (CONFLICT_MAP[table]) {
               const keepId = ['stations','user_profiles','app_settings'].includes(table);
               const cleanRows = keepId ? rows : rows.map(r => { const { id, ...rest } = r; return rest; });
@@ -203,6 +267,50 @@ function renderAdminSauvegarde(container) {
                 for (const [sid, list] of Object.entries(byStation)) {
                   localStorage.setItem(sid + '-camions', JSON.stringify(list));
                   lsUpdated++;
+                }
+              }
+
+              // Sync localStorage contacts
+              if (table === 'contacts') {
+                const byStation = {};
+                for (const row of rows) {
+                  if (!row.station_id) continue;
+                  if (!byStation[row.station_id]) byStation[row.station_id] = [];
+                  if (row.data) byStation[row.station_id].push(...(Array.isArray(row.data) ? row.data : [row.data]));
+                }
+                for (const [sid, list] of Object.entries(byStation)) {
+                  localStorage.setItem(sid + '-contacts', JSON.stringify(list));
+                  lsUpdated++;
+                }
+              }
+
+              // Sync localStorage suivi_papiers
+              if (table === 'suivi_papiers') {
+                for (const row of rows) {
+                  if (row.station_id && row.data) {
+                    localStorage.setItem(row.station_id + '-suivi-papiers', JSON.stringify(row.data));
+                    lsUpdated++;
+                  }
+                }
+              }
+
+              // Sync localStorage suivi_entretien
+              if (table === 'suivi_entretien') {
+                for (const row of rows) {
+                  if (row.station_id && row.data) {
+                    localStorage.setItem(row.station_id + '-suivi-entretien', JSON.stringify(row.data));
+                    lsUpdated++;
+                  }
+                }
+              }
+
+              // Sync localStorage attribution
+              if (table === 'attribution') {
+                for (const row of rows) {
+                  if (row.station_id && row.date_jour && row.data) {
+                    localStorage.setItem(row.station_id + '-attribution-' + row.date_jour, JSON.stringify(row.data));
+                    lsUpdated++;
+                  }
                 }
               }
 
