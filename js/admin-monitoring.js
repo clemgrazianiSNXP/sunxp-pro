@@ -150,7 +150,21 @@ async function renderAdminMonitoring(container) {
 
   // Statut tables + alertes
   if (connected) {
-    const tables = ['stations','chauffeurs','heures','stats','primes','activite','planning','planning_meta','degats','camions','repos_demandes','acomptes','conges_payes','user_profiles','push_subscriptions','activity_logs','app_settings'];
+    const tables = [
+      'stations', 'chauffeurs', 'responsables',
+      'heures', 'stats', 'primes', 'activite',
+      'planning', 'planning_meta', 'planning_published',
+      'degats', 'camions', 'attribution',
+      'repos_demandes', 'acomptes', 'conges_payes',
+      'cles_codes', 'contacts', 'problemes_camions',
+      'concessions', 'retards', 'absences', 'eos',
+      'docs_chauffeurs', 'docs_employes', 'documents',
+      'suivi_papiers', 'suivi_entretien',
+      'user_profiles', 'push_subscriptions',
+      'activity_logs', 'app_settings',
+      'admin_notifications', 'admin_notifications_lues',
+      'game_scores'
+    ];
     const alerts = [];
     const tableCard = document.createElement('div');
     tableCard.style.cssText = 'background:var(--bg-sidebar);border:1px solid var(--border);border-radius:10px;padding:16px;';
@@ -195,84 +209,52 @@ async function renderAdminMonitoring(container) {
     const { data: stationsData } = await sb().from('stations').select('id, nom');
     const stationsList = stationsData || [];
 
-    const SYNC_MAP = [
-      { table: 'chauffeurs', label: 'Chauffeurs', lsKey: sid => sid + '-repertoire', type: 'array' },
-      { table: 'responsables', label: 'Responsables', lsKey: sid => sid + '-responsables', type: 'array' },
-      { table: 'heures', label: 'Heures', prefix: sid => sid + '-heures-', type: 'multi' },
-      { table: 'planning', label: 'Planning', prefix: sid => sid + '-planning-', exclude: ['-meta-', '-published'], type: 'multi' },
-      { table: 'planning_meta', label: 'Planning Meta', prefix: sid => sid + '-planning-meta-', type: 'multi' },
-      { table: 'planning_published', label: 'Planning Published', lsKey: sid => sid + '-planning-published', type: 'single' },
-      { table: 'primes', label: 'Primes', prefix: sid => sid + '-primes-', type: 'multi' },
-      { table: 'stats', label: 'Stats', prefix: sid => sid + '-stats-', type: 'multi' },
-      { table: 'camions', label: 'Camions', lsKey: sid => sid + '-camions', type: 'single' },
-      { table: 'degats', label: 'Dégâts', lsKey: sid => sid + '-degats', type: 'array' },
-      { table: 'acomptes', label: 'Acomptes', lsKey: sid => sid + '-acomptes', type: 'single' },
-      { table: 'repos_demandes', label: 'Repos Demandes', lsKey: sid => sid + '-repos-demandes', type: 'single' },
-      { table: 'conges_payes', label: 'Congés Payés', lsKey: sid => sid + '-conges-payes', type: 'single' },
-      { table: 'cles_codes', label: 'Clés & Codes', lsKey: sid => sid + '-cles-codes', type: 'single' },
-      { table: 'eos', label: 'EOS', prefix: sid => sid + '-eos-', type: 'multi' },
-      { table: 'concessions', label: 'Concessions', prefix: sid => sid + '-concessions-', type: 'multi' },
-      { table: 'retards', label: 'Retards', prefix: sid => sid + '-retards-', type: 'multi' },
-      { table: 'activite', label: 'Activité', prefix: sid => sid + '-activite-', type: 'multi' }
+    const syncChecks = [
+      { label: 'Chauffeurs', localFn: (sid) => { try { return (JSON.parse(localStorage.getItem(sid+'-repertoire'))||[]).length; } catch(_){return 0;} }, sbTable: 'chauffeurs', sbFilter: (q,sid) => q.eq('station_id',sid) },
+      { label: 'Responsables', localFn: (sid) => { try { return (JSON.parse(localStorage.getItem(sid+'-responsables'))||[]).length; } catch(_){return 0;} }, sbTable: 'responsables', sbFilter: (q,sid) => q.eq('station_id',sid) },
+      { label: 'Heures', localFn: (sid) => { let c=0; for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith(sid+'-heures-'))c++;} return c; }, sbTable: 'heures', sbFilter: (q,sid) => q.eq('station_id',sid) },
+      { label: 'Planning', localFn: (sid) => { let c=0; for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith(sid+'-planning-')&&!k.includes('-meta-')&&!k.includes('-published'))c++;} return c; }, sbTable: 'planning', sbFilter: (q,sid) => q.eq('station_id',sid) },
+      { label: 'Planning Meta', localFn: (sid) => { let c=0; for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith(sid+'-planning-meta-'))c++;} return c; }, sbTable: 'planning_meta', sbFilter: (q,sid) => q.eq('station_id',sid) },
+      { label: 'Planning Published', localFn: (sid) => localStorage.getItem(sid+'-planning-published') ? 1 : 0, sbTable: 'planning_published', sbFilter: (q,sid) => q.eq('station_id',sid) },
+      { label: 'Stats', localFn: (sid) => { let c=0; for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith(sid+'-stats-'))c++;} return c; }, sbTable: 'stats', sbFilter: (q,sid) => q.eq('station_id',sid) },
+      { label: 'Primes', localFn: (sid) => { let c=0; for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith(sid+'-primes-'))c++;} return c; }, sbTable: 'primes', sbFilter: (q,sid) => q.eq('station_id',sid) },
+      { label: 'Camions', localFn: (sid) => { try { return (JSON.parse(localStorage.getItem(sid+'-camions'))||[]).length; } catch(_){return 0;} }, sbTable: 'camions', sbFilter: (q,sid) => q.eq('station_id',sid) },
+      { label: 'Dégâts', localFn: (sid) => { try { return (JSON.parse(localStorage.getItem(sid+'-degats'))||[]).length; } catch(_){return 0;} }, sbTable: 'degats', sbFilter: (q,sid) => q.eq('station_id',sid) },
+      { label: 'Repos Demandes', localFn: (sid) => { try { return (JSON.parse(localStorage.getItem(sid+'-repos-demandes'))||[]).length; } catch(_){return 0;} }, sbTable: 'repos_demandes', sbFilter: (q,sid) => q.eq('station_id',sid) },
+      { label: 'Acomptes', localFn: (sid) => { try { return (JSON.parse(localStorage.getItem(sid+'-acomptes'))||[]).length; } catch(_){return 0;} }, sbTable: 'acomptes', sbFilter: (q,sid) => q.eq('station_id',sid) },
+      { label: 'Congés Payés', localFn: (sid) => { try { return (JSON.parse(localStorage.getItem(sid+'-conges-payes'))||[]).length; } catch(_){return 0;} }, sbTable: 'conges_payes', sbFilter: (q,sid) => q.eq('station_id',sid) },
+      { label: 'Clés & Codes', localFn: (sid) => localStorage.getItem(sid+'-cles-codes') ? 1 : 0, sbTable: 'cles_codes', sbFilter: (q,sid) => q.eq('station_id',sid) },
+      { label: 'Contacts', localFn: (sid) => { try { return (JSON.parse(localStorage.getItem(sid+'-contacts'))||[]).length; } catch(_){return 0;} }, sbTable: 'contacts', sbFilter: (q,sid) => q.eq('station_id',sid) },
+      { label: 'Problèmes Camions', localFn: (sid) => localStorage.getItem(sid+'-problemes-camions') ? 1 : 0, sbTable: 'problemes_camions', sbFilter: (q,sid) => q.eq('station_id',sid) },
+      { label: 'Concessions', localFn: (sid) => { let c=0; for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith(sid+'-concessions-'))c++;} return c; }, sbTable: 'concessions', sbFilter: (q,sid) => q.eq('station_id',sid) },
+      { label: 'Retards', localFn: (sid) => { let c=0; for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith(sid+'-retards-'))c++;} return c; }, sbTable: 'retards', sbFilter: (q,sid) => q.eq('station_id',sid) },
+      { label: 'Absences', localFn: (sid) => { let c=0; for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith(sid+'-absences-'))c++;} return c; }, sbTable: 'absences', sbFilter: (q,sid) => q.eq('station_id',sid) },
+      { label: 'EOS', localFn: (sid) => { let c=0; for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith(sid+'-eos-'))c++;} return c; }, sbTable: 'eos', sbFilter: (q,sid) => q.eq('station_id',sid) },
+      { label: 'Docs Chauffeurs', localFn: (sid) => { let c=0; for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith(sid+'-docs-chauffeur-'))c++;} return c; }, sbTable: 'docs_chauffeurs', sbFilter: (q,sid) => q.eq('station_id',sid) },
+      { label: 'Docs Employés', localFn: (sid) => { let c=0; for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith(sid+'-docs-employes-'))c++;} return c; }, sbTable: 'docs_employes', sbFilter: (q,sid) => q.eq('station_id',sid) },
+      { label: 'Documents Bureau', localFn: (sid) => localStorage.getItem(sid+'-documents') ? 1 : 0, sbTable: 'documents', sbFilter: (q,sid) => q.eq('station_id',sid) },
+      { label: 'Suivi Papiers', localFn: (sid) => localStorage.getItem(sid+'-suivi-papiers') ? 1 : 0, sbTable: 'suivi_papiers', sbFilter: (q,sid) => q.eq('station_id',sid) },
+      { label: 'Suivi Entretien', localFn: (sid) => localStorage.getItem(sid+'-suivi-entretien') ? 1 : 0, sbTable: 'suivi_entretien', sbFilter: (q,sid) => q.eq('station_id',sid) },
+      { label: 'Attribution', localFn: (sid) => { let c=0; for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith(sid+'-attribution-'))c++;} return c; }, sbTable: 'attribution', sbFilter: (q,sid) => q.eq('station_id',sid) },
     ];
 
     let syncIssues = 0;
 
     for (const station of stationsList) {
       const sid = station.id;
-      let stationIssues = 0;
-      const rows = [];
-
-      for (const mapping of SYNC_MAP) {
-        let localCount = 0;
-        let sbCount = 0;
-        try {
-          if (mapping.type === 'multi') {
-            const pfx = mapping.prefix(sid);
-            for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.startsWith(pfx)) { if (mapping.exclude) { if (!mapping.exclude.some(ex => k.includes(ex))) localCount++; } else localCount++; } }
-          } else if (mapping.type === 'array') {
-            const raw = localStorage.getItem(mapping.lsKey(sid));
-            if (raw) { try { localCount = JSON.parse(raw).length || 0; } catch(_) {} }
-          } else if (mapping.type === 'single') {
-            if (localStorage.getItem(mapping.lsKey(sid))) localCount = 1;
-          }
-          const { count, error } = await sb().from(mapping.table).select('*', { count: 'exact', head: true }).eq('station_id', sid);
-          if (!error) sbCount = count || 0;
-        } catch (_) {}
-
-        if (localCount === 0 && sbCount === 0) continue;
-        const isSync = (mapping.type === 'array' || mapping.type === 'single') ? (localCount > 0) === (sbCount > 0) : localCount === sbCount;
-        if (!isSync) { stationIssues++; syncIssues++; }
-        rows.push({ label: mapping.label, table: mapping.table, localCount, sbCount, isSync });
+      for (const check of syncChecks) {
+        const localCount = check.localFn(sid);
+        const { count: sbCount } = await check.sbFilter(sb().from(check.sbTable).select('*', { count: 'exact', head: true }), sid);
+        const isSync = localCount === (sbCount || 0);
+        if (!isSync) syncIssues++;
+        const div = document.createElement('div');
+        div.style.cssText = 'padding:6px 10px;background:var(--bg-primary);border-radius:6px;font-size:11px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;border:1px solid transparent;transition:border-color 0.15s;';
+        div.innerHTML = `<span><b>${station.nom}</b> — ${check.label}</span><span style="color:${isSync?'#4ade80':'#fbbf24'};">${isSync?'✅':'⚠️'} Local: ${localCount} | Supabase: ${sbCount||0}</span>`;
+        div.onmouseenter = () => div.style.borderColor = 'var(--accent)';
+        div.onmouseleave = () => div.style.borderColor = 'transparent';
+        div.onclick = () => showSyncDetail(check.sbTable, sid, station.nom, localCount, sbCount||0);
+        syncGrid.appendChild(div);
       }
-
-      if (!rows.length) continue;
-
-      // Accordion par station
-      const stationBlock = document.createElement('div');
-      stationBlock.style.cssText = 'border:1px solid var(--border);border-radius:8px;overflow:hidden;';
-
-      const header = document.createElement('div');
-      header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bg-primary);cursor:pointer;user-select:none;';
-      header.innerHTML = `<span style="font-weight:700;font-size:12px;color:var(--text-primary);">📍 ${station.nom}</span><span style="font-size:10px;font-family:monospace;color:${stationIssues === 0 ? '#4ade80' : '#f87171'};">${stationIssues === 0 ? '✅ OK' : '⚠️ ' + stationIssues + ' diff'} · ${rows.length} tables ▾</span>`;
-
-      const body = document.createElement('div');
-      body.style.cssText = 'display:none;padding:6px 10px;display:flex;flex-direction:column;gap:3px;';
-      body.style.display = 'none';
-
-      rows.forEach(r => {
-        const row = document.createElement('div');
-        row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:4px 8px;border-radius:4px;font-size:10px;background:var(--bg-sidebar);';
-        row.innerHTML = `<span style="color:var(--text-primary);">${r.label}</span><span style="color:${r.isSync ? '#4ade80' : '#f87171'};font-family:monospace;">${r.isSync ? '✅' : '⚠️'} L:${r.localCount} | S:${r.sbCount}</span>`;
-        row.style.cursor = 'pointer';
-        row.onclick = () => showSyncDetail(r.table, sid, station.nom, r.localCount, r.sbCount);
-        body.appendChild(row);
-      });
-
-      header.onclick = () => { body.style.display = body.style.display === 'none' ? 'flex' : 'none'; };
-      stationBlock.appendChild(header);
-      stationBlock.appendChild(body);
-      syncGrid.appendChild(stationBlock);
     }
 
     // Résumé sync
