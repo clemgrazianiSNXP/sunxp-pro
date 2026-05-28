@@ -232,21 +232,24 @@ window.dbSave = async function (table, lsKey, filters, data) {
   localStorage.setItem(lsKey, JSON.stringify(data));
   if (!sb()) return;
   try {
-    // D'abord essayer update
-    let query = sb().from(table).update({ data });
-    Object.entries(filters).forEach(([k, v]) => { query = query.eq(k, v); });
-    const { data: updated, error: updateErr } = await query.select();
-    
-    if (updateErr) throw new Error(updateErr.message);
-
-    // Si rien n'a été mis à jour (pas de ligne existante), insert
-    if (!updated || updated.length === 0) {
-      const { error: insertErr } = await sb().from(table).insert({ ...filters, data });
-      if (insertErr) throw new Error(insertErr.message);
+    // Nettoyer le station_id pour éviter le bug DWP2:1
+    if (filters && filters.station_id) {
+      filters.station_id = String(filters.station_id).split(':')[0].trim();
     }
+
+    const payload = { ...filters, data };
+    let onConflict;
+    switch (table) {
+      case 'primes':   onConflict = 'station_id,annee,mois'; break;
+      case 'stats':    onConflict = 'station_id,type,semaine'; break;
+      case 'heures':   onConflict = 'station_id,date_jour'; break;
+      case 'planning': onConflict = 'station_id,year,month'; break;
+      default:         onConflict = Object.keys(filters).join(','); break;
+    }
+    const { error } = await sb().from(table).upsert(payload, { onConflict });
+    if (error) throw new Error(error.message);
   } catch (e) {
     console.warn(`dbSave(${table}) error:`, e.message);
-    // Enregistrer l'erreur de sync
     _logSyncError(table, lsKey, e.message);
   }
 };
