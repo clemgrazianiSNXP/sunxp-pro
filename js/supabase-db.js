@@ -754,16 +754,22 @@ window.preloadStationData = async function (stationId) {
     }
 
     // Attribution (aujourd'hui seulement)
-    const today = new Date();
-    const todayDateStr = today.toISOString().slice(0, 10);
-    const attrKey = stationId + '-attribution-' + todayDateStr;
-    const { data: attrData } = await sb().from('attribution')
-      .select('data')
-      .eq('station_id', stationId)
-      .eq('date_jour', todayDateStr)
-      .maybeSingle();
-    if (attrData && attrData.data) {
-      localStorage.setItem(attrKey, JSON.stringify(attrData.data));
+    if (typeof sb === 'function' && sb() && sb().supabaseKey) {
+      const today = new Date();
+      const todayDateStr = today.toISOString().slice(0, 10);
+      const attrKey = stationId + '-attribution-' + todayDateStr;
+      try {
+        const { data: attrData } = await sb().from('attribution')
+          .select('data')
+          .eq('station_id', stationId)
+          .eq('date_jour', todayDateStr)
+          .maybeSingle();
+        if (attrData && attrData.data) {
+          localStorage.setItem(attrKey, JSON.stringify(attrData.data));
+        }
+      } catch(e) {
+        console.warn('Attribution preload error:', e.message);
+      }
     }
 
     console.log('✅ Préchargement terminé');
