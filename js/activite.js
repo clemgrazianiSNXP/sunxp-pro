@@ -247,7 +247,24 @@ function showIdConflictModal(conflicts,repMap,resolved){
 function finalizeRoutes(resolved){
   const prenomCount={};
   resolved.forEach(r=>{prenomCount[r.prenom]=(prenomCount[r.prenom]||0)+1;});
-  activiteRoutes=resolved.map(r=>({route:r.route,chauffeur:prenomCount[r.prenom]>1?r.prenom+' '+(r.nom[0]||'')+'.':r.prenom,arrets:r.arrets,colis:r.colis||'',golden:activiteGolden[r.route]||0}));
+  activiteRoutes = resolved.map(r => ({
+    route: r.route,
+    chauffeur: (() => {
+      if (prenomCount[r.prenom] <= 1) return r.prenom;
+      const samePrenom = resolved.filter(x => x.prenom === r.prenom && x.route !== r.route);
+      let letters = 1;
+      while (letters <= (r.nom||'').length) {
+        const myPart = (r.nom||'').slice(0, letters).toUpperCase();
+        const conflict = samePrenom.some(x => (x.nom||'').slice(0, letters).toUpperCase() === myPart);
+        if (!conflict) break;
+        letters++;
+      }
+      return r.prenom + ' ' + (r.nom||'').slice(0, letters) + '.';
+    })(),
+    arrets: r.arrets,
+    colis: r.colis || '',
+    golden: activiteGolden[r.route] || 0
+  }));
   activiteRoutes.sort((a,b)=>a.route.localeCompare(b.route,undefined,{numeric:true}));
   saveActivite();renderActivite();
 }
