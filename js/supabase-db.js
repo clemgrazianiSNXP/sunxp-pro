@@ -664,15 +664,6 @@ window.preloadStationData = async function (stationId) {
       localStorage.setItem(stationId + '-conges-payes', '[]');
     }
 
-    // Documents chauffeurs
-    const { data: docsChData } = await sb().from('docs_chauffeurs').select('chauffeur, data').eq('station_id', stationId);
-    if (docsChData && docsChData.length) {
-      docsChData.forEach(d => {
-        localStorage.setItem(stationId + '-docs-chauffeur-' + d.chauffeur, JSON.stringify(d.data));
-      });
-      console.log(`  Docs chauffeurs: ${docsChData.length} chauffeurs`);
-    }
-
     // Contacts
     const { data: contactsData } = await sb().from('contacts').select('data').eq('station_id', stationId).maybeSingle();
     if (contactsData && contactsData.data) {
