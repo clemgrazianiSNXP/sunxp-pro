@@ -47,14 +47,14 @@ async function renderAdminMonitoring(container) {
   // Card Utilisation Supabase (DB + Storage)
   if (connected) {
     // DB size
-    let dbSizeGB = 0;
+    let dbSizeMB = 0;
     try {
       const { data: dbSize } = await sb().rpc('get_db_size');
-      dbSizeGB = parseFloat(dbSize || 0) / 1024; // get_db_size retourne MB → convertir en GB
+      dbSizeMB = parseFloat(dbSize || 0);
     } catch(e) { console.warn('DB size error:', e.message); }
 
-    const dbLimitGB = 0.5;
-    const dbPct = Math.min((dbSizeGB / dbLimitGB) * 100, 100).toFixed(1);
+    const dbLimitMB = 500;
+    const dbPct = Math.min((dbSizeMB / dbLimitMB) * 100, 100).toFixed(1);
     const dbColor = dbPct < 60 ? '#4ade80' : dbPct < 80 ? '#fbbf24' : '#f87171';
 
     // Storage size
@@ -90,7 +90,7 @@ async function renderAdminMonitoring(container) {
       <div style="margin-bottom:14px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
           <span style="font-size:12px;font-weight:600;">🗄️ Base de données</span>
-          <span style="font-size:11px;font-family:monospace;color:${dbColor};">${(dbSizeGB * 1024).toFixed(0)} MB / 500 MB</span>
+          <span style="font-size:11px;font-family:monospace;color:${dbColor};">${parseFloat(dbSizeMB).toFixed(1)} MB / 500 MB</span>
         </div>
         <div style="background:var(--bg-primary);border-radius:20px;height:14px;overflow:hidden;border:1px solid var(--border);position:relative;">
           <div style="height:100%;background:${dbColor};border-radius:20px;width:${dbPct}%;transition:width 0.5s ease;"></div>
