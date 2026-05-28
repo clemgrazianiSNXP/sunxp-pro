@@ -172,8 +172,17 @@ async function renderAdminMonitoring(container) {
     ];
     const alerts = [];
     const tableCard = document.createElement('div');
-    tableCard.style.cssText = 'background:var(--bg-sidebar);border:1px solid var(--border);border-radius:10px;padding:16px;';
-    tableCard.innerHTML = '<div style="font-size:14px;font-weight:700;margin-bottom:12px;">Tables Supabase <span style="font-size:10px;color:var(--text-muted);">(cliquer pour détails)</span></div>';
+    tableCard.style.cssText = 'background:var(--bg-sidebar);border:1px solid var(--border);border-radius:10px;overflow:hidden;';
+    const tableHdr = document.createElement('div');
+    tableHdr.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:14px 16px;cursor:pointer;user-select:none;';
+    tableHdr.innerHTML = '<span style="font-size:14px;font-weight:700;">Tables Supabase</span><span style="font-size:11px;color:var(--text-muted);">▶ Afficher</span>';
+    const tableBody = document.createElement('div');
+    tableBody.style.cssText = 'display:none;padding:16px;border-top:1px solid var(--border);';
+    tableHdr.onclick = () => {
+      const open = tableBody.style.display !== 'none';
+      tableBody.style.display = open ? 'none' : 'block';
+      tableHdr.querySelector('span:last-child').textContent = open ? '▶ Afficher' : '▼ Masquer';
+    };
     const grid = document.createElement('div');
     grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;';
     for (const t of tables) {
@@ -201,13 +210,26 @@ async function renderAdminMonitoring(container) {
         alerts.push(`Table "${t}" erreur: ${e.message}`);
       }
     }
-    tableCard.appendChild(grid);
+    tableBody.appendChild(grid);
+    tableCard.appendChild(tableHdr);
+    tableCard.appendChild(tableBody);
     wrap.appendChild(tableCard);
 
     // Vérification sync localStorage vs Supabase (exhaustive)
     const syncCard = document.createElement('div');
-    syncCard.style.cssText = 'background:var(--bg-sidebar);border:1px solid var(--border);border-radius:10px;padding:16px;';
-    syncCard.innerHTML = '<div style="font-size:14px;font-weight:700;margin-bottom:12px;">🔄 Sync localStorage ↔ Supabase</div>';
+    syncCard.style.cssText = 'background:var(--bg-sidebar);border:1px solid var(--border);border-radius:10px;overflow:hidden;';
+    const syncCardHdr = document.createElement('div');
+    syncCardHdr.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:14px 16px;cursor:pointer;user-select:none;';
+    syncCardHdr.innerHTML = '<span style="font-size:14px;font-weight:700;">🔄 Sync localStorage ↔ Supabase</span><span style="font-size:11px;color:var(--text-muted);">▶ Afficher</span>';
+    const syncCardBody = document.createElement('div');
+    syncCardBody.style.cssText = 'display:none;padding:16px;border-top:1px solid var(--border);';
+    syncCardHdr.onclick = () => {
+      const open = syncCardBody.style.display !== 'none';
+      syncCardBody.style.display = open ? 'none' : 'block';
+      syncCardHdr.querySelector('span:last-child').textContent = open ? '▶ Afficher' : '▼ Masquer';
+    };
+    syncCard.appendChild(syncCardHdr);
+    syncCard.appendChild(syncCardBody);
     const syncGrid = document.createElement('div');
     syncGrid.style.cssText = 'display:flex;flex-direction:column;gap:6px;';
 
@@ -247,19 +269,47 @@ async function renderAdminMonitoring(container) {
 
     for (const station of stationsList) {
       const sid = station.id;
+      const stationRows = [];
+      let stationIssues = 0;
+
       for (const check of syncChecks) {
         const localCount = check.localFn(sid);
         const { count: sbCount } = await check.sbFilter(sb().from(check.sbTable).select('*', { count: 'exact', head: true }), sid);
         const isSync = localCount === (sbCount || 0);
-        if (!isSync) syncIssues++;
-        const div = document.createElement('div');
-        div.style.cssText = 'padding:6px 10px;background:var(--bg-primary);border-radius:6px;font-size:11px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;border:1px solid transparent;transition:border-color 0.15s;';
-        div.innerHTML = `<span><b>${station.nom}</b> — ${check.label}</span><span style="color:${isSync?'#4ade80':'#fbbf24'};">${isSync?'✅':'⚠️'} Local: ${localCount} | Supabase: ${sbCount||0}</span>`;
-        div.onmouseenter = () => div.style.borderColor = 'var(--accent)';
-        div.onmouseleave = () => div.style.borderColor = 'transparent';
-        div.onclick = () => showSyncDetail(check.sbTable, sid, station.nom, localCount, sbCount||0);
-        syncGrid.appendChild(div);
+        if (!isSync) { syncIssues++; stationIssues++; }
+        stationRows.push({ label: check.label, sbTable: check.sbTable, localCount, sbCount: sbCount || 0, isSync });
       }
+
+      const block = document.createElement('div');
+      block.style.cssText = 'border:1px solid var(--border);border-radius:8px;overflow:hidden;';
+
+      const stHdr = document.createElement('div');
+      stHdr.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bg-primary);cursor:pointer;user-select:none;';
+      stHdr.innerHTML = `<span style="font-weight:700;font-size:12px;">📍 ${station.nom}</span><span style="font-size:10px;font-family:monospace;color:${stationIssues === 0 ? '#4ade80' : '#fbbf24'};">${stationIssues === 0 ? '✅ OK' : '⚠️ ' + stationIssues + ' diff'} · ${stationRows.length} checks ▶</span>`;
+
+      const stBody = document.createElement('div');
+      stBody.style.display = 'none';
+
+      stationRows.forEach(r => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:5px 10px;font-size:10px;background:var(--bg-sidebar);cursor:pointer;border-top:1px solid var(--border);';
+        row.innerHTML = `<span>${r.label}</span><span style="color:${r.isSync ? '#4ade80' : '#fbbf24'};">${r.isSync ? '✅' : '⚠️'} Local: ${r.localCount} | SB: ${r.sbCount}</span>`;
+        row.onmouseenter = () => row.style.background = 'var(--bg-primary)';
+        row.onmouseleave = () => row.style.background = 'var(--bg-sidebar)';
+        row.onclick = () => showSyncDetail(r.sbTable, sid, station.nom, r.localCount, r.sbCount);
+        stBody.appendChild(row);
+      });
+
+      stHdr.onclick = () => {
+        const open = stBody.style.display !== 'none';
+        stBody.style.display = open ? 'none' : 'block';
+        const chevron = stHdr.querySelector('span:last-child');
+        chevron.textContent = chevron.textContent.replace(open ? '▼' : '▶', open ? '▶' : '▼');
+      };
+
+      block.appendChild(stHdr);
+      block.appendChild(stBody);
+      syncGrid.appendChild(block);
     }
 
     // Résumé sync
@@ -285,8 +335,8 @@ async function renderAdminMonitoring(container) {
       syncSummary.appendChild(syncBtn);
     }
 
-    syncCard.appendChild(syncGrid);
-    syncCard.appendChild(syncSummary);
+    syncCardBody.appendChild(syncGrid);
+    syncCardBody.appendChild(syncSummary);
     wrap.appendChild(syncCard);
 
     // Card Test de charge
