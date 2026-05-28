@@ -107,12 +107,47 @@ function getRepertoireMap() {
   JSON.parse(raw).forEach(c=>{const id=String(c.id_amazon||'').replace(/\s/g,'').toUpperCase();if(id)map[id]={prenom:c.prenom||'',nom:c.nom||''};}); } catch(_){} return map;
 }
 function parseRoutesExcel(rows) {
-  const startIdx=rows.length>0&&!String(rows[0][0]).startsWith('CA_')?1:0;
-  const repMap=getRepertoireMap();
-  const raw=rows.slice(startIdx).map(cols=>{
-    const route=String(cols[0]||'').replace(/^CA_/,'').trim(); if(!route)return null;
-    const idRaw=String(cols[2]||'').replace(/\s/g,'').toUpperCase(); const arrets=parseInt(cols[7])||0;
-    return{route,idRaw,arrets};
+  if (!rows.length) return;
+
+  // Trouver la ligne d'en-têtes (première ligne contenant 'Code de la route' ou 'Route')
+  let headerIdx = 0;
+  for (let i = 0; i < Math.min(5, rows.length); i++) {
+    const row = rows[i].map(c => String(c||'').toLowerCase());
+    if (row.some(c => c.includes('code') || c.includes('route') || c.includes('transporteur'))) {
+      headerIdx = i;
+      break;
+    }
+  }
+
+  // Normaliser les en-têtes
+  const normalize = s => String(s||'').toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]/g, '');
+
+  const headers = rows[headerIdx].map(normalize);
+
+  const findCol = (...candidates) => {
+    for (const c of candidates) {
+      const idx = headers.indexOf(normalize(c));
+      if (idx >= 0) return idx;
+    }
+    return -1;
+  };
+
+  // Mapping des colonnes par nom
+  const idxRoute  = findCol('Code de la route', 'route', 'routecode');
+  const idxId     = findCol('ID du transporteur', 'transporterid', 'id transporteur');
+  const idxArrets = findCol('Tous les arrêts', 'tous les arrets', 'total stops', 'arrets');
+  const idxColis  = findCol('livraisons au total', 'livraisons', 'packages', 'colis', 'total deliveries');
+
+  const repMap = getRepertoireMap();
+  const raw = rows.slice(headerIdx + 1).map(cols => {
+    const route = String(idxRoute >= 0 ? cols[idxRoute] : cols[0] || '').replace(/^CA_/,'').trim();
+    if (!route) return null;
+    const idRaw = String(idxId >= 0 ? cols[idxId] : cols[2] || '').replace(/\s/g,'').toUpperCase();
+    const arrets = parseInt(idxArrets >= 0 ? cols[idxArrets] : cols[7]) || 0;
+    const colis  = parseInt(idxColis >= 0 ? cols[idxColis] : '') || 0;
+    return { route, idRaw, arrets, colis };
   }).filter(Boolean);
 
   // Détecter les routes avec IDs multiples (séparés par |)
@@ -125,13 +160,13 @@ function parseRoutesExcel(rows) {
         const found=repMap[id];
         return{id,label:found?(found.prenom+' '+found.nom).trim():id};
       });
-      conflicts.push({route:r.route,arrets:r.arrets,options});
+      conflicts.push({route:r.route,arrets:r.arrets,colis:r.colis,options});
     } else {
       const id=ids[0]||'';
       let prenom,nom;
       if(id&&repMap[id]){prenom=repMap[id].prenom;nom=repMap[id].nom;}
       else{prenom=id||String(r.idRaw||'');nom='';}
-      resolved.push({route:r.route,prenom,nom,arrets:r.arrets});
+      resolved.push({route:r.route,prenom,nom,arrets:r.arrets,colis:r.colis});
     }
   });
 
@@ -202,7 +237,7 @@ function showIdConflictModal(conflicts,repMap,resolved){
       let prenom,nom;
       if(repMap[id]){prenom=repMap[id].prenom;nom=repMap[id].nom;}
       else{prenom=id;nom='';}
-      resolved.push({route:c.route,prenom,nom,arrets:c.arrets});
+      resolved.push({route:c.route,prenom,nom,arrets:c.arrets,colis:c.colis||0});
     });
     overlay.remove();
     finalizeRoutes(resolved);
@@ -212,7 +247,7 @@ function showIdConflictModal(conflicts,repMap,resolved){
 function finalizeRoutes(resolved){
   const prenomCount={};
   resolved.forEach(r=>{prenomCount[r.prenom]=(prenomCount[r.prenom]||0)+1;});
-  activiteRoutes=resolved.map(r=>({route:r.route,chauffeur:prenomCount[r.prenom]>1?r.prenom+' '+(r.nom[0]||'')+'.':r.prenom,arrets:r.arrets,colis:'',golden:activiteGolden[r.route]||0}));
+  activiteRoutes=resolved.map(r=>({route:r.route,chauffeur:prenomCount[r.prenom]>1?r.prenom+' '+(r.nom[0]||'')+'.':r.prenom,arrets:r.arrets,colis:r.colis||'',golden:activiteGolden[r.route]||0}));
   activiteRoutes.sort((a,b)=>a.route.localeCompare(b.route,undefined,{numeric:true}));
   saveActivite();renderActivite();
 }
