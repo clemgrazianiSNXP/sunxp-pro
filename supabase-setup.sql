@@ -256,3 +256,12 @@ CREATE INDEX IF NOT EXISTS idx_activity_logs_action ON activity_logs(action);
 CREATE INDEX IF NOT EXISTS idx_activity_logs_created ON activity_logs(created_at DESC);
 ALTER TABLE activity_logs ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "allow_all" ON activity_logs FOR ALL USING (true) WITH CHECK (true);
+
+-- Fonction utilitaire : taille de la base de données en MB
+CREATE OR REPLACE FUNCTION get_db_size()
+RETURNS NUMERIC
+LANGUAGE SQL
+SECURITY DEFINER
+AS $$
+  SELECT pg_database_size(current_database()) / (1024.0 * 1024.0);
+$$;
