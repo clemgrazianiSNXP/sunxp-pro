@@ -7,29 +7,64 @@
 function parseCSVDSDPMO(text) {
   const lines = text.trim().split(/\r?\n/);
   if (lines.length < 2) return [];
+
   const splitCSVLine = line => {
     const result = []; let cur = ''; let inQuote = false;
     for (let i = 0; i < line.length; i++) {
       const c = line[i];
       if (c === '"') { inQuote = !inQuote; }
-      else if (c === ',' && !inQuote) { result.push(cur.trim()); cur = ''; }
+      else if (c === ',' && !inQuote) { result.push(cur.trim().replace(/^"|"$/g, '')); cur = ''; }
       else { cur += c; }
     }
-    result.push(cur.trim());
+    result.push(cur.trim().replace(/^"|"$/g, ''));
     return result;
   };
+
+  // Lire les en-têtes et les normaliser (minuscules, sans accents, sans espaces)
+  const rawHeaders = splitCSVLine(lines[0]);
+  const normalize = s => s.toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]/g, '');
+  const headers = rawHeaders.map(normalize);
+
+  // Mapping flexible des colonnes par nom
+  const findCol = (...candidates) => {
+    for (const c of candidates) {
+      const idx = headers.indexOf(normalize(c));
+      if (idx >= 0) return idx;
+    }
+    return -1;
+  };
+
+  const idxSemaine    = findCol('Semaine', 'semaine', 'week');
+  const idxId         = findCol('ID du transporteur', 'transporterid', 'id transporteur');
+  const idxColis      = findCol('Colis livrés', 'colis livres', 'packages delivered');
+  const idxDCR        = findCol('DCR', 'dcr');
+  const idxDNRDPMO    = findCol('DNR DPMO', 'dnr dpmo', 'dnrdpmo');
+  const idxDNR        = findCol('DNR', 'dnr');
+
+  if (idxId < 0) { alert('Colonne "ID du transporteur" introuvable dans le CSV.'); return []; }
+
   return lines.slice(1).map(line => {
-    const clean = splitCSVLine(line);
-    const semaine   = clean[0] || '';
-    const idAmazon  = String(clean[1] || '').replace(/\s/g, '').toUpperCase();
-    const colis     = parseFloat(String(clean[2] || '').replace(',', '.')) || 0;
-    const dcr       = parseFloat(String(clean[3] || '').replace(',', '.')) || 0;
-    const dnrDpmo   = parseFloat(String(clean[4] || '').replace(',', '.')) || 0;
-    const dcrPct    = Math.round(dcr * 10000) / 100;
-    const colisRam  = Math.round(colis * (1 - dcr));
-    const nombreDnr = Math.round((dnrDpmo * colis) / 1000000 * 100) / 100;
+    if (!line.trim()) return null;
+    const cols = splitCSVLine(line);
+
+    const semaine   = idxSemaine >= 0 ? (cols[idxSemaine] || '') : '';
+    const idAmazon  = String(cols[idxId] || '').replace(/\s/g, '').toUpperCase();
+    const colis     = idxColis >= 0 ? (parseFloat(String(cols[idxColis] || '').replace(',', '.')) || 0) : 0;
+    const dcrRaw    = idxDCR >= 0 ? String(cols[idxDCR] || '').replace('%', '').replace(',', '.') : '0';
+    const dcr       = parseFloat(dcrRaw) || 0;
+    // DCR peut être en % (96.4%) ou en décimal (0.9732)
+    const dcrNorm   = dcr > 1 ? dcr / 100 : dcr;
+    const dcrPct    = Math.round(dcrNorm * 10000) / 100;
+    const dnrDpmo   = idxDNRDPMO >= 0 ? (parseFloat(String(cols[idxDNRDPMO] || '').replace(',', '.')) || 0) : 0;
+    const nombreDnr = idxDNR >= 0 ? (parseFloat(String(cols[idxDNR] || '').replace(',', '.')) || 0) : Math.round((dnrDpmo * colis) / 1000000 * 100) / 100;
+    const colisRam  = Math.round(colis * (1 - dcrNorm));
+
+    if (!idAmazon) return null;
+
     return { semaine, idAmazon, colis, colisRam, dcrPct, dnrDpmo, nombreDnr };
-  }).filter(r => r.idAmazon);
+  }).filter(Boolean);
 }
 
 /**
