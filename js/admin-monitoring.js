@@ -44,75 +44,80 @@ async function renderAdminMonitoring(container) {
   }
   wrap.appendChild(syncErrCard);
 
-  // Card Supabase Storage
+  // Card Utilisation Supabase (DB + Storage)
   if (connected) {
-    const storageCard = document.createElement('div');
-    storageCard.style.cssText = 'background:var(--bg-sidebar);border:1px solid var(--border);border-radius:10px;padding:16px;';
-    storageCard.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><span style="font-size:14px;font-weight:700;">☁️ Supabase Storage</span><button id="adm-storage-refresh" class="h-btn" style="font-size:9px;padding:3px 8px;">🔄 Rafraîchir</button></div><p style="font-size:11px;color:var(--text-muted);">Chargement...</p>';
-    wrap.appendChild(storageCard);
+    // DB size
+    let dbSizeGB = 0;
+    try {
+      const { data: dbSize } = await sb().rpc('get_db_size');
+      dbSizeGB = parseFloat(dbSize || 0) / 1024; // get_db_size retourne MB → convertir en GB
+    } catch(e) { console.warn('DB size error:', e.message); }
 
-    // Charger les infos storage
-    (async () => {
-      try {
-        const { data: buckets, error: bErr } = await sb().storage.listBuckets();
-        if (bErr || !buckets) { storageCard.querySelector('p').textContent = '❌ ' + (bErr?.message || 'Erreur'); return; }
+    const dbLimitGB = 0.5;
+    const dbPct = Math.min((dbSizeGB / dbLimitGB) * 100, 100).toFixed(1);
+    const dbColor = dbPct < 60 ? '#4ade80' : dbPct < 80 ? '#fbbf24' : '#f87171';
 
-        let totalBytes = 0;
-        const bucketInfos = [];
-
-        for (const bucket of buckets) {
-          let fileCount = 0, bucketSize = 0;
-          try {
-            // List files recursively (check subfolders too)
-            const listRecursive = async (path) => {
-              const { data: items } = await sb().storage.from(bucket.name).list(path, { limit: 1000 });
-              if (!items) return;
-              for (const item of items) {
-                if (item.id) {
-                  // It's a file
-                  fileCount++;
-                  const size = (item.metadata && item.metadata.size) ? item.metadata.size : (item.metadata && item.metadata.contentLength) ? item.metadata.contentLength : 0;
-                  bucketSize += size;
-                } else if (item.name && !item.id) {
-                  // It's a folder - recurse
-                  await listRecursive(path ? path + '/' + item.name : item.name);
-                }
+    // Storage size
+    let storageSizeGB = 0;
+    try {
+      const buckets = ['docs-employes', 'documents', 'papiers-rh', 'photos'];
+      for (const bucket of buckets) {
+        try {
+          const { data: files } = await sb().storage.from(bucket).list('', { limit: 1000 });
+          if (files) {
+            for (const file of files) {
+              if (file.metadata && file.metadata.size) {
+                storageSizeGB += file.metadata.size / (1024 * 1024 * 1024);
               }
-            };
-            await listRecursive('');
-          } catch (_) {}
-          totalBytes += bucketSize;
-          bucketInfos.push({ name: bucket.name, files: fileCount, size: bucketSize });
-        }
+            }
+          }
+        } catch(_) {}
+      }
+    } catch(e) { console.warn('Storage size error:', e.message); }
 
-        const totalMB = (totalBytes / (1024 * 1024)).toFixed(3);
-        const pct = Math.min(100, (totalBytes / (500 * 1024 * 1024)) * 100).toFixed(0);
-        let gaugeColor = '#4ade80';
-        if (totalMB > 400) gaugeColor = '#f87171';
-        else if (totalMB > 300) gaugeColor = '#fbbf24';
+    const storageLimitGB = 1;
+    const storagePct = Math.min((storageSizeGB / storageLimitGB) * 100, 100).toFixed(1);
+    const storageColor = storagePct < 60 ? '#4ade80' : storagePct < 80 ? '#fbbf24' : '#f87171';
 
-        let html = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><span style="font-size:14px;font-weight:700;">☁️ Supabase Storage</span><button id="adm-storage-refresh" class="h-btn" style="font-size:9px;padding:3px 8px;">🔄 Rafraîchir</button></div>';
+    const usageCard = document.createElement('div');
+    usageCard.style.cssText = 'background:var(--bg-sidebar);border:1px solid var(--border);border-radius:10px;padding:16px;';
+    usageCard.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <div style="font-size:14px;font-weight:700;">📊 Utilisation Supabase</div>
+        <button id="refresh-usage-btn" class="h-btn" style="font-size:10px;padding:3px 8px;">🔄 Rafraîchir</button>
+      </div>
 
-        // Jauge
-        html += `<div style="margin-bottom:12px;"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;"><span style="color:var(--text-primary);font-weight:700;">Utilisé : ${totalMB} MB / 500 MB</span><span style="color:${gaugeColor};font-family:monospace;">${pct}%</span></div><div style="height:8px;background:#1e2d3d;border-radius:4px;overflow:hidden;"><div style="height:100%;width:${pct}%;background:${gaugeColor};border-radius:4px;transition:width 0.3s;"></div></div></div>`;
+      <div style="margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <span style="font-size:12px;font-weight:600;">🗄️ Base de données</span>
+          <span style="font-size:11px;font-family:monospace;color:${dbColor};">${(dbSizeGB * 1024).toFixed(0)} MB / 500 MB</span>
+        </div>
+        <div style="background:var(--bg-primary);border-radius:20px;height:14px;overflow:hidden;border:1px solid var(--border);position:relative;">
+          <div style="height:100%;background:${dbColor};border-radius:20px;width:${dbPct}%;transition:width 0.5s ease;"></div>
+          <span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;">${dbPct}%</span>
+        </div>
+        ${parseFloat(dbPct) > 80 ? '<div style="font-size:10px;color:#f87171;margin-top:4px;">⚠️ Base de données bientôt pleine — pensez à upgrader votre plan Supabase</div>' : ''}
+      </div>
 
-        // Alerte si > 400MB
-        if (totalMB > 400) {
-          html += '<div style="padding:8px 10px;background:rgba(255,61,61,0.1);border:1px solid #f87171;border-radius:6px;font-size:10px;color:#f87171;margin-bottom:10px;">⚠️ Limite Storage bientôt atteinte — pensez à upgrader votre plan Supabase ou supprimer des fichiers inutiles</div>';
-        }
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <span style="font-size:12px;font-weight:600;">📁 Storage (fichiers)</span>
+          <span style="font-size:11px;font-family:monospace;color:${storageColor};">${(storageSizeGB * 1024).toFixed(0)} MB / 1024 MB</span>
+        </div>
+        <div style="background:var(--bg-primary);border-radius:20px;height:14px;overflow:hidden;border:1px solid var(--border);position:relative;">
+          <div style="height:100%;background:${storageColor};border-radius:20px;width:${storagePct}%;transition:width 0.5s ease;"></div>
+          <span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;">${storagePct}%</span>
+        </div>
+        ${parseFloat(storagePct) > 80 ? '<div style="font-size:10px;color:#f87171;margin-top:4px;">⚠️ Storage bientôt plein — pensez à upgrader votre plan Supabase</div>' : ''}
+      </div>
+    `;
+    wrap.appendChild(usageCard);
 
-        // Liste buckets
-        html += '<div style="display:flex;flex-direction:column;gap:4px;">';
-        bucketInfos.forEach(b => {
-          const sizeMB = (b.size / (1024 * 1024)).toFixed(3);
-          html += `<div style="display:flex;justify-content:space-between;padding:5px 8px;background:var(--bg-primary);border-radius:5px;font-size:10px;"><span style="color:var(--text-primary);font-weight:700;">📁 ${b.name}</span><span style="color:var(--text-muted);font-family:monospace;">${b.files} fichiers · ${sizeMB} MB</span></div>`;
-        });
-        html += '</div>';
-
-        storageCard.innerHTML = html;
-        storageCard.querySelector('#adm-storage-refresh').onclick = () => openAdminPanel();
-      } catch (e) { storageCard.querySelector('p').textContent = '❌ ' + e.message; }
-    })();
+    setTimeout(() => {
+      document.getElementById('refresh-usage-btn')?.addEventListener('click', () => {
+        renderAdminMonitoring(container);
+      });
+    }, 0);
   }
 
   // Card Activité par station
