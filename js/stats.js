@@ -258,186 +258,168 @@ function buildStatsToolbar(importBtn, type, currentWeek, weeks, setWeek) {
 /* ── DS/DPMO ──────────────────────────────────────────────── */
 function buildDSDPMO() {
   const wrap = document.createElement('div');
-  wrap.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:20px;">⏳ Chargement...</p>';
+  const weeks = getWeeksList('dsdpmo');
+  if (!statsWeekDSDPMO && weeks.length) statsWeekDSDPMO = weeks[0];
+  const data = statsWeekDSDPMO ? loadStatsData('dsdpmo', statsWeekDSDPMO) : [];
 
-  getWeeksListAsync('dsdpmo').then(weeks => {
-    wrap.innerHTML = '';
-    if (!statsWeekDSDPMO && weeks.length) statsWeekDSDPMO = weeks[0];
-    const data = statsWeekDSDPMO ? loadStatsData('dsdpmo', statsWeekDSDPMO) : [];
+  const importBtn = document.createElement('button');
+  importBtn.className = 'rep-btn rep-btn-primary'; importBtn.textContent = '📂 Importer CSV';
+  importBtn.onclick = () => {
+    const inp = document.createElement('input'); inp.type='file'; inp.accept='.csv,text/csv';
+    inp.onchange = async () => {
+      const file = inp.files[0]; if (!file) return;
+      const text = await readFileAsText(file);
+      const rows = parseCSVDSDPMO(text);
+      if (!rows.length) { alert('Aucune donnée trouvée dans ce CSV.'); return; }
+      showPromptModal('Numéro de semaine pour ces données DS/DPMO', 'ex: 15', rows[0].semaine || '', (semaine) => {
+        statsWeekDSDPMO = semaine;
+        // Met à jour le champ semaine dans chaque ligne
+      rows.forEach(r => { r.semaine = semaine; });
+      saveStatsData('dsdpmo', statsWeekDSDPMO, rows); renderStats();
+      });
+    }; inp.click();
+  };
+  wrap.appendChild(buildStatsToolbar(importBtn, 'dsdpmo', statsWeekDSDPMO, weeks, w => { statsWeekDSDPMO = w; }));
 
-    const importBtn = document.createElement('button');
-    importBtn.className = 'rep-btn rep-btn-primary'; importBtn.textContent = '📂 Importer CSV';
-    importBtn.onclick = () => {
-      const inp = document.createElement('input'); inp.type='file'; inp.accept='.csv,text/csv';
-      inp.onchange = async () => {
-        const file = inp.files[0]; if (!file) return;
-        const text = await readFileAsText(file);
-        const rows = parseCSVDSDPMO(text);
-        if (!rows.length) { alert('Aucune donnée trouvée dans ce CSV.'); return; }
-        showPromptModal('Numéro de semaine pour ces données DS/DPMO', 'ex: 15', rows[0].semaine || '', (semaine) => {
-          statsWeekDSDPMO = semaine;
-          // Met à jour le champ semaine dans chaque ligne
-        rows.forEach(r => { r.semaine = semaine; });
-        saveStatsData('dsdpmo', statsWeekDSDPMO, rows); renderStats();
-        });
-      }; inp.click();
-    };
-    wrap.appendChild(buildStatsToolbar(importBtn, 'dsdpmo', statsWeekDSDPMO, weeks, w => { statsWeekDSDPMO = w; }));
+  if (!data.length) { const p = document.createElement('p'); p.style.cssText='color:var(--text-muted);text-align:center;margin-top:40px;'; p.textContent='Aucune donnée. Importez un fichier CSV.'; wrap.appendChild(p); return wrap; }
 
-    if (!data.length) { const p = document.createElement('p'); p.style.cssText='color:var(--text-muted);text-align:center;margin-top:40px;'; p.textContent='Aucune donnée. Importez un fichier CSV.'; wrap.appendChild(p); return; }
-
-    const table = document.createElement('table'); table.className = 'rep-table';
-    table.innerHTML = '<thead><tr><th>Chauffeur</th><th>Semaine</th><th>Colis livrés</th><th>Colis ramenés</th><th>DCR%</th><th>DNR DPMO</th><th>Nombre DNR</th><th></th></tr></thead>';
-    const tbody = document.createElement('tbody');
-    data.forEach(r => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${driverCell(r.idAmazon)}</td><td>${r.semaine}</td><td>${r.colis}</td><td>${r.colisRam}</td><td>${r.dcrPct}%</td><td>${r.dnrDpmo}</td><td>${r.nombreDnr}</td><td></td>`;
-      tr.lastElementChild.appendChild(deleteRowBtn('dsdpmo', statsWeekDSDPMO, r.idAmazon, tr));
-      tbody.appendChild(tr);
-    });
-    table.appendChild(tbody); wrap.appendChild(table);
+  const table = document.createElement('table'); table.className = 'rep-table';
+  table.innerHTML = '<thead><tr><th>Chauffeur</th><th>Semaine</th><th>Colis livrés</th><th>Colis ramenés</th><th>DCR%</th><th>DNR DPMO</th><th>Nombre DNR</th><th></th></tr></thead>';
+  const tbody = document.createElement('tbody');
+  data.forEach(r => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${driverCell(r.idAmazon)}</td><td>${r.semaine}</td><td>${r.colis}</td><td>${r.colisRam}</td><td>${r.dcrPct}%</td><td>${r.dnrDpmo}</td><td>${r.nombreDnr}</td><td></td>`;
+    tr.lastElementChild.appendChild(deleteRowBtn('dsdpmo', statsWeekDSDPMO, r.idAmazon, tr));
+    tbody.appendChild(tr);
   });
-
-  return wrap;
+  table.appendChild(tbody); wrap.appendChild(table); return wrap;
 }
 
 /* ── POD ──────────────────────────────────────────────────── */
 function buildPOD() {
   const wrap = document.createElement('div');
-  wrap.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:20px;">⏳ Chargement...</p>';
+  const weeks = getWeeksList('pod');
+  if (!statsWeekPOD && weeks.length) statsWeekPOD = weeks[0];
+  const data = statsWeekPOD ? loadStatsData('pod', statsWeekPOD) : [];
 
-  getWeeksListAsync('pod').then(weeks => {
-    wrap.innerHTML = '';
-    if (!statsWeekPOD && weeks.length) statsWeekPOD = weeks[0];
-    const data = statsWeekPOD ? loadStatsData('pod', statsWeekPOD) : [];
+  const importBtn = document.createElement('button');
+  importBtn.className = 'rep-btn rep-btn-primary'; importBtn.textContent = '📄 Importer PDF';
+  importBtn.onclick = () => {
+    const inp = document.createElement('input'); inp.type='file'; inp.accept='.pdf,application/pdf';
+    inp.onchange = async () => {
+      const file = inp.files[0]; if (!file) return;
+      const text = await readPDFAsText(file);
+      console.log('Toutes les clés localStorage:', Object.keys(localStorage));
+      console.log('Station active:', sessionStorage.getItem('stationActive') || localStorage.getItem('stationActive'));
+      showPromptModal('Numéro de semaine pour ces données POD', 'ex: 15', '', (semaine) => {
+        const rows = parsePDFTextPOD(text, semaine);
+        if (!rows.length) { alert('Aucune donnée POD trouvée.'); return; }
+        statsWeekPOD = semaine; saveStatsData('pod', semaine, rows); renderStats();
+      });
+    }; inp.click();
+  };
+  wrap.appendChild(buildStatsToolbar(importBtn, 'pod', statsWeekPOD, weeks, w => { statsWeekPOD = w; }));
 
-    const importBtn = document.createElement('button');
-    importBtn.className = 'rep-btn rep-btn-primary'; importBtn.textContent = '📄 Importer PDF';
-    importBtn.onclick = () => {
-      const inp = document.createElement('input'); inp.type='file'; inp.accept='.pdf,application/pdf';
-      inp.onchange = async () => {
-        const file = inp.files[0]; if (!file) return;
-        const text = await readPDFAsText(file);
-        console.log('Toutes les clés localStorage:', Object.keys(localStorage));
-        console.log('Station active:', sessionStorage.getItem('stationActive') || localStorage.getItem('stationActive'));
-        showPromptModal('Numéro de semaine pour ces données POD', 'ex: 15', '', (semaine) => {
-          const rows = parsePDFTextPOD(text, semaine);
-          if (!rows.length) { alert('Aucune donnée POD trouvée.'); return; }
-          statsWeekPOD = semaine; saveStatsData('pod', semaine, rows); renderStats();
-        });
-      }; inp.click();
-    };
-    wrap.appendChild(buildStatsToolbar(importBtn, 'pod', statsWeekPOD, weeks, w => { statsWeekPOD = w; }));
+  // Badge impacts POD — ajouté dans la toolbar à droite
+  if (data.length && typeof getPodImpacts === 'function') {
+    const impacts = getPodImpacts(data);
+    const toolbar = wrap.querySelector('.rep-toolbar') || wrap.firstElementChild;
+    if (toolbar) toolbar.appendChild(buildImpactBadge('pod', impacts));
+  }
 
-    // Badge impacts POD — ajouté dans la toolbar à droite
-    if (data.length && typeof getPodImpacts === 'function') {
-      const impacts = getPodImpacts(data);
-      const toolbar = wrap.querySelector('.rep-toolbar') || wrap.firstElementChild;
-      if (toolbar) toolbar.appendChild(buildImpactBadge('pod', impacts));
+  if (!data.length) { const p = document.createElement('p'); p.style.cssText='color:var(--text-muted);text-align:center;margin-top:40px;'; p.textContent='Aucune donnée. Importez un fichier PDF.'; wrap.appendChild(p); return wrap; }
+
+  const table = document.createElement('table'); table.className = 'rep-table';
+  table.innerHTML = '<thead><tr><th>Chauffeur</th><th>Semaine</th><th>Opportunities</th><th>Success</th><th>Rejects</th><th>POD Success%</th><th></th></tr></thead>';
+  const tbody = document.createElement('tbody');
+  data.forEach(r => {
+    const tr = document.createElement('tr');
+    const rejectStyle = r.rejects > 0 ? 'color:#f87171;cursor:pointer;text-decoration:underline;font-weight:700;' : '';
+    tr.innerHTML = `<td>${driverCell(r.idAmazon)}</td><td>${r.semaine}</td><td>${r.opportunities}</td><td>${r.success ?? ''}</td><td><span class="pod-reject-link" style="${rejectStyle}">${r.rejects}</span></td><td>${r.podPct}%</td><td></td>`;
+    // Clic sur rejects → popup détail
+    if (r.rejects > 0) {
+      tr.querySelector('.pod-reject-link').onclick = () => showPodRejectDetail(r);
     }
-
-    if (!data.length) { const p = document.createElement('p'); p.style.cssText='color:var(--text-muted);text-align:center;margin-top:40px;'; p.textContent='Aucune donnée. Importez un fichier PDF.'; wrap.appendChild(p); return; }
-
-    const table = document.createElement('table'); table.className = 'rep-table';
-    table.innerHTML = '<thead><tr><th>Chauffeur</th><th>Semaine</th><th>Opportunities</th><th>Success</th><th>Rejects</th><th>POD Success%</th><th></th></tr></thead>';
-    const tbody = document.createElement('tbody');
-    data.forEach(r => {
-      const tr = document.createElement('tr');
-      const rejectStyle = r.rejects > 0 ? 'color:#f87171;cursor:pointer;text-decoration:underline;font-weight:700;' : '';
-      tr.innerHTML = `<td>${driverCell(r.idAmazon)}</td><td>${r.semaine}</td><td>${r.opportunities}</td><td>${r.success ?? ''}</td><td><span class="pod-reject-link" style="${rejectStyle}">${r.rejects}</span></td><td>${r.podPct}%</td><td></td>`;
-      // Clic sur rejects → popup détail
-      if (r.rejects > 0) {
-        tr.querySelector('.pod-reject-link').onclick = () => showPodRejectDetail(r);
-      }
-      tr.lastElementChild.appendChild(deleteRowBtn('pod', statsWeekPOD, r.idAmazon, tr));
-      tbody.appendChild(tr);
-    });
-    table.appendChild(tbody); wrap.appendChild(table);
+    tr.lastElementChild.appendChild(deleteRowBtn('pod', statsWeekPOD, r.idAmazon, tr));
+    tbody.appendChild(tr);
   });
-
-  return wrap;
+  table.appendChild(tbody); wrap.appendChild(table); return wrap;
 }
 
 /* ── DWC ──────────────────────────────────────────────────── */
 function buildDWC() {
   const wrap = document.createElement('div');
-  wrap.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:20px;">⏳ Chargement...</p>';
+  const weeks = getWeeksList('dwc');
+  if (!statsWeekDWC && weeks.length) statsWeekDWC = weeks[0];
+  const data = statsWeekDWC ? loadStatsData('dwc', statsWeekDWC) : [];
 
-  getWeeksListAsync('dwc').then(weeks => {
-    wrap.innerHTML = '';
-    if (!statsWeekDWC && weeks.length) statsWeekDWC = weeks[0];
-    const data = statsWeekDWC ? loadStatsData('dwc', statsWeekDWC) : [];
+  const importHtmlBtn = document.createElement('button');
+  importHtmlBtn.className = 'rep-btn rep-btn-primary'; importHtmlBtn.textContent = '🌐 Importer HTML DWC';
+  importHtmlBtn.onclick = () => {
+    const inp = document.createElement('input'); inp.type='file'; inp.accept='.html,.htm';
+    inp.onchange = async () => {
+      const file = inp.files[0]; if (!file) return;
+      showPromptModal('Numéro de semaine pour ces données DWC', 'ex: 15', '', async (semaine) => {
+        const rows = await parseDWCHTML(file, semaine);
+        if (!rows.length) { alert('Aucune donnée extraite du fichier HTML.'); return; }
+        statsWeekDWC = semaine;
+        saveStatsData('dwc', semaine, rows);
+        renderStats();
+      });
+    }; inp.click();
+  };
 
-    const importHtmlBtn = document.createElement('button');
-    importHtmlBtn.className = 'rep-btn rep-btn-primary'; importHtmlBtn.textContent = '🌐 Importer HTML DWC';
-    importHtmlBtn.onclick = () => {
-      const inp = document.createElement('input'); inp.type='file'; inp.accept='.html,.htm';
-      inp.onchange = async () => {
-        const file = inp.files[0]; if (!file) return;
-        showPromptModal('Numéro de semaine pour ces données DWC', 'ex: 15', '', async (semaine) => {
-          const rows = await parseDWCHTML(file, semaine);
-          if (!rows.length) { alert('Aucune donnée extraite du fichier HTML.'); return; }
-          statsWeekDWC = semaine;
-          saveStatsData('dwc', semaine, rows);
-          renderStats();
-        });
-      }; inp.click();
+  const toolbarWrap = document.createElement('div');
+  toolbarWrap.style.cssText = 'display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;';
+  toolbarWrap.appendChild(importHtmlBtn);
+  // Navigation ◀ ▶ par semaine
+  if (weeks.length) {
+    const navWrap = document.createElement('div');
+    navWrap.style.cssText = 'display:flex;align-items:center;gap:6px;';
+    const prevBtn = document.createElement('button');
+    prevBtn.className = 'h-btn h-nav'; prevBtn.textContent = '◀';
+    prevBtn.onclick = () => {
+      const idx = weeks.indexOf(statsWeekDWC);
+      if (idx < weeks.length - 1) { statsWeekDWC = weeks[idx + 1]; renderStats(); }
     };
+    const nextBtn = document.createElement('button');
+    nextBtn.className = 'h-btn h-nav'; nextBtn.textContent = '▶';
+    nextBtn.onclick = () => {
+      const idx = weeks.indexOf(statsWeekDWC);
+      if (idx > 0) { statsWeekDWC = weeks[idx - 1]; renderStats(); }
+    };
+    const weekLabel = document.createElement('span');
+    weekLabel.style.cssText = 'font-size:13px;font-weight:600;color:var(--text-primary);min-width:100px;text-align:center;';
+    weekLabel.textContent = statsWeekDWC ? 'Semaine ' + statsWeekDWC : '—';
+    navWrap.appendChild(prevBtn);
+    navWrap.appendChild(weekLabel);
+    navWrap.appendChild(nextBtn);
+    toolbarWrap.appendChild(navWrap);
+  }
+  if (statsWeekDWC) { const del = deleteWeekBtn('dwc', statsWeekDWC, () => { statsWeekDWC = ''; }); if (del && del.nodeType === Node.ELEMENT_NODE) toolbarWrap.appendChild(del); }
+  wrap.appendChild(toolbarWrap);
 
-    const toolbarWrap = document.createElement('div');
-    toolbarWrap.style.cssText = 'display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;';
-    toolbarWrap.appendChild(importHtmlBtn);
-    // Navigation ◀ ▶ par semaine
-    if (weeks.length) {
-      const navWrap = document.createElement('div');
-      navWrap.style.cssText = 'display:flex;align-items:center;gap:6px;';
-      const prevBtn = document.createElement('button');
-      prevBtn.className = 'h-btn h-nav'; prevBtn.textContent = '◀';
-      prevBtn.onclick = () => {
-        const idx = weeks.indexOf(statsWeekDWC);
-        if (idx < weeks.length - 1) { statsWeekDWC = weeks[idx + 1]; renderStats(); }
-      };
-      const nextBtn = document.createElement('button');
-      nextBtn.className = 'h-btn h-nav'; nextBtn.textContent = '▶';
-      nextBtn.onclick = () => {
-        const idx = weeks.indexOf(statsWeekDWC);
-        if (idx > 0) { statsWeekDWC = weeks[idx - 1]; renderStats(); }
-      };
-      const weekLabel = document.createElement('span');
-      weekLabel.style.cssText = 'font-size:13px;font-weight:600;color:var(--text-primary);min-width:100px;text-align:center;';
-      weekLabel.textContent = statsWeekDWC ? 'Semaine ' + statsWeekDWC : '—';
-      navWrap.appendChild(prevBtn);
-      navWrap.appendChild(weekLabel);
-      navWrap.appendChild(nextBtn);
-      toolbarWrap.appendChild(navWrap);
-    }
-    if (statsWeekDWC) { const del = deleteWeekBtn('dwc', statsWeekDWC, () => { statsWeekDWC = ''; }); if (del && del.nodeType === Node.ELEMENT_NODE) toolbarWrap.appendChild(del); }
-    wrap.appendChild(toolbarWrap);
+  // Badge impacts DWC — ajouté dans la toolbar à droite
+  if (data.length && typeof getDwcImpacts === 'function') {
+    const impacts = getDwcImpacts(data);
+    toolbarWrap.appendChild(buildImpactBadge('dwc', impacts));
+  }
 
-    // Badge impacts DWC — ajouté dans la toolbar à droite
-    if (data.length && typeof getDwcImpacts === 'function') {
-      const impacts = getDwcImpacts(data);
-      toolbarWrap.appendChild(buildImpactBadge('dwc', impacts));
-    }
+  if (!data.length) { const p = document.createElement('p'); p.style.cssText='color:var(--text-muted);text-align:center;margin-top:40px;'; p.textContent='Aucune donnée. Importez un fichier HTML DWC.'; wrap.appendChild(p); return wrap; }
 
-    if (!data.length) { const p = document.createElement('p'); p.style.cssText='color:var(--text-muted);text-align:center;margin-top:40px;'; p.textContent='Aucune donnée. Importez un fichier HTML DWC.'; wrap.appendChild(p); return; }
-
-    const table = document.createElement('table'); table.className = 'rep-table';
-    table.innerHTML = '<thead><tr><th>Chauffeur</th><th>DWC%</th><th>Contact Miss</th><th></th></tr></thead>';
-    const tbody = document.createElement('tbody');
-    [...data].sort((a,b) => a.dwcPct - b.dwcPct).forEach(r => {
-      const tr = document.createElement('tr');
-      const d = resolveDriver(r.idAmazon);
-      const prenom = d ? d.nom.split(' ')[0] : r.idAmazon;
-      const msg = `Bonjour ${prenom}, voici votre score DWC semaine ${r.semaine} : 📊 DWC : ${r.dwcPct}% | 📵 Contact Miss : ${r.contactMiss}`;
-      tr.innerHTML = `<td>${driverCell(r.idAmazon)}</td><td>${r.dwcPct}%</td><td>${r.contactMiss}</td><td></td>`;
-      tr.lastElementChild.appendChild(deleteRowBtn('dwc', statsWeekDWC, r.idAmazon, tr));
-      tbody.appendChild(tr);
-    });
-    table.appendChild(tbody); wrap.appendChild(table);
+  const table = document.createElement('table'); table.className = 'rep-table';
+  table.innerHTML = '<thead><tr><th>Chauffeur</th><th>DWC%</th><th>Contact Miss</th><th></th></tr></thead>';
+  const tbody = document.createElement('tbody');
+  [...data].sort((a,b) => a.dwcPct - b.dwcPct).forEach(r => {
+    const tr = document.createElement('tr');
+    const d = resolveDriver(r.idAmazon);
+    const prenom = d ? d.nom.split(' ')[0] : r.idAmazon;
+    const msg = `Bonjour ${prenom}, voici votre score DWC semaine ${r.semaine} : 📊 DWC : ${r.dwcPct}% | 📵 Contact Miss : ${r.contactMiss}`;
+    tr.innerHTML = `<td>${driverCell(r.idAmazon)}</td><td>${r.dwcPct}%</td><td>${r.contactMiss}</td><td></td>`;
+    tr.lastElementChild.appendChild(deleteRowBtn('dwc', statsWeekDWC, r.idAmazon, tr));
+    tbody.appendChild(tr);
   });
-
-  return wrap;
+  table.appendChild(tbody); wrap.appendChild(table); return wrap;
 }
 
 function showDWCColModal(source, semaine, isHtml) {
@@ -523,16 +505,11 @@ function parseDWCHtml(htmlText, contactMissColIdx, semaine) { return []; } // le
 function buildEnvoi() {
   const wrap = document.createElement('div');
   const stationId = getStationId();
-  wrap.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:20px;">⏳ Chargement...</p>';
-
-  Promise.all([
-    getWeeksListAsync('dsdpmo'),
-    getWeeksListAsync('pod'),
-    getWeeksListAsync('dwc')
-  ]).then(([weeksDSDPMO, weeksPOD, weeksDWC]) => {
-  wrap.innerHTML = '';
 
   // Sélecteur de semaine commun (utilise les semaines DS/DPMO comme référence)
+  const weeksDSDPMO = getWeeksList('dsdpmo');
+  const weeksPOD    = getWeeksList('pod');
+  const weeksDWC    = getWeeksList('dwc');
   const allWeeks    = [...new Set([...weeksDSDPMO, ...weeksPOD, ...weeksDWC])].sort().reverse();
   if (!statsWeekEnvoi && allWeeks.length) statsWeekEnvoi = allWeeks[0];
 
@@ -697,10 +674,7 @@ function buildEnvoi() {
     tbody.appendChild(tr);
   });
 
-  table.appendChild(tbody); wrap.appendChild(table);
-  }); // end Promise.all
-
-  return wrap;
+  table.appendChild(tbody); wrap.appendChild(table); return wrap;
 }
 
 function buildWAMsg(r, semaine) {
