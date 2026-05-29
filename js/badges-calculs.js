@@ -138,19 +138,41 @@ function calcStreak(weekStats, condition) {
 /** Calcule les mois consécutifs sans absence (mois terminés uniquement) */
 function calcMonthAbsenceStreak(stationId, chauffeurNom) {
   const now = new Date();
-  // Ne compter que les mois terminés (exclure le mois en cours)
   const currentMonth = now.getMonth();
   const currentYear = now.getFullYear();
-  let max = 0, current = 0;
-  for (let i = 11; i >= 0; i--) {
+
+  // Construire la liste des mois terminés, du plus récent au plus ancien
+  const months = [];
+  for (let i = 1; i <= 12; i++) {
     const d = new Date(currentYear, currentMonth - i, 1);
-    // Exclure le mois en cours
-    if (d.getFullYear() === currentYear && d.getMonth() === currentMonth) continue;
+    months.push(d);
+  }
+
+  // current : série en cours en partant du mois le plus récent
+  let current = 0;
+  let broken = false;
+  for (const d of months) {
     if (typeof calcMonthTotal === 'function') {
       const mt = calcMonthTotal(stationId, chauffeurNom, d.getFullYear(), d.getMonth());
-      if (mt.absences === 0 && mt.joursTravailes > 0) { current++; max = Math.max(max, current); }
-      else current = 0;
+      if (mt.absences === 0 && mt.joursTravailes > 0) {
+        if (!broken) current++;
+      } else {
+        broken = true;
+      }
     }
   }
+
+  // max : plus longue série jamais atteinte sur les 12 derniers mois
+  let max = 0, run = 0;
+  // Parcourir du plus ancien au plus récent pour le max
+  for (let i = months.length - 1; i >= 0; i--) {
+    const d = months[i];
+    if (typeof calcMonthTotal === 'function') {
+      const mt = calcMonthTotal(stationId, chauffeurNom, d.getFullYear(), d.getMonth());
+      if (mt.absences === 0 && mt.joursTravailes > 0) { run++; max = Math.max(max, run); }
+      else run = 0;
+    }
+  }
+
   return { max, current };
 }

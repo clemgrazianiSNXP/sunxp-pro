@@ -81,11 +81,11 @@ function buildActDateBar() {
   const prev=document.createElement('button');prev.className='h-btn h-nav';prev.textContent='◀';
   const next=document.createElement('button');next.className='h-btn h-nav';next.textContent='▶';
   if (activiteTab === 'productivite') {
-    prev.onclick=()=>{activiteDate.setMonth(activiteDate.getMonth()-1);loadActivite();renderActivite();};
-    next.onclick=()=>{activiteDate.setMonth(activiteDate.getMonth()+1);loadActivite();renderActivite();};
+    prev.onclick=()=>{const d=new Date(activiteDate);d.setMonth(d.getMonth()-1);activiteDate=d;loadActivite();renderActivite();};
+    next.onclick=()=>{const d=new Date(activiteDate);d.setMonth(d.getMonth()+1);activiteDate=d;loadActivite();renderActivite();};
   } else {
-    prev.onclick=()=>{activiteDate.setDate(activiteDate.getDate()-1);loadActivite();renderActivite();};
-    next.onclick=()=>{activiteDate.setDate(activiteDate.getDate()+1);loadActivite();renderActivite();};
+    prev.onclick=()=>{const d=new Date(activiteDate);d.setDate(d.getDate()-1);activiteDate=d;loadActivite();renderActivite();};
+    next.onclick=()=>{const d=new Date(activiteDate);d.setDate(d.getDate()+1);activiteDate=d;loadActivite();renderActivite();};
   }
   const label=document.createElement('span');label.style.cssText='font-size:13px;font-weight:600;color:var(--text-primary);min-width:180px;text-align:center;';
   if (activiteTab === 'productivite') {

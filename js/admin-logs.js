@@ -62,7 +62,7 @@ async function renderSuspiciousActivity(container) {
       let html = '<div style="padding:12px 14px;background:rgba(255,61,61,0.08);border:1px solid #f87171;border-radius:8px;">';
       html += '<div style="font-size:13px;font-weight:700;color:#f87171;margin-bottom:8px;">🚨 Activité suspecte détectée (' + anomalies.length + ')</div>';
       anomalies.forEach(a => {
-        html += `<div style="display:flex;gap:8px;align-items:center;padding:4px 0;font-size:11px;border-bottom:1px solid rgba(255,61,61,0.15);"><span style="font-weight:700;color:#f87171;min-width:160px;">${a.type}</span><span style="color:var(--text-primary);flex:1;">${a.email}</span><span style="color:var(--text-muted);font-size:10px;">${a.detail}</span><span style="color:var(--accent);font-family:monospace;font-size:10px;">${a.time}</span></div>`;
+        html += `<div style="display:flex;gap:8px;align-items:center;padding:4px 0;font-size:11px;border-bottom:1px solid rgba(255,61,61,0.15);"><span style="font-weight:700;color:#f87171;min-width:160px;">${esc(a.type || '')}</span><span style="color:var(--text-primary);flex:1;">${esc(a.email || '')}</span><span style="color:var(--text-muted);font-size:10px;">${esc(a.detail || '')}</span><span style="color:var(--accent);font-family:monospace;font-size:10px;">${a.time}</span></div>`;
       });
       html += '</div>';
       container.innerHTML = html;
@@ -199,7 +199,7 @@ async function renderAdminLogs(container) {
           else if (l.action && (l.action.includes('login') || l.action.includes('ajout'))) actionColor = '#4ade80';
           else if (l.action && (l.action.includes('modif') || l.action.includes('update'))) actionColor = '#fbbf24';
 
-          div.innerHTML = `<span style="color:var(--accent);min-width:90px;font-family:monospace;font-size:10px;">${date}</span><span style="font-weight:700;color:${actionColor};min-width:130px;">${l.action}</span><span style="flex:1;color:var(--text-primary);">${l.email}</span><span style="color:var(--text-muted);font-size:10px;">${l.station_id || ''}</span>`;
+          div.innerHTML = `<span style="color:var(--accent);min-width:90px;font-family:monospace;font-size:10px;">${date}</span><span style="font-weight:700;color:${actionColor};min-width:130px;">${esc(l.action || '')}</span><span style="flex:1;color:var(--text-primary);">${esc(l.email || '')}</span><span style="color:var(--text-muted);font-size:10px;">${esc(l.station_id || '')}</span>`;
           logsContainer.appendChild(div);
         });
       } else {

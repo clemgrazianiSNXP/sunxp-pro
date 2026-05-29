@@ -118,6 +118,33 @@ function showLoginPage() {
     // Bind login
     document.getElementById('login-btn').addEventListener('click', handleLogin);
     document.getElementById('login-password').addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
+
+    const forgotBtn = document.createElement('p');
+    forgotBtn.style.cssText = 'text-align:center;margin-top:10px;font-size:12px;';
+    forgotBtn.innerHTML = '<a href="#" id="forgot-pwd-link" style="color:var(--text-muted);text-decoration:underline;">Mot de passe oublié ?</a>';
+    loginPage.querySelector('div[style*="flex-direction:column"]').appendChild(forgotBtn);
+
+    document.getElementById('forgot-pwd-link').addEventListener('click', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value.trim();
+      if (!email) { showLoginError('Entrez votre email d\'abord.'); return; }
+      try {
+        const { error } = await sb().auth.resetPasswordForEmail(email, {
+          redirectTo: window.location.origin
+        });
+        if (error) throw error;
+        const el = document.getElementById('login-error');
+        if (el) {
+          el.style.background = 'rgba(74,222,128,0.1)';
+          el.style.borderColor = '#4ade80';
+          el.style.color = '#4ade80';
+          el.textContent = '✅ Email de réinitialisation envoyé ! Vérifiez votre boîte mail.';
+          el.style.display = 'block';
+        }
+      } catch(e) {
+        showLoginError('Erreur : ' + e.message);
+      }
+    });
   }
   loginPage.style.display = 'flex';
   // Cacher l'app derrière le login

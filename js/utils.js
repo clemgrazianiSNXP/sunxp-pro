@@ -307,3 +307,12 @@ window.showPromptModal = function (title, placeholder, defaultValue, onSubmit) {
     }
   });
 })();
+
+/* ── Échappement HTML global ──────────────────────────────── */
+window.esc = function(s) {
+  return String(s || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+};

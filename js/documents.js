@@ -1,6 +1,8 @@
 /* js/documents.js — Onglet Documents du menu déroulant (SunXP Pro) */
 console.log('documents.js chargé');
 
+const DOCUMENTS_BUCKET = 'documents';
+
 function getDocsKey() {
   const sid = window.getActiveStationId ? window.getActiveStationId() : 'default';
   return sid + '-documents';
@@ -16,44 +18,63 @@ function saveDocs(docs) {
   if (typeof dbSave === 'function') dbSave('documents', getDocsKey(), { station_id: window.getActiveStationId ? window.getActiveStationId() : 'default' }, docs);
 }
 
+async function uploadDocFile(file, stationId, docId) {
+  if (!sb()) return null;
+  const ext = file.name.split('.').pop();
+  const path = `${stationId}/${docId}.${ext}`;
+  try {
+    const { error } = await sb().storage.from(DOCUMENTS_BUCKET).upload(path, file, { upsert: true });
+    if (error) { console.warn('Upload doc error:', error.message); return null; }
+    const { data: urlData } = sb().storage.from(DOCUMENTS_BUCKET).getPublicUrl(path);
+    return urlData?.publicUrl || null;
+  } catch (e) { console.warn('Upload doc catch:', e.message); return null; }
+}
+
+async function deleteDocFile(stationId, docId, fileName) {
+  if (!sb() || !fileName) return;
+  const ext = fileName.split('.').pop();
+  const path = `${stationId}/${docId}.${ext}`;
+  try { await sb().storage.from(DOCUMENTS_BUCKET).remove([path]); } catch (_) {}
+}
+
 function renderDocuments() {
   const wrap = document.createElement('div');
   wrap.style.cssText = 'padding:16px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;';
 
   wrap.innerHTML = '<h3 style="font-size:14px;color:var(--accent);margin-bottom:4px;">📄 Documents bureau</h3>';
 
-  // Barre de recherche
+  const stationId = window.getActiveStationId ? window.getActiveStationId() : 'default';
+
   const search = document.createElement('input');
   search.type = 'text';
   search.placeholder = '🔍 Rechercher un document...';
   search.className = 'analyse-search';
   wrap.appendChild(search);
 
-  // Bouton ajouter
   const addBtn = document.createElement('button');
   addBtn.className = 'rep-btn rep-btn-primary';
   addBtn.textContent = '+ Ajouter un document';
   addBtn.onclick = () => {
     const inp = document.createElement('input');
     inp.type = 'file';
-    inp.onchange = () => {
+    inp.onchange = async () => {
       const file = inp.files[0]; if (!file) return;
       const name = prompt('Nom du document :', file.name);
       if (!name) return;
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const docs = loadDocs();
-        docs.push({ id: 'd_' + Date.now(), name, fileName: file.name, type: file.type, size: file.size, data: e.target.result, date: new Date().toISOString() });
-        saveDocs(docs);
-        if (typeof setMenuTab === 'function') setMenuTab('documents');
-      };
-      reader.readAsDataURL(file);
+      addBtn.textContent = '⏳ Upload...'; addBtn.disabled = true;
+      const docId = 'd_' + Date.now();
+      const fileUrl = await uploadDocFile(file, stationId, docId);
+      if (!fileUrl) { alert('Erreur lors de l\'upload du fichier.'); addBtn.textContent = '+ Ajouter un document'; addBtn.disabled = false; return; }
+      const docs = loadDocs();
+      docs.push({ id: docId, name, fileName: file.name, type: file.type, size: file.size, fileUrl, date: new Date().toISOString() });
+      saveDocs(docs);
+      addBtn.textContent = '+ Ajouter un document'; addBtn.disabled = false;
+      if (typeof setMenuTab === 'function') setMenuTab('documents');
     };
     inp.click();
   };
   wrap.appendChild(addBtn);
 
-  // Liste des documents
   const listWrap = document.createElement('div');
   listWrap.id = 'docs-list';
   wrap.appendChild(listWrap);
@@ -81,30 +102,24 @@ function renderDocuments() {
       const actions = document.createElement('div');
       actions.style.cssText = 'display:flex;gap:4px;flex-shrink:0;';
 
-      // Ouvrir / Imprimer
       const openBtn = document.createElement('button');
       openBtn.className = 'h-btn';
       openBtn.style.cssText = 'font-size:10px;padding:3px 6px;';
       openBtn.textContent = '🖨️';
       openBtn.title = 'Ouvrir / Imprimer';
       openBtn.onclick = () => {
-        const w = window.open('');
-        if (doc.type && doc.type.includes('pdf')) {
-          w.document.write(`<iframe src="${doc.data}" style="width:100%;height:100%;border:none;"></iframe>`);
-        } else if (doc.type && doc.type.includes('image')) {
-          w.document.write(`<img src="${doc.data}" style="max-width:100%;">`);
-        } else {
-          w.document.write(`<iframe src="${doc.data}" style="width:100%;height:100%;border:none;"></iframe>`);
-        }
+        const url = doc.fileUrl || doc.data;
+        if (!url) { alert('Fichier non disponible.'); return; }
+        window.open(url, '_blank');
       };
 
-      // Supprimer
       const delBtn = document.createElement('button');
       delBtn.className = 'rep-btn rep-btn-delete';
       delBtn.style.cssText = 'font-size:10px;padding:3px 6px;';
       delBtn.textContent = '🗑';
       delBtn.onclick = () => {
         showConfirmModal('Supprimer "' + doc.name + '" ?', () => {
+          if (doc.fileName) deleteDocFile(stationId, doc.id, doc.fileName);
           const docs = loadDocs().filter(d => d.id !== doc.id);
           saveDocs(docs);
           renderList(search.value);

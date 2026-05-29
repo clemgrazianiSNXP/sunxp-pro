@@ -92,7 +92,6 @@ function portalDegats() {
   return wrap;
 }
 
-function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function fmtD(s) {
   if (!s) return '—';
   try { return new Date(s).toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric' }); }

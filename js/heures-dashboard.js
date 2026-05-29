@@ -209,11 +209,6 @@ function readDashboardValues() {
   return out;
 }
 
-function esc(str) {
-  return String(str || '')
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
 
 function buildStatusList(rows, statut) {
   if (!rows || !rows.length) return '<span style="color:var(--text-muted);font-size:11px;">—</span>';

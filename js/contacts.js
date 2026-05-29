@@ -9,7 +9,6 @@ function saveContacts(list) {
   try { localStorage.setItem(key, JSON.stringify(list)); } catch (_) {}
   if (typeof dbSave === 'function') dbSave('contacts', key, { station_id: getContactsSid() }, list);
 }
-function escC(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
 
 /* ══════════════════════════════════════════════════════════════
    ESPACE RESPONSABLE — Gestion des contacts
@@ -52,10 +51,10 @@ function buildContactCard(c, withActions) {
   const info = document.createElement('div');
   info.style.cssText = 'flex:1;min-width:0;';
   info.innerHTML = `
-    <div style="font-size:13px;font-weight:700;">${escC(c.prenom)} ${escC(c.nom)}</div>
-    <div style="font-size:11px;color:var(--accent);margin-top:2px;">${escC(c.poste)}</div>
-    ${c.telephone ? `<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">📞 ${escC(c.telephone)}</div>` : ''}
-    ${c.email ? `<div style="font-size:11px;color:var(--text-muted);">✉️ ${escC(c.email)}</div>` : ''}`;
+    <div style="font-size:13px;font-weight:700;">${esc(c.prenom)} ${esc(c.nom)}</div>
+    <div style="font-size:11px;color:var(--accent);margin-top:2px;">${esc(c.poste)}</div>
+    ${c.telephone ? `<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">📞 ${esc(c.telephone)}</div>` : ''}
+    ${c.email ? `<div style="font-size:11px;color:var(--text-muted);">✉️ ${esc(c.email)}</div>` : ''}`;
   card.appendChild(info);
 
   if (withActions) {

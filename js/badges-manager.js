@@ -39,7 +39,7 @@ function renderBadgesManager() {
     const header = document.createElement('div');
     header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:12px;cursor:pointer;transition:background 0.15s;';
     header.innerHTML = `
-      <span style="font-size:13px;font-weight:700;">${escBM(r.nom)}</span>
+      <span style="font-size:13px;font-weight:700;">${esc(r.nom)}</span>
       <span style="font-size:11px;color:var(--text-muted);">${r.unlocked.length}/${r.total} ▼</span>`;
     header.onmouseenter = () => { header.style.background = 'var(--bg-tab-hover)'; };
     header.onmouseleave = () => { header.style.background = ''; };
@@ -119,4 +119,3 @@ function showBadgeDetailPopup(badge) {
   document.body.appendChild(overlay);
 }
 
-function escBM(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }

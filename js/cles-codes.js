@@ -152,7 +152,7 @@ function renderClesSection(data, canDelete, query) {
         const delBtn = document.createElement('button');
         delBtn.className = 'h-btn'; delBtn.style.cssText = 'font-size:10px;padding:3px 8px;color:#f87171;border-color:#f87171;margin-top:6px;';
         delBtn.textContent = '🗑 Supprimer ce secteur';
-        delBtn.onclick = () => { if (typeof showConfirmModal === 'function') showConfirmModal('Supprimer ce secteur ?', () => { data.cles.splice(idx, 1); saveClesCodes(data); renderClesContent(); }); };
+        delBtn.onclick = () => { if (typeof showConfirmModal === 'function') showConfirmModal('Supprimer ce secteur ?', () => { let realIdx = data.cles.indexOf(item); if (realIdx < 0) realIdx = data.cles.findIndex(x => x.secteur === item.secteur); if (realIdx >= 0) { data.cles.splice(realIdx, 1); saveClesCodes(data); renderClesContent(); } }); };
         body.appendChild(delBtn);
       }
 
@@ -264,7 +264,7 @@ function renderCodesSection(data, canDelete, query) {
           const delSect = document.createElement('button');
           delSect.className = 'h-btn'; delSect.style.cssText = 'font-size:10px;padding:3px 8px;color:#f87171;border-color:#f87171;margin-top:8px;';
           delSect.textContent = '🗑 Supprimer ce secteur';
-          delSect.onclick = () => { if (typeof showConfirmModal === 'function') showConfirmModal('Supprimer ce secteur et ses résidences ?', () => { data.codes.splice(sIdx, 1); saveClesCodes(data); renderCodesContent(); }); };
+          delSect.onclick = () => { if (typeof showConfirmModal === 'function') showConfirmModal('Supprimer ce secteur et ses résidences ?', () => { let realIdx = data.codes.indexOf(sect); if (realIdx < 0) realIdx = data.codes.findIndex(x => x.secteur === sect.secteur); if (realIdx >= 0) { data.codes.splice(realIdx, 1); saveClesCodes(data); renderCodesContent(); } }); };
           body.appendChild(delSect);
         }
       }
@@ -285,7 +285,6 @@ function renderCodesSection(data, canDelete, query) {
   return wrap;
 }
 
-function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 /* ── Fonctions exposées pour le hamburger ─────────────────── */
 function renderClesCodesResponsable() { return renderClesCodes(true); }

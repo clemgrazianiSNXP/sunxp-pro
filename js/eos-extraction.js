@@ -40,13 +40,13 @@ function renderExtractionEOS() {
   header.style.cssText = 'display:flex;align-items:center;justify-content:center;gap:12px;';
   const btnPrev = document.createElement('button');
   btnPrev.className = 'h-btn h-nav'; btnPrev.textContent = '◀';
-  btnPrev.onclick = () => { eosDate.setDate(eosDate.getDate() - 1); if (typeof renderChefEquipe === 'function') renderChefEquipe(); };
+  btnPrev.onclick = () => { const d=new Date(eosDate);d.setDate(d.getDate()-1);eosDate=d; if (typeof renderChefEquipe === 'function') renderChefEquipe(); };
   const dateLbl = document.createElement('span');
   dateLbl.style.cssText = 'font-size:13px;font-weight:600;min-width:200px;text-align:center;';
   dateLbl.textContent = eosDate.toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
   const btnNext = document.createElement('button');
   btnNext.className = 'h-btn h-nav'; btnNext.textContent = '▶';
-  btnNext.onclick = () => { eosDate.setDate(eosDate.getDate() + 1); if (typeof renderChefEquipe === 'function') renderChefEquipe(); };
+  btnNext.onclick = () => { const d=new Date(eosDate);d.setDate(d.getDate()+1);eosDate=d; if (typeof renderChefEquipe === 'function') renderChefEquipe(); };
   const btnToday = document.createElement('button');
   btnToday.className = 'h-btn'; btnToday.textContent = "Aujourd'hui";
   btnToday.onclick = () => { eosDate = new Date(); if (typeof renderChefEquipe === 'function') renderChefEquipe(); };

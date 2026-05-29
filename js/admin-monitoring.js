@@ -130,8 +130,13 @@ async function renderAdminMonitoring(container) {
       const stationsAct = stList || [];
       const actGrid = document.createElement('div');
       actGrid.style.cssText = 'display:flex;flex-direction:column;gap:6px;';
-      for (const st of stationsAct) {
-        const { data: lastLog } = await sb().from('activity_logs').select('*').eq('station_id', st.id).order('created_at', { ascending: false }).limit(1);
+      const actLogs = await Promise.all(
+        stationsAct.map(async (st) => {
+          const { data: lastLog } = await sb().from('activity_logs').select('*').eq('station_id', st.id).order('created_at', { ascending: false }).limit(1);
+          return { st, lastLog };
+        })
+      );
+      for (const { st, lastLog } of actLogs) {
         const row = document.createElement('div');
         row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--bg-primary);border-radius:6px;font-size:11px;';
         if (lastLog && lastLog.length) {
@@ -185,29 +190,34 @@ async function renderAdminMonitoring(container) {
     };
     const grid = document.createElement('div');
     grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;';
-    for (const t of tables) {
-      try {
-        const { count, error } = await sb().from(t).select('*', { count: 'exact', head: true });
-        if (error) {
-          grid.innerHTML += `<div style="padding:8px;background:var(--bg-primary);border-radius:6px;font-size:11px;border-left:3px solid #f87171;"><b>${t}</b><br><span style="color:#f87171;">❌ ${error.message}</span></div>`;
-          alerts.push(`Table "${t}" inaccessible: ${error.message}`);
-        } else {
-          const c = count || 0;
-          const color = c === 0 ? '#fbbf24' : 'var(--accent)';
-          const cell = document.createElement('div');
-          cell.style.cssText = 'padding:8px;background:var(--bg-primary);border-radius:6px;font-size:11px;cursor:pointer;transition:border-color 0.15s;border:1px solid transparent;';
-          cell.innerHTML = `<b>${t}</b><br><span style="color:${color};">${c} lignes${c === 0 ? ' ⚠️' : ''}</span>`;
-          cell.onmouseenter = () => cell.style.borderColor = 'var(--accent)';
-          cell.onmouseleave = () => cell.style.borderColor = 'transparent';
-          cell.onclick = () => showTableDetail(t);
-          grid.appendChild(cell);
-          if (c === 0 && ['stations','chauffeurs','user_profiles'].includes(t)) {
-            alerts.push(`Table "${t}" est vide (anormal)`);
-          }
+    const tableCounts = await Promise.all(
+      tables.map(async (t) => {
+        try {
+          const { count, error } = await sb().from(t).select('*', { count: 'exact', head: true });
+          return { table: t, count: error ? null : (count || 0), error: error || null };
+        } catch (e) {
+          return { table: t, count: null, error: e };
         }
-      } catch (e) {
-        grid.innerHTML += `<div style="padding:8px;background:var(--bg-primary);border-radius:6px;font-size:11px;border-left:3px solid #f87171;"><b>${t}</b><br><span style="color:#f87171;">❌ erreur</span></div>`;
-        alerts.push(`Table "${t}" erreur: ${e.message}`);
+      })
+    );
+    for (const result of tableCounts) {
+      const t = result.table;
+      if (result.error) {
+        grid.innerHTML += `<div style="padding:8px;background:var(--bg-primary);border-radius:6px;font-size:11px;border-left:3px solid #f87171;"><b>${t}</b><br><span style="color:#f87171;">❌ ${result.error.message}</span></div>`;
+        alerts.push(`Table "${t}" inaccessible: ${result.error.message}`);
+      } else {
+        const c = result.count;
+        const color = c === 0 ? '#fbbf24' : 'var(--accent)';
+        const cell = document.createElement('div');
+        cell.style.cssText = 'padding:8px;background:var(--bg-primary);border-radius:6px;font-size:11px;cursor:pointer;transition:border-color 0.15s;border:1px solid transparent;';
+        cell.innerHTML = `<b>${t}</b><br><span style="color:${color};">${c} lignes${c === 0 ? ' ⚠️' : ''}</span>`;
+        cell.onmouseenter = () => cell.style.borderColor = 'var(--accent)';
+        cell.onmouseleave = () => cell.style.borderColor = 'transparent';
+        cell.onclick = () => showTableDetail(t);
+        grid.appendChild(cell);
+        if (c === 0 && ['stations','chauffeurs','user_profiles'].includes(t)) {
+          alerts.push(`Table "${t}" est vide (anormal)`);
+        }
       }
     }
     tableBody.appendChild(grid);
@@ -267,18 +277,25 @@ async function renderAdminMonitoring(container) {
 
     let syncIssues = 0;
 
-    for (const station of stationsList) {
-      const sid = station.id;
-      const stationRows = [];
-      let stationIssues = 0;
+    const allStationResults = await Promise.all(
+      stationsList.map(async (station) => {
+        const sid = station.id;
+        const checkResults = await Promise.all(
+          syncChecks.map(async (check) => {
+            const localCount = check.localFn(sid);
+            const { count: sbCount } = await check.sbFilter(sb().from(check.sbTable).select('*', { count: 'exact', head: true }), sid);
+            return { label: check.label, sbTable: check.sbTable, localCount, sbCount: sbCount || 0, isSync: localCount === (sbCount || 0) };
+          })
+        );
+        return { station, checkResults };
+      })
+    );
 
-      for (const check of syncChecks) {
-        const localCount = check.localFn(sid);
-        const { count: sbCount } = await check.sbFilter(sb().from(check.sbTable).select('*', { count: 'exact', head: true }), sid);
-        const isSync = localCount === (sbCount || 0);
-        if (!isSync) { syncIssues++; stationIssues++; }
-        stationRows.push({ label: check.label, sbTable: check.sbTable, localCount, sbCount: sbCount || 0, isSync });
-      }
+    for (const { station, checkResults } of allStationResults) {
+      const sid = station.id;
+      const stationRows = checkResults;
+      let stationIssues = stationRows.filter(r => !r.isSync).length;
+      syncIssues += stationIssues;
 
       const block = document.createElement('div');
       block.style.cssText = 'border:1px solid var(--border);border-radius:8px;overflow:hidden;';

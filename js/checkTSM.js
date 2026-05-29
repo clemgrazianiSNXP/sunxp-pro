@@ -39,8 +39,8 @@ function renderCheckTSM() {
     contentZone.appendChild(buildCheckTSMContent(stationId));
   }
 
-  btnPrev.onclick = () => { checkTSMDate.setDate(checkTSMDate.getDate() - 1); renderContent(); };
-  btnNext.onclick = () => { checkTSMDate.setDate(checkTSMDate.getDate() + 1); renderContent(); };
+  btnPrev.onclick = () => { const d=new Date(checkTSMDate);d.setDate(d.getDate()-1);checkTSMDate=d; renderContent(); };
+  btnNext.onclick = () => { const d=new Date(checkTSMDate);d.setDate(d.getDate()+1);checkTSMDate=d; renderContent(); };
   btnToday.onclick = () => { checkTSMDate = new Date(); renderContent(); };
 
   renderContent();

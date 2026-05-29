@@ -201,12 +201,7 @@ function buildPersonGrid(list, stationId, type) {
       waPassBtn.title = 'Envoyer identifiants WhatsApp';
       waPassBtn.onclick = function() {
         var tel = typeof formatWaTel === 'function' ? formatWaTel(c.telephone) : c.telephone.replace(/\D/g, '');
-        // Mot de passe = 4 premiers caractères ID Amazon + 4 derniers chiffres du tel
-        var amazonPart = (c.id_amazon || '').slice(0, 4);
-        var telDigits = c.telephone.replace(/\D/g, '');
-        var telPart = telDigits.slice(-4);
-        var mdp = amazonPart + telPart;
-        var msg = 'Bonjour ' + c.prenom + ' !\n\nVoici tes identifiants pour te connecter à SunXP Pro :\n\n📧 Email : ' + (c.email || '—') + '\n🔑 Mot de passe : ' + mdp + '\n\n📱 Lien : ' + window.location.origin + '\n\nBonne journée !';
+        var msg = 'Bonjour ' + c.prenom + ' !\n\nVoici tes identifiants pour te connecter à SunXP Pro :\n\n📧 Email : ' + (c.email || '—') + '\n\n📱 Lien de connexion : ' + window.location.origin + '\n\n🔑 Si c\'est ta première connexion ou si tu as oublié ton mot de passe, clique sur "Mot de passe oublié" sur la page de connexion.\n\nBonne journée !';
         navigator.clipboard.writeText(msg).catch(function(){});
         var a = document.createElement('a');
         a.href = 'whatsapp://send?phone=' + tel + '&text=' + encodeURIComponent(msg);

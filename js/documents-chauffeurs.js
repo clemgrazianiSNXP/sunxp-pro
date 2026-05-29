@@ -13,7 +13,6 @@ function getDocsChauffeursList() {
 }
 
 function cNomDC(c) { return ((c.prenom || '') + ' ' + (c.nom || '')).trim() || c.id_amazon || '?'; }
-function escDC(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
 
 /* ── Persistence localStorage ─────────────────────────────── */
 function getDocsChKey(chauffeurNom) {
@@ -111,7 +110,7 @@ function renderDocsChauffeurs() {
     card.className = 'portal-card dc-card';
     card.style.cssText = 'cursor:pointer;padding:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg-sidebar);transition:all 0.15s;';
     card.innerHTML = `
-      <div style="font-size:14px;font-weight:700;">${escDC(nom)}</div>
+      <div style="font-size:14px;font-weight:700;">${esc(nom)}</div>
       <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">${docs.length} document${docs.length !== 1 ? 's' : ''}</div>`;
     card.onmouseenter = () => { card.style.borderColor = 'var(--accent)'; };
     card.onmouseleave = () => { card.style.borderColor = 'var(--border)'; };
@@ -153,7 +152,7 @@ function showDocsChauffeurDetail(nom) {
     // Header
     const header = document.createElement('div');
     header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;';
-    header.innerHTML = `<h3 style="margin:0;font-size:15px;color:var(--accent);">👤 ${escDC(nom)}</h3>`;
+    header.innerHTML = `<h3 style="margin:0;font-size:15px;color:var(--accent);">👤 ${esc(nom)}</h3>`;
     const closeBtn = document.createElement('button');
     closeBtn.className = 'h-btn'; closeBtn.textContent = '✕';
     closeBtn.onclick = () => overlay.remove();
@@ -207,8 +206,8 @@ function showDocsChauffeurDetail(nom) {
         row.innerHTML = `
           <span style="font-size:18px;">${icon}</span>
           <div style="flex:1;min-width:0;">
-            <div style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escDC(doc.type)}</div>
-            <div style="font-size:10px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escDC(doc.fileName)} · ${new Date(doc.date).toLocaleDateString('fr-FR')}</div>
+            <div style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(doc.type)}</div>
+            <div style="font-size:10px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(doc.fileName)} · ${new Date(doc.date).toLocaleDateString('fr-FR')}</div>
           </div>`;
 
         // Bouton voir
