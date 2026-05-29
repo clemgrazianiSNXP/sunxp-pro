@@ -509,7 +509,33 @@ window.preloadStationData = async function (stationId) {
   if (!sb()) return;
   console.log('📥 Préchargement données station', stationId, '...');
 
+  // Créer l'écran de chargement
+  const loadingScreen = document.createElement('div');
+  loadingScreen.id = 'preload-loading-screen';
+  loadingScreen.style.cssText = 'position:fixed;inset:0;z-index:99999;background:var(--bg-primary);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:24px;';
+  loadingScreen.innerHTML = `
+    <img src="img/matting_2026-4-21_fa553fc4-3d99-11f1-9b2d-16737e16766a.png" style="height:50px;width:auto;opacity:0.9;">
+    <div style="font-size:16px;font-weight:700;color:var(--text-primary);">Chargement de la station...</div>
+    <div style="width:100%;max-width:320px;background:var(--bg-sidebar);border-radius:20px;height:12px;overflow:hidden;border:1px solid var(--border);">
+      <div id="preload-progress-bar" style="height:100%;background:var(--accent);border-radius:20px;width:0%;transition:width 0.3s ease;"></div>
+    </div>
+    <div id="preload-progress-text" style="font-size:12px;color:var(--text-muted);">Initialisation...</div>
+    <div id="preload-progress-pct" style="font-size:11px;color:var(--accent);font-family:monospace;font-weight:700;">0%</div>
+  `;
+  document.body.appendChild(loadingScreen);
+
+  const updateProgress = (pct, label) => {
+    const bar = document.getElementById('preload-progress-bar');
+    const text = document.getElementById('preload-progress-text');
+    const pctEl = document.getElementById('preload-progress-pct');
+    if (bar) bar.style.width = pct + '%';
+    if (text) text.textContent = label;
+    if (pctEl) pctEl.textContent = pct + '%';
+  };
+
   try {
+    updateProgress(5, 'Connexion à Supabase...');
+
     // Heures
     const { data: heuresData } = await sb().from('heures').select('date_jour, data').eq('station_id', stationId);
     if (heuresData) {
@@ -520,6 +546,7 @@ window.preloadStationData = async function (stationId) {
       });
       console.log(`  Heures: ${heuresData.length} jours`);
     }
+    updateProgress(32, '⏰ Chargement des heures...');
 
     // Stats
     const { data: statsData } = await sb().from('stats').select('type, semaine, data').eq('station_id', stationId);
@@ -538,6 +565,7 @@ window.preloadStationData = async function (stationId) {
       });
       console.log(`  Stats: ${statsData.length} entrées`);
     }
+    updateProgress(42, '📊 Chargement des statistiques...');
 
     // Primes — ne charger que si pas déjà en localStorage
     const { data: primesData } = await sb().from('primes').select('annee, mois, data').eq('station_id', stationId);
@@ -552,6 +580,7 @@ window.preloadStationData = async function (stationId) {
       });
       if (loaded) console.log(`  Primes: ${loaded} mois chargés depuis Supabase`);
     }
+    updateProgress(60, '💰 Chargement des primes...');
 
     // Activité
     const { data: actData } = await sb().from('activite').select('date_jour, data').eq('station_id', stationId);
@@ -567,6 +596,7 @@ window.preloadStationData = async function (stationId) {
       });
       console.log(`  Activité: ${actData.length} jours`);
     }
+    updateProgress(67, '🚛 Chargement de l\'activité...');
 
     // Concessions
     const { data: concData } = await sb().from('concessions').select('semaine, data').eq('station_id', stationId);
@@ -630,6 +660,7 @@ window.preloadStationData = async function (stationId) {
       });
       console.log(`  EOS: ${eosData.length} jours`);
     }
+    updateProgress(77, '📋 Chargement des EOS...');
 
     // Chauffeurs
     const { data: chData } = await sb().from('chauffeurs').select('*').eq('station_id', stationId);
@@ -637,6 +668,7 @@ window.preloadStationData = async function (stationId) {
       const chauffeurs = chData.map(c => ({ id: c.local_id || ('c_' + Date.now() + '_' + Math.random().toString(36).slice(2,5)), nom: c.nom, prenom: c.prenom, telephone: c.telephone, id_amazon: c.id_amazon, soldeInitialPrime: c.solde_initial_prime != null ? c.solde_initial_prime : null, matricule_tsm: c.matricule_tsm || '', email: c.email || '', role: c.role || 'Chauffeur', matricule: c.matricule || '' }));
       localStorage.setItem(stationId + '-repertoire', JSON.stringify(chauffeurs));
     }
+    updateProgress(15, '👥 Chargement des chauffeurs...');
 
     // Repos demandes
     const { data: reposData } = await sb().from('repos_demandes').select('data').eq('station_id', stationId).maybeSingle();
@@ -653,6 +685,7 @@ window.preloadStationData = async function (stationId) {
     } else {
       localStorage.setItem(stationId + '-camions', '[]');
     }
+    updateProgress(72, '🚛 Chargement de la flotte...');
 
     // Acomptes
     const { data: acomptesData } = await sb().from('acomptes').select('data').eq('station_id', stationId).maybeSingle();
@@ -675,18 +708,21 @@ window.preloadStationData = async function (stationId) {
     if (contactsData && contactsData.data) {
       localStorage.setItem(stationId + '-contacts', JSON.stringify(contactsData.data));
     }
+    updateProgress(82, '📇 Chargement des contacts...');
 
     // Suivi papiers
     const { data: papiersData } = await sb().from('suivi_papiers').select('data').eq('station_id', stationId).maybeSingle();
     if (papiersData && papiersData.data) {
       localStorage.setItem(stationId + '-suivi-papiers', JSON.stringify(papiersData.data));
     }
+    updateProgress(85, '📄 Chargement des documents...');
 
     // Suivi entretien
     const { data: entretienData } = await sb().from('suivi_entretien').select('data').eq('station_id', stationId).maybeSingle();
     if (entretienData && entretienData.data) {
       localStorage.setItem(stationId + '-suivi-entretien', JSON.stringify(entretienData.data));
     }
+    updateProgress(88, '🔧 Chargement de l\'entretien...');
 
     // Documents bureau
     const { data: documentsData } = await sb().from('documents').select('data').eq('station_id', stationId).maybeSingle();
@@ -701,6 +737,7 @@ window.preloadStationData = async function (stationId) {
         localStorage.setItem(stationId + '-docs-employes-' + d.chauffeur_nom, JSON.stringify(d.data));
       });
     }
+    updateProgress(91, '👤 Chargement des dossiers employés...');
 
     // Clés & Codes
     const { data: clesData } = await sb().from('cles_codes').select('data').eq('station_id', stationId).maybeSingle();
@@ -723,6 +760,7 @@ window.preloadStationData = async function (stationId) {
       localStorage.setItem(stationId + '-responsables', JSON.stringify(responsables));
       console.log(`  Responsables: ${responsables.length}`);
     }
+    updateProgress(22, '👔 Chargement des responsables...');
 
     // Planning
     const { data: planData } = await sb().from('planning').select('year, month, data').eq('station_id', stationId);
@@ -733,6 +771,7 @@ window.preloadStationData = async function (stationId) {
       });
       console.log(`  Planning: ${planData.length} mois`);
     }
+    updateProgress(52, '📅 Chargement du planning...');
 
     // Planning Meta
     const { data: planMetaData } = await sb().from('planning_meta').select('mois_key, data').eq('station_id', stationId);
@@ -769,6 +808,16 @@ window.preloadStationData = async function (stationId) {
       }
     }
 
+    updateProgress(95, '🗓 Chargement de l\'attribution...');
+    updateProgress(100, '✅ Chargement terminé !');
+    setTimeout(() => {
+      const screen = document.getElementById('preload-loading-screen');
+      if (screen) {
+        screen.style.transition = 'opacity 0.4s ease';
+        screen.style.opacity = '0';
+        setTimeout(() => screen.remove(), 400);
+      }
+    }, 500);
     console.log('✅ Préchargement terminé');
   } catch (e) {
     console.warn('Préchargement partiel:', e.message);
