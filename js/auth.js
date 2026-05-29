@@ -6,35 +6,30 @@ let currentProfile = null;
 
 /* ── Vérifier la session au chargement ────────────────────── */
 async function checkAuth() {
+  // Traiter manuellement le token de reset AVANT tout
+  const hash = new URLSearchParams(window.location.hash.replace('#', ''));
+  const query = new URLSearchParams(window.location.search);
+  const type = hash.get('type') || query.get('type');
+  const accessToken = hash.get('access_token') || query.get('access_token');
+  const refreshToken = hash.get('refresh_token') || query.get('refresh_token') || '';
+
+  if (type === 'recovery' && accessToken) {
+    window.history.replaceState(null, '', window.location.pathname);
+    await waitForSupabase();
+    if (sb()) {
+      try {
+        await sb().auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
+      } catch(_) {}
+    }
+    showResetPasswordPage();
+    return;
+  }
+
   await waitForSupabase();
   if (!sb()) { showLoginPage(); return; }
 
   try {
-    // PRIORITÉ 1 — Détecter un lien de réinitialisation de mot de passe
-    // Supabase met le token dans le hash OU dans les query params selon la config
-    const hash = window.location.hash;
-    const search = window.location.search;
-    const hashParams = new URLSearchParams(hash.replace('#', ''));
-    const queryParams = new URLSearchParams(search);
-
-    const type = hashParams.get('type') || queryParams.get('type');
-    const accessToken = hashParams.get('access_token') || queryParams.get('access_token');
-    const refreshToken = hashParams.get('refresh_token') || queryParams.get('refresh_token');
-
-    if (type === 'recovery' && accessToken) {
-      // Nettoyer l'URL immédiatement pour éviter que Supabase auto-connecte
-      window.history.replaceState(null, '', window.location.pathname);
-      // Définir la session manuellement
-      await sb().auth.setSession({
-        access_token: accessToken,
-        refresh_token: refreshToken || ''
-      });
-      // Afficher le formulaire de changement de mot de passe
-      showResetPasswordPage();
-      return;
-    }
-
-    // PRIORITÉ 2 — Connexion normale
+    // Connexion normale
     const { data: { session } } = await sb().auth.getSession();
     if (session && session.user) {
       currentUser = session.user;

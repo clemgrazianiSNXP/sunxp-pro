@@ -11,7 +11,13 @@ let _supabaseReady = false;
 function initSupabase() {
   try {
     if (window.supabase && window.supabase.createClient) {
-      _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        auth: {
+          detectSessionInUrl: false,
+          persistSession: true,
+          autoRefreshToken: true
+        }
+      });
       _supabaseReady = true;
       console.log('✅ Supabase connecté');
     } else {
