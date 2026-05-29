@@ -189,8 +189,41 @@ function showChauffeurDirect() {
 
     // Forcer le preload des données de la station puis ouvrir le portail
     const tryOpenPortal = async (attempts) => {
-      if (attempts > 20) { console.warn('showChauffeurDirect: chauffeur non trouvé après 20 tentatives'); return; }
-      
+      if (attempts > 20) {
+        console.warn('showChauffeurDirect: chauffeur non trouvé après 20 tentatives');
+        // Afficher un écran d'erreur avec bouton recharger
+        const appLayout = document.querySelector('.app-layout');
+        if (appLayout) { appLayout.hidden = false; appLayout.style.display = ''; }
+        const portal = document.getElementById('chauffeur-portal');
+        if (portal) {
+          portal.hidden = false;
+          portal.innerHTML = `
+            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:80vh;gap:16px;padding:24px;text-align:center;">
+              <div style="font-size:48px;">⚠️</div>
+              <h2 style="font-size:18px;color:var(--text-primary);margin:0;">Impossible de charger votre profil</h2>
+              <p style="font-size:13px;color:var(--text-muted);max-width:300px;">Vos données n'ont pas pu être récupérées. Vérifiez votre connexion internet et réessayez.</p>
+              <button onclick="window.location.reload()" class="rep-btn rep-btn-primary" style="padding:10px 24px;">🔄 Recharger</button>
+              <button onclick="window.logout()" class="h-btn" style="padding:8px 20px;">🚪 Se déconnecter</button>
+            </div>
+          `;
+        }
+        return;
+      }
+
+      // Afficher un loader à la première tentative
+      const portal = document.getElementById('chauffeur-portal');
+      if (portal && attempts === 0) {
+        portal.hidden = false;
+        const appLayout = document.querySelector('.app-layout');
+        if (appLayout) { appLayout.hidden = false; appLayout.style.display = ''; }
+        portal.innerHTML = `
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:80vh;gap:16px;">
+            <div style="font-size:40px;animation:spin 1s linear infinite;">⏳</div>
+            <p style="font-size:13px;color:var(--text-muted);">Chargement de votre espace...</p>
+          </div>
+        `;
+      }
+
       // Forcer le preload si le répertoire n'est pas encore chargé
       let repertoire = (() => { try { return JSON.parse(localStorage.getItem(sid + '-repertoire')) || []; } catch(_) { return []; } })();
       if (!repertoire.length && typeof preloadStationData === 'function' && attempts === 0) {
@@ -201,8 +234,10 @@ function showChauffeurDirect() {
       console.log('tryOpenPortal attempt', attempts, '- répertoire:', repertoire.length, 'chauffeurs, cherche:', currentProfile.chauffeur_id);
       if (repertoire.length && attempts === 0) console.log('IDs disponibles:', repertoire.map(c => c.id_amazon));
 
-      const searchId = (currentProfile.chauffeur_id || '').trim().toUpperCase();
-      const chauffeur = repertoire.find(c => c.id_amazon && c.id_amazon.trim().toUpperCase() === searchId);
+      const searchId = (currentProfile.chauffeur_id || '').trim().toUpperCase().replace(/\s/g, '');
+      const chauffeur = repertoire.find(c =>
+        c.id_amazon && c.id_amazon.trim().toUpperCase().replace(/\s/g, '') === searchId
+      );
       console.log('tryOpenPortal: searchId =', searchId, '| trouvé =', !!chauffeur, '| initChauffeurPortal =', typeof initChauffeurPortal);
       if (chauffeur && typeof initChauffeurPortal === 'function') {
         console.log('✅ Chauffeur trouvé, ouverture portail');
@@ -212,8 +247,8 @@ function showChauffeurDirect() {
         const sidebar = document.querySelector('.sidebar');
         if (sidebar) sidebar.style.display = 'none';
         document.querySelectorAll('.module-view').forEach(m => { m.classList.remove('active'); m.removeAttribute('style'); });
-        const portal = document.getElementById('chauffeur-portal');
-        if (portal) portal.hidden = false;
+        const portalEl = document.getElementById('chauffeur-portal');
+        if (portalEl) portalEl.hidden = false;
         if (typeof showToolbar === 'function') showToolbar(true);
         const logoutBtn = document.getElementById('topbar-logout');
         if (logoutBtn) logoutBtn.style.display = '';
