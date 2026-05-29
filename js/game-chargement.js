@@ -116,7 +116,7 @@ function startGameChargement() {
   function startTimer() {
     if (timerInterval) clearInterval(timerInterval);
     timerInterval = setInterval(() => {
-      if (!window._gameActive) { clearInterval(timerInterval); return; }
+      if (!gameActive) { clearInterval(timerInterval); return; }
       timeLeft--;
       const el = document.getElementById('charg-timer');
       if (el) {
@@ -264,6 +264,7 @@ function startGameChargement() {
 
     // Back button
     document.getElementById('charg-back').onclick = () => {
+      gameActive = false;
       if (timerInterval) clearInterval(timerInterval);
       initGamesPage();
     };
