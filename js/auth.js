@@ -9,6 +9,18 @@ async function checkAuth() {
   await waitForSupabase();
   if (!sb()) { showLoginPage(); return; } // Pas de Supabase → login quand même
 
+  // Détecter si c'est un lien de reset password
+  const hashParams = new URLSearchParams(window.location.hash.replace('#', ''));
+  const accessToken = hashParams.get('access_token');
+  const type = hashParams.get('type');
+
+  if (accessToken && type === 'recovery') {
+    // Définir la session avec le token de récupération
+    await sb().auth.setSession({ access_token: accessToken, refresh_token: hashParams.get('refresh_token') || '' });
+    showResetPasswordPage();
+    return;
+  }
+
   try {
     const { data: { session } } = await sb().auth.getSession();
     if (session && session.user) {
@@ -22,6 +34,79 @@ async function checkAuth() {
     console.warn('checkAuth error:', e.message);
     showLoginPage();
   }
+}
+
+/* ── Page de réinitialisation de mot de passe ────────────── */
+function showResetPasswordPage() {
+  // Cacher tout
+  const appLayout = document.querySelector('.app-layout');
+  if (appLayout) appLayout.style.display = 'none';
+  const roleScreen = document.getElementById('role-screen');
+  if (roleScreen) roleScreen.hidden = true;
+
+  // Créer la page de reset
+  let resetPage = document.getElementById('reset-password-page');
+  if (!resetPage) {
+    resetPage = document.createElement('div');
+    resetPage.id = 'reset-password-page';
+    resetPage.style.cssText = 'position:fixed;inset:0;z-index:99999;background:var(--bg-primary);display:flex;align-items:center;justify-content:center;';
+    document.body.appendChild(resetPage);
+  }
+  resetPage.style.display = 'flex';
+  resetPage.innerHTML = `
+    <div style="width:100%;max-width:380px;padding:24px;">
+      <div style="text-align:center;margin-bottom:32px;">
+        <div style="font-size:32px;margin-bottom:8px;">🔑</div>
+        <h1 style="margin:0;font-size:1.3rem;color:var(--text-primary);font-weight:800;">Nouveau mot de passe</h1>
+        <p style="margin:6px 0 0;font-size:12px;color:var(--text-muted);">Choisissez un nouveau mot de passe sécurisé</p>
+      </div>
+      <div id="reset-error" style="display:none;background:rgba(248,113,113,0.1);border:1px solid #f87171;border-radius:8px;padding:10px;margin-bottom:14px;font-size:12px;color:#f87171;text-align:center;"></div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <input type="password" id="reset-pwd1" class="rep-input" placeholder="Nouveau mot de passe" style="padding:12px;font-size:14px;">
+        <input type="password" id="reset-pwd2" class="rep-input" placeholder="Confirmer le mot de passe" style="padding:12px;font-size:14px;">
+        <div style="font-size:11px;color:var(--text-muted);">Minimum 8 caractères</div>
+        <button id="reset-submit-btn" style="padding:12px;font-size:14px;font-weight:700;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;">Enregistrer le mot de passe</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('reset-submit-btn').addEventListener('click', async () => {
+    const pwd1 = document.getElementById('reset-pwd1').value;
+    const pwd2 = document.getElementById('reset-pwd2').value;
+    const errorEl = document.getElementById('reset-error');
+    const btn = document.getElementById('reset-submit-btn');
+
+    if (!pwd1 || pwd1.length < 8) {
+      errorEl.textContent = 'Le mot de passe doit faire au moins 8 caractères.';
+      errorEl.style.display = 'block'; return;
+    }
+    if (pwd1 !== pwd2) {
+      errorEl.textContent = 'Les deux mots de passe ne correspondent pas.';
+      errorEl.style.display = 'block'; return;
+    }
+
+    btn.disabled = true; btn.textContent = '⏳ Enregistrement...';
+    try {
+      const { error } = await sb().auth.updateUser({ password: pwd1 });
+      if (error) throw error;
+      resetPage.innerHTML = `
+        <div style="text-align:center;padding:24px;">
+          <div style="font-size:48px;margin-bottom:16px;">✅</div>
+          <h2 style="color:var(--text-primary);">Mot de passe modifié !</h2>
+          <p style="color:var(--text-muted);font-size:13px;">Vous allez être redirigé vers la page de connexion.</p>
+        </div>
+      `;
+      // Nettoyer l'URL et rediriger après 2 secondes
+      setTimeout(() => {
+        window.history.replaceState(null, '', window.location.pathname);
+        window.location.reload();
+      }, 2000);
+    } catch(e) {
+      errorEl.textContent = 'Erreur : ' + e.message;
+      errorEl.style.display = 'block';
+      btn.disabled = false; btn.textContent = 'Enregistrer le mot de passe';
+    }
+  });
 }
 
 /* ── Attendre que Supabase soit initialisé ────────────────── */
