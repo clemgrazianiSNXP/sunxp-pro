@@ -7,21 +7,34 @@ let currentProfile = null;
 /* ── Vérifier la session au chargement ────────────────────── */
 async function checkAuth() {
   await waitForSupabase();
-  if (!sb()) { showLoginPage(); return; } // Pas de Supabase → login quand même
-
-  // Détecter si c'est un lien de reset password
-  const hashParams = new URLSearchParams(window.location.hash.replace('#', ''));
-  const accessToken = hashParams.get('access_token');
-  const type = hashParams.get('type');
-
-  if (accessToken && type === 'recovery') {
-    // Définir la session avec le token de récupération
-    await sb().auth.setSession({ access_token: accessToken, refresh_token: hashParams.get('refresh_token') || '' });
-    showResetPasswordPage();
-    return;
-  }
+  if (!sb()) { showLoginPage(); return; }
 
   try {
+    // PRIORITÉ 1 — Détecter un lien de réinitialisation de mot de passe
+    // Supabase met le token dans le hash OU dans les query params selon la config
+    const hash = window.location.hash;
+    const search = window.location.search;
+    const hashParams = new URLSearchParams(hash.replace('#', ''));
+    const queryParams = new URLSearchParams(search);
+
+    const type = hashParams.get('type') || queryParams.get('type');
+    const accessToken = hashParams.get('access_token') || queryParams.get('access_token');
+    const refreshToken = hashParams.get('refresh_token') || queryParams.get('refresh_token');
+
+    if (type === 'recovery' && accessToken) {
+      // Nettoyer l'URL immédiatement pour éviter que Supabase auto-connecte
+      window.history.replaceState(null, '', window.location.pathname);
+      // Définir la session manuellement
+      await sb().auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken || ''
+      });
+      // Afficher le formulaire de changement de mot de passe
+      showResetPasswordPage();
+      return;
+    }
+
+    // PRIORITÉ 2 — Connexion normale
     const { data: { session } } = await sb().auth.getSession();
     if (session && session.user) {
       currentUser = session.user;
