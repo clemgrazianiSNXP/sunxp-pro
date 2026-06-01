@@ -1,5 +1,8 @@
 ﻿/* js/accueil.js — Tableau de bord Accueil Responsable (SunXP Pro) */
 
+let _badgesCache = null;
+let _badgesCacheStation = null;
+
 function navigateToTab(module, tab) {
   if (typeof showModule === 'function') showModule(module);
   // Attendre que le module soit rendu puis ouvrir le bon onglet
@@ -27,6 +30,12 @@ function renderAccueil() {
   container.style.cssText = 'display:flex;flex-direction:column;padding:0;overflow-y:auto;align-items:center;';
 
   const sid = window.getActiveStationId ? window.getActiveStationId() : 'default';
+
+  // Invalider le cache badges si la station a changé
+  if (_badgesCacheStation !== sid) {
+    _badgesCache = null;
+    _badgesCacheStation = null;
+  }
 
   // Header centré
   const header = document.createElement('div');
@@ -374,6 +383,11 @@ function buildASTCard(sid) {
 
 /* ── Card Badges récents (DSP/CE) ─────────────────────────── */
 function buildRecentBadgesCard(sid) {
+  // Utiliser le cache si disponible pour la même station
+  if (_badgesCache && _badgesCacheStation === sid) {
+    return buildBadgesCardFromData(_badgesCache);
+  }
+
   // Scanner les badges récemment débloqués (7 derniers jours)
   let chauffeurs = [];
   try { chauffeurs = JSON.parse(localStorage.getItem(sid + '-repertoire')) || []; } catch (_) {}
@@ -406,6 +420,14 @@ function buildRecentBadgesCard(sid) {
 
   recentBadges.sort(function(a, b) { return new Date(b.date) - new Date(a.date); });
 
+  // Mettre en cache
+  _badgesCache = recentBadges;
+  _badgesCacheStation = sid;
+
+  return buildBadgesCardFromData(recentBadges);
+}
+
+function buildBadgesCardFromData(recentBadges) {
   const card = createCard('🏆', 'Badges récents', recentBadges.length);
   const body = card.querySelector('.accueil-card-body');
 
