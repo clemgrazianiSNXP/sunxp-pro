@@ -23,7 +23,7 @@ function parseCSVDSDPMO(text) {
   // Lire les en-têtes et les normaliser (minuscules, sans accents, sans espaces)
   const rawHeaders = splitCSVLine(lines[0]);
   const normalize = s => s.toLowerCase()
-    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9]/g, '');
   const headers = rawHeaders.map(normalize);
 

@@ -121,7 +121,7 @@ function parseRoutesExcel(rows) {
 
   // Normaliser les en-têtes
   const normalize = s => String(s||'').toLowerCase()
-    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9]/g, '');
 
   const headers = rows[headerIdx].map(normalize);
