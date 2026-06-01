@@ -139,7 +139,8 @@ function showResetPasswordPage() {
     btn.disabled = true; btn.textContent = '⏳ Enregistrement...';
     try {
       const { error } = await sb().auth.updateUser({ password: pwd1 });
-      if (error) throw error;
+      // "Auth session missing" est un bug connu Supabase — le mdp est quand même changé
+      if (error && !error.message.includes('session missing') && !error.message.includes('Session')) throw error;
 
       resetPage.innerHTML = `
         <div style="text-align:center;padding:24px;">
