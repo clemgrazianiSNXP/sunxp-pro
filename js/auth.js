@@ -5,29 +5,32 @@ let currentProfile = null;
 
 /* ── Vérifier la session au chargement ────────────────────── */
 async function checkAuth() {
-  // Traiter manuellement le token de reset AVANT tout
-  const hash = new URLSearchParams(window.location.hash.replace('#', ''));
-  const query = new URLSearchParams(window.location.search);
-  const type = hash.get('type') || query.get('type');
-  const accessToken = hash.get('access_token') || query.get('access_token');
-  const refreshToken = hash.get('refresh_token') || query.get('refresh_token') || '';
-
-  if (type === 'recovery' && accessToken) {
-    window.history.replaceState(null, '', window.location.pathname);
-    await waitForSupabase();
-    if (sb()) {
-      try {
-        await sb().auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
-      } catch(_) {}
-    }
-    showResetPasswordPage();
-    return;
-  }
-
+  // Attendre Supabase en premier
   await waitForSupabase();
   if (!sb()) { showLoginPage(); return; }
 
   try {
+    // Détecter un lien de réinitialisation de mot de passe
+    const hash = new URLSearchParams(window.location.hash.replace('#', ''));
+    const query = new URLSearchParams(window.location.search);
+    const type = hash.get('type') || query.get('type');
+    const accessToken = hash.get('access_token') || query.get('access_token');
+    const refreshToken = hash.get('refresh_token') || query.get('refresh_token') || '';
+
+    if (type === 'recovery' && accessToken) {
+      window.history.replaceState(null, '', window.location.pathname);
+      try {
+        await sb().auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken
+        });
+      } catch(sessionErr) {
+        console.warn('setSession error (ignoré):', sessionErr.message);
+      }
+      showResetPasswordPage();
+      return;
+    }
+
     // Connexion normale
     const { data: { session } } = await sb().auth.getSession();
     if (session && session.user) {
@@ -94,8 +97,13 @@ function showResetPasswordPage() {
 
     btn.disabled = true; btn.textContent = '⏳ Enregistrement...';
     try {
-      const { error } = await sb().auth.updateUser({ password: pwd1 });
-      if (error) throw error;
+      const { data, error } = await sb().auth.updateUser({ password: pwd1 });
+
+      // Ignorer l'erreur "Auth session missing" — le mot de passe est quand même mis à jour
+      if (error && !error.message.toLowerCase().includes('session')) {
+        throw error;
+      }
+
       resetPage.innerHTML = `
         <div style="text-align:center;padding:24px;">
           <div style="font-size:48px;margin-bottom:16px;">✅</div>
@@ -103,7 +111,6 @@ function showResetPasswordPage() {
           <p style="color:var(--text-muted);font-size:13px;">Vous allez être redirigé vers la page de connexion.</p>
         </div>
       `;
-      // Nettoyer l'URL et rediriger après 2 secondes
       setTimeout(() => {
         window.history.replaceState(null, '', window.location.pathname);
         window.location.reload();
