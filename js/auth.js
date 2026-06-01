@@ -20,12 +20,39 @@ async function checkAuth() {
   });
 
   try {
-    // Vérifier si c'est un lien de recovery (fallback si onAuthStateChange ne se déclenche pas)
+    // Détecter le flow PKCE (code dans les query params)
+    const query = new URLSearchParams(window.location.search);
+    const code = query.get('code');
+    const type = query.get('type');
+
+    if (code) {
+      // Flow PKCE : échanger le code contre une session
+      try {
+        const { data, error } = await sb().auth.exchangeCodeForSession(code);
+        console.log('exchangeCodeForSession:', data ? 'OK' : 'no data', error ? error.message : '');
+        if (!error && data?.session) {
+          window.history.replaceState(null, '', window.location.pathname);
+          // Si c'est un recovery, afficher la page de reset
+          if (type === 'recovery' || data.session.user?.recovery_sent_at) {
+            showResetPasswordPage();
+            return;
+          }
+          // Sinon connexion normale
+          currentUser = data.session.user;
+          await loadProfile();
+          redirectByRole();
+          return;
+        }
+      } catch(e) {
+        console.warn('exchangeCodeForSession error:', e.message);
+      }
+    }
+
+    // Détecter le flow implicite (hash fragment)
     const hashStr = window.location.hash.substring(1);
     if (hashStr.includes('type=recovery')) {
-      // Attendre un peu que onAuthStateChange se déclenche
-      await new Promise(r => setTimeout(r, 1000));
-      // Si on est toujours là, c'est que l'événement ne s'est pas déclenché
+      // Attendre que onAuthStateChange se déclenche
+      await new Promise(r => setTimeout(r, 1500));
       const { data: { session } } = await sb().auth.getSession();
       if (session) {
         window.history.replaceState(null, '', window.location.pathname);
@@ -230,7 +257,7 @@ function showLoginPage() {
       if (!email) { showLoginError('Entrez votre email d\'abord.'); return; }
       try {
         const { error } = await sb().auth.resetPasswordForEmail(email, {
-          redirectTo: window.location.origin
+          redirectTo: window.location.origin + '?type=recovery'
         });
         if (error) throw error;
         const el = document.getElementById('login-error');
