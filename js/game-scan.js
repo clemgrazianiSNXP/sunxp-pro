@@ -48,6 +48,7 @@ function startGameScan() {
   function startGame() {
     score = 0; lives = 3; combo = 0; multiplier = 1; level = 1; questionNum = 0;
     gameActive = true;
+    initGameStructure();
     nextQuestion();
   }
 
@@ -138,20 +139,34 @@ function startGameScan() {
       + '</div></div>';
   }
 
+  function initGameStructure() {
+    portal.innerHTML = '';
+    portal.innerHTML = '<div style="display:flex;flex-direction:column;height:100%;background:var(--bg-primary,#12121a);color:var(--text-primary,#fff);">' +
+      '<div id="scan-header" style="padding:8px 14px;background:var(--bg-sidebar,#1e1e2e);border-bottom:1px solid var(--border,#333);display:flex;align-items:center;gap:8px;flex-shrink:0;">' +
+        '<button onclick="initGamesPage()" style="padding:4px 8px;background:var(--bg-primary);color:var(--text-primary);border:1px solid var(--border);border-radius:4px;cursor:pointer;font-size:11px;">←</button>' +
+        '<span style="font-size:12px;font-weight:700;">⚡ Scan Express</span>' +
+        '<span id="scan-lives" style="margin-left:auto;"></span>' +
+        '<span id="scan-score" style="font-family:monospace;color:var(--accent,#7c6af7);font-size:12px;font-weight:700;">0</span>' +
+      '</div>' +
+      '<div id="scan-timer-wrap" style="height:4px;background:#333;flex-shrink:0;"><div id="scan-timer-bar" style="height:100%;width:100%;background:#f87171;transition:width 0.05s linear;"></div></div>' +
+      '<div id="scan-question-zone" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:20px;"></div>' +
+    '</div>';
+  }
+
+  function updateScanUI() {
+    const livesEl = document.getElementById('scan-lives');
+    const scoreEl = document.getElementById('scan-score');
+    if (livesEl) livesEl.innerHTML = Array(3).fill(0).map((_, i) => '<span style="font-size:18px;opacity:' + (i < lives ? '1' : '0.2') + ';">📦</span>').join('');
+    if (scoreEl) scoreEl.textContent = score;
+  }
+
   function renderQuestion(options) {
-    const livesHtml = Array(3).fill(0).map((_, i) => '<span style="font-size:18px;opacity:' + (i < lives ? '1' : '0.2') + ';">📦</span>').join('');
+    updateScanUI();
     const comboHtml = combo >= 3 ? '<span style="color:#f97316;font-weight:700;font-size:12px;">🔥 x' + combo + '</span>' : '';
     const multHtml = multiplier > 1 ? '<span style="color:#fbbf24;font-weight:700;font-size:11px;animation:pulse 0.5s infinite;">x2 COMBO!</span>' : '';
 
-    portal.innerHTML = '<div style="display:flex;flex-direction:column;height:100%;background:var(--bg-primary,#12121a);color:var(--text-primary,#fff);">' +
-      '<div style="padding:8px 14px;background:var(--bg-sidebar,#1e1e2e);border-bottom:1px solid var(--border,#333);display:flex;align-items:center;gap:8px;flex-shrink:0;">' +
-        '<button onclick="initGamesPage()" style="padding:4px 8px;background:var(--bg-primary);color:var(--text-primary);border:1px solid var(--border);border-radius:4px;cursor:pointer;font-size:11px;">←</button>' +
-        '<span style="font-size:12px;font-weight:700;">⚡ Scan Express</span>' +
-        '<span style="margin-left:auto;">' + livesHtml + '</span>' +
-        '<span style="font-family:monospace;color:var(--accent,#7c6af7);font-size:12px;font-weight:700;">' + score + '</span>' +
-      '</div>' +
-      '<div id="scan-timer-wrap" style="height:4px;background:#333;flex-shrink:0;"><div id="scan-timer-bar" style="height:100%;width:100%;background:#f87171;transition:width 0.05s linear;"></div></div>' +
-      '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:20px;">' +
+    const zone = document.getElementById('scan-question-zone');
+    if (zone) zone.innerHTML =
         '<div id="scan-feedback" style="font-size:18px;font-weight:700;height:24px;transition:all 0.2s;opacity:0;">&nbsp;</div>' +
         '<div style="text-align:center;">' + comboHtml + ' ' + multHtml + '</div>' +
         '<div style="background:var(--bg-sidebar,#1e1e2e);border:1px solid var(--border,#333);border-radius:12px;padding:20px 30px;text-align:center;">' +
@@ -162,9 +177,7 @@ function startGameScan() {
         '<div style="font-size:11px;color:var(--text-muted);">Quel est le bon code ?</div>' +
         '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;max-width:320px;">' +
           options.map(opt => '<button class="scan-opt" data-code="' + opt + '" style="padding:14px 8px;background:var(--bg-sidebar,#1e1e2e);border:2px solid var(--border,#333);border-radius:10px;color:var(--text-primary,#fff);font-family:monospace;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.1s;letter-spacing:1px;">' + opt + '</button>').join('') +
-        '</div>' +
-      '</div>' +
-    '</div>';
+        '</div>';
 
     // Bind buttons
     document.querySelectorAll('.scan-opt').forEach(btn => {

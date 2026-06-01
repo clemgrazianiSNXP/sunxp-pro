@@ -170,10 +170,40 @@ function startGameBoite() {
     setTimeout(() => { fb.style.opacity = '0'; fb.style.transform = 'translateY(-10px) scale(1)'; }, 500);
   }
 
+  function initGameStructure() {
+    portal.innerHTML = '';
+    portal.style.cssText = '';
+    portal.innerHTML = `
+      <div style="display:flex;flex-direction:column;height:100%;background:var(--bg-primary,#12121a);color:var(--text-primary,#fff);">
+        <div id="boite-header" style="padding:8px 14px;background:var(--bg-sidebar,#1e1e2e);border-bottom:1px solid var(--border,#333);display:flex;align-items:center;gap:8px;flex-shrink:0;">
+          <button onclick="initGamesPage()" style="padding:4px 8px;background:var(--bg-primary);color:var(--text-primary);border:1px solid var(--border);border-radius:4px;cursor:pointer;font-size:11px;">←</button>
+          <span style="font-size:12px;font-weight:700;">🚪 Bonne Boîte</span>
+          <span id="boite-lives" style="margin-left:auto;"></span>
+          <span id="boite-score" style="font-family:monospace;color:var(--accent,#7c6af7);font-size:13px;font-weight:700;">0</span>
+        </div>
+        <div id="boite-timer-wrap" style="height:4px;background:#333;flex-shrink:0;">
+          <div id="boite-timer-bar" style="height:100%;width:100%;background:#f97316;transition:width 0.05s linear;"></div>
+        </div>
+        <div id="boite-question-zone" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:16px;overflow-y:auto;"></div>
+      </div>
+      <style>
+        @keyframes boite-shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
+        @keyframes boite-slidein { from{transform:translateY(-20px);opacity:0} to{transform:translateY(0);opacity:1} }
+        .boite-box:hover { border-color:var(--accent,#7c6af7) !important; transform:scale(1.05); }
+        .boite-box:active { transform:scale(0.95); }
+      </style>
+    `;
+  }
+
+  function updateGameUI() {
+    const livesEl = document.getElementById('boite-lives');
+    const scoreEl = document.getElementById('boite-score');
+    if (livesEl) livesEl.innerHTML = Array(3).fill(0).map((_, i) => '<span style="font-size:16px;opacity:' + (i < lives ? '1' : '0.2') + ';">📦</span>').join('');
+    if (scoreEl) scoreEl.textContent = score;
+  }
+
   function renderQuestion(labels) {
-    const livesHtml = Array(3).fill(0).map((_, i) =>
-      '<span style="font-size:16px;opacity:' + (i < lives ? '1' : '0.2') + ';">📦</span>'
-    ).join('');
+    updateGameUI();
 
     const comboHtml = combo >= 3 ? '<span style="color:#f97316;font-size:11px;font-weight:700;">🔥 x' + combo + '</span>' : '';
     const bonusHtml = bonusTime > 0 ? '<span style="color:#8b5cf6;font-size:10px;">+' + (bonusTime/1000) + 's</span>' : '';
@@ -196,36 +226,18 @@ function startGameBoite() {
       </div>
     `).join('');
 
-    portal.innerHTML = `
-      <div style="display:flex;flex-direction:column;height:100%;background:var(--bg-primary,#12121a);color:var(--text-primary,#fff);">
-        <div style="padding:8px 14px;background:var(--bg-sidebar,#1e1e2e);border-bottom:1px solid var(--border,#333);display:flex;align-items:center;gap:8px;flex-shrink:0;">
-          <button onclick="initGamesPage()" style="padding:4px 8px;background:var(--bg-primary);color:var(--text-primary);border:1px solid var(--border);border-radius:4px;cursor:pointer;font-size:11px;">←</button>
-          <span style="font-size:12px;font-weight:700;">🚪 Bonne Boîte</span>
-          <span style="margin-left:auto;">${livesHtml}</span>
-          <span style="font-family:monospace;color:var(--accent,#7c6af7);font-size:13px;font-weight:700;">${score}</span>
-        </div>
-        <div id="boite-timer-wrap" style="height:4px;background:#333;flex-shrink:0;">
-          <div id="boite-timer-bar" style="height:100%;width:100%;background:#f97316;transition:width 0.05s linear;"></div>
-        </div>
-        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:16px;overflow-y:auto;">
-          <div id="boite-feedback" style="font-size:16px;font-weight:700;height:20px;transition:all 0.2s;opacity:0;">&nbsp;</div>
-          <div style="display:flex;gap:6px;align-items:center;">${comboHtml} ${bonusHtml}</div>
-          <div style="background:var(--bg-sidebar,#1e1e2e);border:1px solid var(--border,#333);border-radius:12px;padding:16px 24px;text-align:center;animation:boite-slidein 0.3s ease;">
-            <div style="font-size:10px;color:var(--text-muted);margin-bottom:4px;">📦 COLIS POUR :</div>
-            <div style="font-size:24px;font-weight:900;font-family:monospace;color:#fbbf24;letter-spacing:2px;">${correctLabel}</div>
-          </div>
-          <div style="font-size:11px;color:var(--text-muted);">Niv. ${level} • Question ${questionNum}</div>
-          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:8px;width:100%;max-width:400px;">
-            ${boxesHtml}
-          </div>
-        </div>
+    const zone = document.getElementById('boite-question-zone');
+    if (zone) zone.innerHTML = `
+      <div id="boite-feedback" style="font-size:16px;font-weight:700;height:20px;transition:all 0.2s;opacity:0;">&nbsp;</div>
+      <div style="display:flex;gap:6px;align-items:center;">${comboHtml} ${bonusHtml}</div>
+      <div style="background:var(--bg-sidebar,#1e1e2e);border:1px solid var(--border,#333);border-radius:12px;padding:16px 24px;text-align:center;animation:boite-slidein 0.3s ease;">
+        <div style="font-size:10px;color:var(--text-muted);margin-bottom:4px;">📦 COLIS POUR :</div>
+        <div style="font-size:24px;font-weight:900;font-family:monospace;color:#fbbf24;letter-spacing:2px;">${correctLabel}</div>
       </div>
-      <style>
-        @keyframes boite-shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
-        @keyframes boite-slidein { from{transform:translateY(-20px);opacity:0} to{transform:translateY(0);opacity:1} }
-        .boite-box:hover { border-color:var(--accent,#7c6af7) !important; transform:scale(1.05); }
-        .boite-box:active { transform:scale(0.95); }
-      </style>
+      <div style="font-size:11px;color:var(--text-muted);">Niv. ${level} • Question ${questionNum}</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:8px;width:100%;max-width:400px;">
+        ${boxesHtml}
+      </div>
     `;
 
     // Bind click
@@ -278,6 +290,7 @@ function startGameBoite() {
   }
 
   // Start
+  initGameStructure();
   nextQuestion();
 }
 

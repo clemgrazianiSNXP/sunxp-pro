@@ -72,9 +72,35 @@ function startGameGPS() {
     return { instructions, startX, startY, endX: x, endY: y, gridSize };
   }
 
+  function initGPSStructure() {
+    portal.innerHTML = '';
+    portal.style.cssText = 'position:fixed;inset:0;z-index:9999;background:var(--bg-primary,#12121a);display:flex;flex-direction:column;overflow:hidden;';
+    portal.innerHTML = `
+      <div id="gps-header" style="padding:8px 14px;background:var(--bg-sidebar,#1e1e2e);border-bottom:1px solid var(--border,#333);display:flex;align-items:center;gap:8px;flex-shrink:0;">
+        <button onclick="initGamesPage()" style="padding:4px 8px;background:var(--bg-primary,#12121a);color:var(--text-primary,#fff);border:1px solid var(--border,#444);border-radius:4px;cursor:pointer;font-size:11px;">←</button>
+        <span style="font-size:12px;font-weight:700;">📡 GPS Cassé</span>
+        <span id="gps-info" style="margin-left:auto;font-size:11px;color:#9ca3af;"></span>
+        <span id="gps-score" style="font-family:monospace;color:var(--accent,#7c6af7);font-size:13px;font-weight:700;">${score}</span>
+      </div>
+      <div id="gps-zone" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px;color:#fff;overflow:auto;"></div>
+      <style>
+        @keyframes gps-glitch { 0%,90%{transform:translate(0)} 92%{transform:translate(-2px,1px)} 94%{transform:translate(2px,-1px)} 96%{transform:translate(-1px,-1px)} 98%{transform:translate(1px,1px)} 100%{transform:translate(0)} }
+      </style>
+    `;
+  }
+
+  function updateGPSHeader() {
+    const infoEl = document.getElementById('gps-info');
+    const scoreEl = document.getElementById('gps-score');
+    if (infoEl) infoEl.textContent = 'Niv.' + level + ' • Manche ' + round;
+    if (scoreEl) scoreEl.textContent = score;
+  }
+
   function startRound() {
     round++;
     level = Math.floor((round - 1) / 2) + 1;
+    if (!document.getElementById('gps-header')) initGPSStructure();
+    updateGPSHeader();
     const data = generateInstructions();
     showInstructions(data);
   }
@@ -83,29 +109,17 @@ function startGameGPS() {
     const { instructions, startX, startY, endX, endY, gridSize } = data;
     let currentIdx = 0;
 
-    portal.innerHTML = '';
-    portal.style.cssText = 'position:fixed;inset:0;z-index:9999;background:var(--bg-primary,#12121a);display:flex;flex-direction:column;overflow:hidden;';
-    portal.innerHTML = `
-      <div style="padding:8px 14px;background:var(--bg-sidebar,#1e1e2e);border-bottom:1px solid var(--border,#333);display:flex;align-items:center;gap:8px;flex-shrink:0;">
-        <button onclick="initGamesPage()" style="padding:4px 8px;background:var(--bg-primary,#12121a);color:var(--text-primary,#fff);border:1px solid var(--border,#444);border-radius:4px;cursor:pointer;font-size:11px;">←</button>
-        <span style="font-size:12px;font-weight:700;">📡 GPS Cassé</span>
-        <span style="margin-left:auto;font-size:11px;color:#9ca3af;">Niv.${level} • Manche ${round}</span>
-        <span style="font-family:monospace;color:var(--accent,#7c6af7);font-size:13px;font-weight:700;">${score}</span>
+    const zone = document.getElementById('gps-zone');
+    if (zone) zone.innerHTML = `
+      <div style="font-size:36px;animation:gps-glitch 2s infinite;">📡</div>
+      <div style="font-size:12px;color:#4ade80;font-weight:700;">🏭 Départ = centre de la grille (${gridSize}x${gridSize})</div>
+      <div style="font-size:11px;color:#9ca3af;">Chaque instruction = un déplacement sur la grille</div>
+      <div id="gps-instruction" style="font-size:20px;font-weight:700;min-height:36px;text-align:center;padding:14px 24px;background:var(--bg-sidebar,#1e1e2e);border:2px solid var(--border,#444);border-radius:12px;min-width:260px;transition:all 0.2s;"></div>
+      <div id="gps-progress" style="font-size:12px;color:#6b7280;"></div>
+      <div style="width:220px;height:5px;background:#333;border-radius:3px;overflow:hidden;">
+        <div id="gps-instr-timer" style="height:100%;width:100%;background:#f97316;border-radius:3px;"></div>
       </div>
-      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px;color:#fff;">
-        <div style="font-size:36px;animation:gps-glitch 2s infinite;">📡</div>
-        <div style="font-size:12px;color:#4ade80;font-weight:700;">🏭 Départ = centre de la grille (${gridSize}x${gridSize})</div>
-        <div style="font-size:11px;color:#9ca3af;">Chaque instruction = un déplacement sur la grille</div>
-        <div id="gps-instruction" style="font-size:20px;font-weight:700;min-height:36px;text-align:center;padding:14px 24px;background:var(--bg-sidebar,#1e1e2e);border:2px solid var(--border,#444);border-radius:12px;min-width:260px;transition:all 0.2s;"></div>
-        <div id="gps-progress" style="font-size:12px;color:#6b7280;"></div>
-        <div style="width:220px;height:5px;background:#333;border-radius:3px;overflow:hidden;">
-          <div id="gps-instr-timer" style="height:100%;width:100%;background:#f97316;border-radius:3px;"></div>
-        </div>
-        <div style="font-size:10px;color:#6b7280;margin-top:8px;">⬆️=haut ⬇️=bas ⬅️=gauche ➡️=droite</div>
-      </div>
-      <style>
-        @keyframes gps-glitch { 0%,90%{transform:translate(0)} 92%{transform:translate(-2px,1px)} 94%{transform:translate(2px,-1px)} 96%{transform:translate(-1px,-1px)} 98%{transform:translate(1px,1px)} 100%{transform:translate(0)} }
-      </style>
+      <div style="font-size:10px;color:#6b7280;margin-top:8px;">⬆️=haut ⬇️=bas ⬅️=gauche ➡️=droite</div>
     `;
 
     function showNext() {
@@ -162,20 +176,21 @@ function startGameGPS() {
       }
     }
 
-    portal.innerHTML = `
-      <div style="padding:8px 14px;background:var(--bg-sidebar,#1e1e2e);border-bottom:1px solid var(--border,#333);display:flex;align-items:center;gap:8px;flex-shrink:0;">
-        <span style="font-size:12px;font-weight:700;">📡 Où êtes-vous arrivé ?</span>
-        <span style="margin-left:auto;font-family:monospace;color:var(--accent,#7c6af7);font-size:13px;font-weight:700;">${score}</span>
-      </div>
-      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:12px;color:#fff;">
-        <div style="font-size:14px;color:#fbbf24;font-weight:700;">👆 Cliquez sur votre case d'arrivée</div>
-        <div style="background:#1f2937;border-radius:8px;padding:6px;border:1px solid #4b5563;">
-          <div id="gps-grid" style="display:grid;grid-template-columns:repeat(${gridSize},${cellSize}px);gap:1px;">
-            ${gridHtml}
-          </div>
+    // Update header text
+    const infoEl = document.getElementById('gps-info');
+    if (infoEl) infoEl.textContent = '';
+    const headerTitle = document.getElementById('gps-header');
+    if (headerTitle) headerTitle.querySelector('span:nth-child(3)').textContent = '';
+
+    const zone = document.getElementById('gps-zone');
+    if (zone) zone.innerHTML = `
+      <div style="font-size:14px;color:#fbbf24;font-weight:700;">👆 Cliquez sur votre case d'arrivée</div>
+      <div style="background:#1f2937;border-radius:8px;padding:6px;border:1px solid #4b5563;">
+        <div id="gps-grid" style="display:grid;grid-template-columns:repeat(${gridSize},${cellSize}px);gap:1px;">
+          ${gridHtml}
         </div>
-        <div style="font-size:10px;color:#6b7280;">🏭 = Votre point de départ</div>
       </div>
+      <div style="font-size:10px;color:#6b7280;">🏭 = Votre point de départ</div>
     `;
 
     // Bind clicks

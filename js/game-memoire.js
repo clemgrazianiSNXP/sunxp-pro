@@ -34,12 +34,42 @@ function startGameMemoire() {
     return addrs;
   }
 
+  function initMemoireStructure() {
+    portal.innerHTML = '';
+    portal.style.cssText = 'position:fixed;inset:0;z-index:9999;background:var(--bg-primary,#12121a);display:flex;flex-direction:column;overflow:hidden;';
+    portal.innerHTML = `
+      <div id="memoire-header" style="padding:8px 14px;background:var(--bg-sidebar,#1e1e2e);border-bottom:1px solid var(--border,#333);display:flex;align-items:center;gap:8px;flex-shrink:0;">
+        <button onclick="initGamesPage()" style="padding:4px 8px;background:var(--bg-primary,#12121a);color:var(--text-primary,#fff);border:1px solid var(--border,#444);border-radius:4px;cursor:pointer;font-size:11px;">←</button>
+        <span style="font-size:12px;font-weight:700;">🧠 Mémoire Tournée</span>
+        <span id="memoire-info" style="margin-left:auto;font-size:11px;color:#9ca3af;"></span>
+        <span id="memoire-score" style="font-family:monospace;color:var(--accent,#7c6af7);font-size:13px;font-weight:700;">${score}</span>
+      </div>
+      <div id="memoire-status-bar" style="flex-shrink:0;"></div>
+      <div id="memoire-zone" style="flex:1;position:relative;background:#e5e7eb;overflow:hidden;border:2px solid #9ca3af;margin:8px;border-radius:8px;">
+        <div style="position:absolute;inset:0;opacity:0.1;background:repeating-linear-gradient(0deg,transparent,transparent 19px,#6b7280 19px,#6b7280 20px),repeating-linear-gradient(90deg,transparent,transparent 19px,#6b7280 19px,#6b7280 20px);"></div>
+      </div>
+      <div id="memoire-footer" style="padding:6px;text-align:center;font-size:10px;color:#6b7280;flex-shrink:0;"></div>
+      <style>
+        @keyframes mem-shake { 0%,100%{transform:translate(-50%,-50%)} 25%{transform:translate(-50%,-50%) translateX(-4px)} 75%{transform:translate(-50%,-50%) translateX(4px)} }
+      </style>
+    `;
+  }
+
+  function updateMemoireHeader() {
+    const infoEl = document.getElementById('memoire-info');
+    const scoreEl = document.getElementById('memoire-score');
+    if (infoEl) infoEl.textContent = 'Niv.' + level + ' • Manche ' + roundNum;
+    if (scoreEl) scoreEl.textContent = score;
+  }
+
   function startLevel() {
     roundNum++;
     const cfg = getLevelConfig();
     addresses = generateAddresses(cfg.count);
     nextClickIdx = 0;
     correctCount = 0;
+    if (!document.getElementById('memoire-header')) initMemoireStructure();
+    updateMemoireHeader();
     showMemoPhase(cfg);
   }
 
@@ -54,27 +84,21 @@ function startGameMemoire() {
       </div>
     `).join('');
 
-    portal.innerHTML = '';
-    portal.style.cssText = 'position:fixed;inset:0;z-index:9999;background:var(--bg-primary,#12121a);display:flex;flex-direction:column;overflow:hidden;';
-    portal.innerHTML = `
-      <div style="padding:8px 14px;background:var(--bg-sidebar,#1e1e2e);border-bottom:1px solid var(--border,#333);display:flex;align-items:center;gap:8px;flex-shrink:0;">
-        <button onclick="initGamesPage()" style="padding:4px 8px;background:var(--bg-primary,#12121a);color:var(--text-primary,#fff);border:1px solid var(--border,#444);border-radius:4px;cursor:pointer;font-size:11px;">←</button>
-        <span style="font-size:12px;font-weight:700;">🧠 Mémoire Tournée</span>
-        <span style="margin-left:auto;font-size:11px;color:#9ca3af;">Niv.${level} • Manche ${roundNum}</span>
-        <span style="font-family:monospace;color:var(--accent,#7c6af7);font-size:13px;font-weight:700;">${score}</span>
-      </div>
-      <div style="padding:6px 14px;background:rgba(239,68,68,0.1);text-align:center;flex-shrink:0;">
-        <div style="font-size:12px;color:#fbbf24;font-weight:700;">👀 MÉMORISEZ L'ORDRE ! <span id="mem-timer" style="color:#ef4444;">${timeLeft}s</span></div>
+    const statusBar = document.getElementById('memoire-status-bar');
+    if (statusBar) statusBar.innerHTML = `
+      <div style="padding:6px 14px;background:rgba(239,68,68,0.1);text-align:center;">
+        <div style="font-size:12px;color:#fbbf24;font-weight:700;">👀 MÉMORISEZ L'ORDRE ! <span id="mem-timer">${timeLeft}s</span></div>
         <div style="height:4px;background:#333;border-radius:2px;margin-top:4px;overflow:hidden;">
           <div id="mem-timer-bar" style="height:100%;width:100%;background:#ef4444;transition:width 1s linear;"></div>
         </div>
       </div>
-      <div style="flex:1;position:relative;background:#e5e7eb;overflow:hidden;border:2px solid #9ca3af;margin:8px;border-radius:8px;">
-        <div style="position:absolute;inset:0;opacity:0.1;background:repeating-linear-gradient(0deg,transparent,transparent 19px,#6b7280 19px,#6b7280 20px),repeating-linear-gradient(90deg,transparent,transparent 19px,#6b7280 19px,#6b7280 20px);"></div>
-        ${addrHtml}
-      </div>
-      <div style="padding:6px;text-align:center;font-size:10px;color:#6b7280;flex-shrink:0;">${cfg.count} adresses • Numéro rouge = ordre de livraison</div>
     `;
+
+    const zone = document.getElementById('memoire-zone');
+    if (zone) zone.innerHTML = '<div style="position:absolute;inset:0;opacity:0.1;background:repeating-linear-gradient(0deg,transparent,transparent 19px,#6b7280 19px,#6b7280 20px),repeating-linear-gradient(90deg,transparent,transparent 19px,#6b7280 19px,#6b7280 20px);"></div>' + addrHtml;
+
+    const footer = document.getElementById('memoire-footer');
+    if (footer) footer.textContent = cfg.count + ' adresses • Numéro rouge = ordre de livraison';
 
     // Timer countdown
     const timerInterval = setInterval(() => {
@@ -92,6 +116,7 @@ function startGameMemoire() {
 
   function showPlayPhase() {
     gameActive = true;
+    updateMemoireHeader();
 
     // Hide order numbers, make clickable
     const addrHtml = addresses.map(a => `
@@ -101,22 +126,19 @@ function startGameMemoire() {
       </div>
     `).join('');
 
-    portal.innerHTML = `
-      <div style="padding:8px 14px;background:var(--bg-sidebar,#1e1e2e);border-bottom:1px solid var(--border,#333);display:flex;align-items:center;gap:8px;flex-shrink:0;">
-        <button onclick="initGamesPage()" style="padding:4px 8px;background:var(--bg-primary,#12121a);color:var(--text-primary,#fff);border:1px solid var(--border,#444);border-radius:4px;cursor:pointer;font-size:11px;">←</button>
-        <span style="font-size:12px;font-weight:700;">🧠 Mémoire Tournée</span>
-        <span style="margin-left:auto;font-size:11px;color:#9ca3af;">Niv.${level}</span>
-        <span style="font-family:monospace;color:var(--accent,#7c6af7);font-size:13px;font-weight:700;" id="mem-score">${score}</span>
-      </div>
-      <div style="padding:6px 14px;background:rgba(74,222,128,0.1);text-align:center;flex-shrink:0;">
+    const statusBar = document.getElementById('memoire-status-bar');
+    if (statusBar) statusBar.innerHTML = `
+      <div style="padding:6px 14px;background:rgba(74,222,128,0.1);text-align:center;">
         <div style="font-size:12px;color:#4ade80;font-weight:700;">👆 Cliquez les adresses dans l'ordre ! <span id="mem-next" style="color:#fbbf24;">Prochain: #${nextClickIdx + 1}</span></div>
         <div style="font-size:10px;color:#9ca3af;" id="mem-combo">${combo > 1 ? '🔥 Combo x' + combo : ''}</div>
       </div>
-      <div style="flex:1;position:relative;background:#e5e7eb;overflow:hidden;border:2px solid #9ca3af;margin:8px;border-radius:8px;">
-        <div style="position:absolute;inset:0;opacity:0.1;background:repeating-linear-gradient(0deg,transparent,transparent 19px,#6b7280 19px,#6b7280 20px),repeating-linear-gradient(90deg,transparent,transparent 19px,#6b7280 19px,#6b7280 20px);"></div>
-        ${addrHtml}
-      </div>
     `;
+
+    const zone = document.getElementById('memoire-zone');
+    if (zone) zone.innerHTML = '<div style="position:absolute;inset:0;opacity:0.1;background:repeating-linear-gradient(0deg,transparent,transparent 19px,#6b7280 19px,#6b7280 20px),repeating-linear-gradient(90deg,transparent,transparent 19px,#6b7280 19px,#6b7280 20px);"></div>' + addrHtml;
+
+    const footer = document.getElementById('memoire-footer');
+    if (footer) footer.textContent = '';
 
     // Bind clicks
     document.querySelectorAll('.mem-addr-play').forEach(el => {
@@ -147,7 +169,7 @@ function startGameMemoire() {
       el.ontouchstart = null;
 
       // Update UI
-      const scoreEl = document.getElementById('mem-score');
+      const scoreEl = document.getElementById('memoire-score');
       if (scoreEl) scoreEl.textContent = score;
       const nextEl = document.getElementById('mem-next');
       if (nextEl) nextEl.textContent = nextClickIdx < addresses.length ? 'Prochain: #' + (nextClickIdx + 1) : 'Terminé!';
@@ -172,7 +194,7 @@ function startGameMemoire() {
       if (house) { house.style.background = '#ef4444'; house.style.animation = 'mem-shake 0.3s ease'; }
       setTimeout(() => { if (house) { house.style.background = '#9ca3af'; house.style.animation = ''; } }, 400);
 
-      const scoreEl = document.getElementById('mem-score');
+      const scoreEl = document.getElementById('memoire-score');
       if (scoreEl) scoreEl.textContent = score;
       const comboEl = document.getElementById('mem-combo');
       if (comboEl) comboEl.textContent = '❌ -50 pts • Vies: ' + '❤️'.repeat(lives) + '🖤'.repeat(3 - lives);
