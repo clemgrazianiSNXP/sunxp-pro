@@ -1,6 +1,9 @@
 /* js/cles-codes.js — Clés & Codes partagés entre chauffeurs (SunXP Pro) */
 console.log('cles-codes.js chargé');
 
+let _clesLastFetch = 0;
+const CLES_CACHE_TTL = 30000; // 30 secondes
+
 function getClesSid() { return window.getActiveStationId ? window.getActiveStationId() : 'default'; }
 function getClesKey() { return getClesSid() + '-cles-codes'; }
 function loadClesCodes() { try { return JSON.parse(localStorage.getItem(getClesKey())) || { cles: [], codes: [] }; } catch(_) { return { cles: [], codes: [] }; } }
@@ -12,6 +15,10 @@ function saveClesCodes(data) {
 
 /** Charge les données depuis Supabase et met à jour le localStorage */
 async function refreshClesCodesFromSupabase() {
+  // Ne pas refaire la requête si les données ont été chargées il y a moins de 30 secondes
+  if (Date.now() - _clesLastFetch < CLES_CACHE_TTL) return null;
+  _clesLastFetch = Date.now();
+
   if (typeof sb !== 'function' || !sb()) return null;
   try {
     const { data, error } = await sb().from('cles_codes').select('data').eq('station_id', getClesSid()).maybeSingle();
