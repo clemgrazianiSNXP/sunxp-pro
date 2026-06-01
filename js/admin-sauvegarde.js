@@ -102,51 +102,50 @@ function renderAdminSauvegarde(container) {
     } catch (_) { historyCard.innerHTML += '<p style="color:#f87171;font-size:11px;">Erreur chargement historique</p>'; }
   })();
 
-  setTimeout(() => {
-    document.getElementById('admin-export-btn')?.addEventListener('click', async () => {
-      const prog = document.getElementById('admin-export-progress');
-      const tables = [
-        'stations', 'chauffeurs', 'responsables',
-        'heures', 'stats', 'primes', 'activite',
-        'planning', 'planning_meta', 'planning_published',
-        'degats', 'camions', 'attribution',
-        'repos_demandes', 'acomptes', 'conges_payes',
-        'cles_codes', 'contacts', 'problemes_camions',
-        'concessions', 'retards', 'absences', 'eos',
-        'docs_chauffeurs', 'docs_employes', 'documents',
-        'suivi_papiers', 'suivi_entretien',
-        'user_profiles', 'push_subscriptions',
-        'app_settings',
-        'admin_notifications', 'admin_notifications_lues',
-        'game_scores'
-      ];
-      const backup = { version: '1.0', exported_at: new Date().toISOString(), exported_by: currentUser?.email || '', tables: {} };
-      let done = 0;
-      for (const t of tables) {
-        prog.textContent = `Export ${t}... (${done}/${tables.length})`;
-        try { const { data } = await sb().from(t).select('*').limit(10000); backup.tables[t] = data || []; } catch (_) { backup.tables[t] = []; }
-        done++;
-      }
-      prog.textContent = '✅ Export terminé ! Téléchargement...';
-      const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a'); a.href = url;
-      a.download = 'sunxp-backup-' + new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19) + '.json';
-      a.click(); URL.revokeObjectURL(url);
-      if (window.logActivity) window.logActivity('admin_export', { tables: Object.keys(backup.tables).length });
-      // Sauvegarder dans l'historique des backups
-      try {
-        const { data: histData } = await sb().from('app_settings').select('value').eq('key', 'backup_history').maybeSingle();
-        const history = (histData && histData.value && Array.isArray(histData.value)) ? histData.value : [];
-        history.unshift({ date: new Date().toISOString(), email: currentUser?.email || '', tables: Object.keys(backup.tables).length });
-        if (history.length > 20) history.length = 20;
-        await sb().from('app_settings').upsert({ key: 'backup_history', value: history, updated_at: new Date().toISOString(), updated_by: currentUser?.email || '' });
-      } catch (_) {}
-    });
+  exportCard.querySelector('#admin-export-btn')?.addEventListener('click', async () => {
+    const prog = exportCard.querySelector('#admin-export-progress');
+    const tables = [
+      'stations', 'chauffeurs', 'responsables',
+      'heures', 'stats', 'primes', 'activite',
+      'planning', 'planning_meta', 'planning_published',
+      'degats', 'camions', 'attribution',
+      'repos_demandes', 'acomptes', 'conges_payes',
+      'cles_codes', 'contacts', 'problemes_camions',
+      'concessions', 'retards', 'absences', 'eos',
+      'docs_chauffeurs', 'docs_employes', 'documents',
+      'suivi_papiers', 'suivi_entretien',
+      'user_profiles', 'push_subscriptions',
+      'app_settings',
+      'admin_notifications', 'admin_notifications_lues',
+      'game_scores'
+    ];
+    const backup = { version: '1.0', exported_at: new Date().toISOString(), exported_by: currentUser?.email || '', tables: {} };
+    let done = 0;
+    for (const t of tables) {
+      prog.textContent = `Export ${t}... (${done}/${tables.length})`;
+      try { const { data } = await sb().from(t).select('*').limit(10000); backup.tables[t] = data || []; } catch (_) { backup.tables[t] = []; }
+      done++;
+    }
+    prog.textContent = '✅ Export terminé ! Téléchargement...';
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url;
+    a.download = 'sunxp-backup-' + new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19) + '.json';
+    a.click(); URL.revokeObjectURL(url);
+    if (window.logActivity) window.logActivity('admin_export', { tables: Object.keys(backup.tables).length });
+    // Sauvegarder dans l'historique des backups
+    try {
+      const { data: histData } = await sb().from('app_settings').select('value').eq('key', 'backup_history').maybeSingle();
+      const history = (histData && histData.value && Array.isArray(histData.value)) ? histData.value : [];
+      history.unshift({ date: new Date().toISOString(), email: currentUser?.email || '', tables: Object.keys(backup.tables).length });
+      if (history.length > 20) history.length = 20;
+      await sb().from('app_settings').upsert({ key: 'backup_history', value: history, updated_at: new Date().toISOString(), updated_by: currentUser?.email || '' });
+    } catch (_) {}
+  });
 
-    document.getElementById('admin-restore-file')?.addEventListener('change', async (e) => {
-      const file = e.target.files[0]; if (!file) return;
-      const status = document.getElementById('admin-restore-status');
+  restoreCard.querySelector('#admin-restore-file')?.addEventListener('change', async (e) => {
+    const file = e.target.files[0]; if (!file) return;
+    const status = restoreCard.querySelector('#admin-restore-status');
       try {
         const text = await file.text(); const json = JSON.parse(text);
         if (!json.version || !json.tables) { status.textContent = '❌ Fichier invalide (pas de version/tables)'; return; }
@@ -340,5 +339,4 @@ function renderAdminSauvegarde(container) {
         if (window.logActivity) window.logActivity('admin_restore', { tables: restored, errors: errors.length, localStorage: lsUpdated });
       } catch (err) { status.textContent = '❌ Erreur: ' + err.message; }
     });
-  }, 0);
 }

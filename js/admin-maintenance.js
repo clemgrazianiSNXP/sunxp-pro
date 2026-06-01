@@ -79,50 +79,48 @@ async function renderAdminMaintenance(container) {
   container.innerHTML = '';
   container.appendChild(wrap);
 
-  setTimeout(() => {
-    // Bind maintenance manuelle
-    document.getElementById('admin-maint-on')?.addEventListener('click', async () => {
-      const msg = document.getElementById('admin-maint-msg')?.value || 'Maintenance en cours';
-      await sb().from('app_settings').upsert({ key: 'maintenance', value: { active: true, message: msg, activated_at: new Date().toISOString(), activated_by: currentUser?.email || '' }, updated_at: new Date().toISOString(), updated_by: currentUser?.email || '' });
-      if (typeof sendPushToStation === 'function') {
-        const { data: stations } = await sb().from('stations').select('id');
-        if (stations) for (const s of stations) { sendPushToStation(s.id, '🔧 Maintenance', msg); }
-      }
-      openAdminPanel();
-    });
-    document.getElementById('admin-maint-off')?.addEventListener('click', async () => {
-      await sb().from('app_settings').upsert({ key: 'maintenance', value: { active: false, message: '' }, updated_at: new Date().toISOString(), updated_by: currentUser?.email || '' });
-      openAdminPanel();
-    });
+  // Bind maintenance manuelle
+  statusCard.querySelector('#admin-maint-on')?.addEventListener('click', async () => {
+    const msg = statusCard.querySelector('#admin-maint-msg')?.value || 'Maintenance en cours';
+    await sb().from('app_settings').upsert({ key: 'maintenance', value: { active: true, message: msg, activated_at: new Date().toISOString(), activated_by: currentUser?.email || '' }, updated_at: new Date().toISOString(), updated_by: currentUser?.email || '' });
+    if (typeof sendPushToStation === 'function') {
+      const { data: stations } = await sb().from('stations').select('id');
+      if (stations) for (const s of stations) { sendPushToStation(s.id, '🔧 Maintenance', msg); }
+    }
+    openAdminPanel();
+  });
+  statusCard.querySelector('#admin-maint-off')?.addEventListener('click', async () => {
+    await sb().from('app_settings').upsert({ key: 'maintenance', value: { active: false, message: '' }, updated_at: new Date().toISOString(), updated_by: currentUser?.email || '' });
+    openAdminPanel();
+  });
 
-    // Bind planification
-    document.getElementById('admin-sched-save')?.addEventListener('click', async () => {
-      const start = document.getElementById('admin-sched-start')?.value;
-      const end = document.getElementById('admin-sched-end')?.value;
-      const msg = document.getElementById('admin-sched-msg')?.value || '';
-      if (!start || !end) { alert('Veuillez remplir les dates de début et fin.'); return; }
-      if (new Date(end) <= new Date(start)) { alert('La date de fin doit être après la date de début.'); return; }
-      await sb().from('app_settings').upsert({
-        key: 'maintenance_scheduled',
-        value: { scheduled: true, start, end, message: msg, scheduled_by: currentUser?.email || '' },
-        updated_at: new Date().toISOString(),
-        updated_by: currentUser?.email || ''
-      });
-      if (window.logActivity) window.logActivity('admin_schedule_maintenance', { start, end, message: msg });
-      openAdminPanel();
+  // Bind planification
+  schedCard.querySelector('#admin-sched-save')?.addEventListener('click', async () => {
+    const start = schedCard.querySelector('#admin-sched-start')?.value;
+    const end = schedCard.querySelector('#admin-sched-end')?.value;
+    const msg = schedCard.querySelector('#admin-sched-msg')?.value || '';
+    if (!start || !end) { alert('Veuillez remplir les dates de début et fin.'); return; }
+    if (new Date(end) <= new Date(start)) { alert('La date de fin doit être après la date de début.'); return; }
+    await sb().from('app_settings').upsert({
+      key: 'maintenance_scheduled',
+      value: { scheduled: true, start, end, message: msg, scheduled_by: currentUser?.email || '' },
+      updated_at: new Date().toISOString(),
+      updated_by: currentUser?.email || ''
     });
+    if (window.logActivity) window.logActivity('admin_schedule_maintenance', { start, end, message: msg });
+    openAdminPanel();
+  });
 
-    // Bind annulation
-    document.getElementById('admin-sched-cancel')?.addEventListener('click', async () => {
-      if (!confirm('Annuler la maintenance planifiée ?')) return;
-      await sb().from('app_settings').upsert({
-        key: 'maintenance_scheduled',
-        value: { scheduled: false },
-        updated_at: new Date().toISOString(),
-        updated_by: currentUser?.email || ''
-      });
-      if (window.logActivity) window.logActivity('admin_cancel_scheduled_maintenance', {});
-      openAdminPanel();
+  // Bind annulation
+  schedCard.querySelector('#admin-sched-cancel')?.addEventListener('click', async () => {
+    if (!confirm('Annuler la maintenance planifiée ?')) return;
+    await sb().from('app_settings').upsert({
+      key: 'maintenance_scheduled',
+      value: { scheduled: false },
+      updated_at: new Date().toISOString(),
+      updated_by: currentUser?.email || ''
     });
-  }, 0);
+    if (window.logActivity) window.logActivity('admin_cancel_scheduled_maintenance', {});
+    openAdminPanel();
+  });
 }
