@@ -389,7 +389,7 @@ function buildAttrToolbar(sid, rows) {
 
   // Bulle validation matériel
   const validationBubble = document.createElement('div');
-  validationBubble.style.cssText = 'position:relative;display:inline-block;margin-left:8px;';
+  validationBubble.style.cssText = 'position:relative;display:inline-block;margin-left:8px;overflow:visible;';
   const validationBtn = document.createElement('button');
   validationBtn.className = 'h-btn';
   validationBtn.style.cssText = 'font-size:11px;padding:5px 10px;position:relative;';
@@ -411,7 +411,7 @@ function buildAttrToolbar(sid, rows) {
 
         if (nonValides.length > 0) {
           const badge = document.createElement('span');
-          badge.style.cssText = 'position:absolute;top:-6px;right:-6px;background:#f87171;color:#fff;font-size:9px;font-weight:700;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;';
+          badge.style.cssText = 'position:absolute;top:-8px;right:-8px;background:#f87171;color:#fff;font-size:9px;font-weight:700;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;z-index:10;';
           badge.textContent = nonValides.length;
           validationBubble.appendChild(badge);
         }
