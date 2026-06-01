@@ -140,6 +140,39 @@ function calcWeekTotal(stationId, chauffeurNom, mondayDate) {
 }
 
 /**
+ * Calcule le total heures d'une semaine pour un chauffeur, limité aux jours d'un mois donné.
+ * Si la semaine chevauche deux mois, seuls les jours du mois spécifié sont comptés.
+ */
+function calcWeekTotalClamped(stationId, chauffeurNom, mondayDate, clampYear, clampMonth) {
+  let totalMin = 0, joursTravailes = 0, backupsMin = 0, astreinteMin = 0, chimeMin = 0, safetyMin = 0, absences = 0;
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(mondayDate); d.setDate(d.getDate() + i);
+    // Ne compter que les jours du mois demandé
+    if (d.getFullYear() !== clampYear || d.getMonth() !== clampMonth) continue;
+    const key = stationId + '-heures-' + dateKey(d);
+    try {
+      const raw = localStorage.getItem(key); if (!raw) continue;
+      const data = JSON.parse(raw); if (!data.rows) continue;
+      const row = Object.values(data.rows).find(r => r.nom && r.nom.trim() === chauffeurNom.trim());
+      if (!row) continue;
+      if (['Astreinte','Chime','Safety'].includes(row.statut)) {
+        const defaultSp = row.statut==='Chime' ? '5:00' : '2:00';
+        const sp = timeToMin(row.specialTravail || defaultSp) || 0;
+        if (row.statut === 'Astreinte') { astreinteMin += sp; totalMin += sp; continue; }
+        if (row.statut === 'Chime') { chimeMin += sp; totalMin += sp; joursTravailes++; continue; }
+        if (row.statut === 'Safety') { safetyMin += sp; totalMin += sp; joursTravailes++; continue; }
+      }
+      if (row.statut === 'Absent') { absences++; continue; }
+      if (row.statut !== 'Présent') continue;
+      const t = calcTravail(row.heureVague, row.retourDepot, row.pause || 45, row.backups);
+      if (t != null && t > 0) { totalMin += t; joursTravailes++; }
+      const bu = timeToMin(row.backups); if (bu != null && bu > 0) backupsMin += bu;
+    } catch (_) {}
+  }
+  return { totalMin, joursTravailes, backupsMin, astreinteMin, chimeMin, safetyMin, absences };
+}
+
+/**
  * Calcule le total heures d'un mois pour un chauffeur
  * Cherche par nom du chauffeur dans les lignes sauvegardées
  */

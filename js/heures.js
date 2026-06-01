@@ -1047,7 +1047,7 @@ function buildMonthView(stationId, chauffeurs) {
       let supCumul = 0;
       const weekTotals = [];
       mondays.forEach(mon => {
-        const { totalMin: wTotal } = calcWeekTotal(stationId, ck, mon);
+        const { totalMin: wTotal } = typeof calcWeekTotalClamped === 'function' ? calcWeekTotalClamped(stationId, ck, mon, y, m) : calcWeekTotal(stationId, ck, mon);
         weekTotals.push(wTotal);
         const wSup = Math.max(0, wTotal - 35 * 60);
         supCumul += wSup;

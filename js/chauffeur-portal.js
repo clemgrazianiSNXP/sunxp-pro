@@ -153,12 +153,14 @@ function portalHeures() {
 
   const weeks = getWeeksOfMonth(year, month);
   weeks.forEach(w => {
-    const wt = calcWeekTotal(portalStationId, nom, w.monday);
+    const wt = typeof calcWeekTotalClamped === 'function' ? calcWeekTotalClamped(portalStationId, nom, w.monday, year, month) : calcWeekTotal(portalStationId, nom, w.monday);
     const card = document.createElement('div');
     card.className = 'portal-card';
     card.style.cssText += 'text-align:left;align-items:stretch;gap:8px;cursor:pointer;';
-    const monStr = String(w.monday.getDate()).padStart(2,'0') + '/' + String(w.monday.getMonth()+1).padStart(2,'0');
-    const sunStr = String(w.sunday.getDate()).padStart(2,'0') + '/' + String(w.sunday.getMonth()+1).padStart(2,'0');
+    const monDate = new Date(Math.max(w.monday.getTime(), new Date(year, month, 1).getTime()));
+    const sunDate = new Date(Math.min(w.sunday.getTime(), new Date(year, month + 1, 0).getTime()));
+    const monStr = String(monDate.getDate()).padStart(2,'0') + '/' + String(monDate.getMonth()+1).padStart(2,'0');
+    const sunStr = String(sunDate.getDate()).padStart(2,'0') + '/' + String(sunDate.getMonth()+1).padStart(2,'0');
     const heuresColor = wt.totalMin > 0 ? 'var(--accent)' : 'var(--text-muted)';
     card.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -181,6 +183,8 @@ function portalHeures() {
     detail.style.cssText = 'display:none;margin-top:8px;border-top:1px solid var(--border);padding-top:8px;';
     for (let i = 0; i < 7; i++) {
       const d = new Date(w.monday); d.setDate(d.getDate() + i);
+      // Ne montrer que les jours du mois en cours
+      if (d.getFullYear() !== year || d.getMonth() !== month) continue;
       const dk = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
       const key = portalStationId + '-heures-' + dk;
       let dayInfo = '—';
