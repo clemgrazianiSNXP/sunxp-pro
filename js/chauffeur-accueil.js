@@ -198,7 +198,9 @@ function buildPortalMateriel(sid, nom, now) {
     { icon: '🔑', label: 'Clef', value: myRow.clef || '—' },
     { icon: '🏷', label: 'VIGIK', value: myRow.vigik || '—' },
     { icon: '📋', label: 'Trousseau', value: myRow.trs || '—' },
-    { icon: '📄', label: 'Licence', value: myRow.lic || '—' }
+    { icon: '📄', label: 'Licence', value: myRow.lic || '—' },
+    { icon: '💳', label: 'UTA', value: myRow.uta || '—' },
+    { icon: '🛣️', label: 'TP', value: myRow.tp || '—' }
   ];
 
   items.forEach(item => {
@@ -215,6 +217,53 @@ function buildPortalMateriel(sid, nom, now) {
   } else {
     section.appendChild(grid);
   }
+
+  // Bouton de validation matériel
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const validKey = sid + '-materiel-validation-' + portalChauffeur.id_amazon + '-' + todayStr;
+  const alreadyValidated = localStorage.getItem(validKey);
+
+  const validateBtn = document.createElement('button');
+  validateBtn.className = 'rep-btn rep-btn-primary';
+  validateBtn.style.cssText = 'width:100%;margin-top:16px;padding:14px;font-size:14px;font-weight:700;border-radius:12px;';
+
+  if (alreadyValidated) {
+    const validData = JSON.parse(alreadyValidated);
+    validateBtn.textContent = '✅ Matériel validé à ' + validData.heure;
+    validateBtn.disabled = true;
+    validateBtn.style.background = '#4ade80';
+    validateBtn.style.color = '#000';
+  } else {
+    validateBtn.textContent = '✅ Valider mon matériel';
+    validateBtn.onclick = async () => {
+      const heure = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+      const validData = {
+        chauffeurId: portalChauffeur.id_amazon,
+        chauffeurNom: (portalChauffeur.prenom + ' ' + portalChauffeur.nom).trim(),
+        heure,
+        date: todayStr,
+        stationId: sid
+      };
+      localStorage.setItem(validKey, JSON.stringify(validData));
+      if (typeof sb === 'function' && sb()) {
+        try {
+          await sb().from('materiel_validations').upsert({
+            station_id: sid,
+            chauffeur_id: portalChauffeur.id_amazon,
+            chauffeur_nom: validData.chauffeurNom,
+            date_jour: todayStr,
+            heure_validation: heure,
+            validated_at: new Date().toISOString()
+          }, { onConflict: 'station_id,chauffeur_id,date_jour' });
+        } catch(e) { console.warn('Erreur validation matériel:', e.message); }
+      }
+      validateBtn.textContent = '✅ Matériel validé à ' + heure;
+      validateBtn.disabled = true;
+      validateBtn.style.background = '#4ade80';
+      validateBtn.style.color = '#000';
+    };
+  }
+  section.appendChild(validateBtn);
 
   return section;
 }

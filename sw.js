@@ -1,5 +1,5 @@
 /* Service Worker — SunXP Pro (mode hors-ligne) */
-const CACHE_NAME = 'sunxp-v6';
+const CACHE_NAME = 'sunxp-v7';
 const ASSETS = [
   '/',
   '/index.html',

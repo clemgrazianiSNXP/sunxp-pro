@@ -387,5 +387,80 @@ function buildAttrToolbar(sid, rows) {
   countEl.innerHTML = '<span style="color:#4ade80;">OK: ' + countOK + '</span><span style="color:#60a5fa;">BU: ' + countBU + '</span><span style="color:#f87171;">X: ' + countX + '</span>';
   bar.appendChild(countEl);
 
+  // Bulle validation matériel
+  const validationBubble = document.createElement('div');
+  validationBubble.style.cssText = 'position:relative;display:inline-block;margin-left:8px;';
+  const validationBtn = document.createElement('button');
+  validationBtn.className = 'h-btn';
+  validationBtn.style.cssText = 'font-size:11px;padding:5px 10px;position:relative;';
+  validationBtn.textContent = '📋 Matériel';
+  validationBubble.appendChild(validationBtn);
+
+  const todayStr = new Date().toISOString().slice(0, 10);
+  if (typeof sb === 'function' && sb()) {
+    sb().from('materiel_validations')
+      .select('chauffeur_id, chauffeur_nom, heure_validation')
+      .eq('station_id', sid)
+      .eq('date_jour', todayStr)
+      .then(({ data: validations }) => {
+        const chauffeurs = typeof loadChauffeurs === 'function' ? loadChauffeurs(sid) : [];
+        const validatedIds = (validations || []).map(v => v.chauffeur_id);
+        const nonValides = chauffeurs.filter(c => c.id_amazon && !validatedIds.includes(c.id_amazon));
+        const totalValides = validations ? validations.length : 0;
+        const total = chauffeurs.length;
+
+        if (nonValides.length > 0) {
+          const badge = document.createElement('span');
+          badge.style.cssText = 'position:absolute;top:-6px;right:-6px;background:#f87171;color:#fff;font-size:9px;font-weight:700;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;';
+          badge.textContent = nonValides.length;
+          validationBubble.appendChild(badge);
+        }
+
+        validationBtn.onclick = () => {
+          const existing = document.getElementById('materiel-panel');
+          if (existing) { existing.remove(); return; }
+          const panel = document.createElement('div');
+          panel.id = 'materiel-panel';
+          panel.style.cssText = 'position:absolute;top:36px;right:0;background:var(--bg-sidebar);border:1px solid var(--border);border-radius:10px;padding:14px;min-width:280px;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,0.3);';
+          panel.innerHTML = '<div style="font-size:13px;font-weight:700;margin-bottom:10px;">📋 Validation matériel — ' + todayStr + '</div><div style="font-size:12px;color:#4ade80;margin-bottom:8px;">✅ ' + totalValides + '/' + total + ' validés</div>';
+
+          if (nonValides.length) {
+            const title = document.createElement('div');
+            title.style.cssText = 'font-size:11px;color:#f87171;font-weight:700;margin-bottom:6px;';
+            title.textContent = '⚠️ En attente (' + nonValides.length + ') :';
+            panel.appendChild(title);
+            nonValides.forEach(c => {
+              const row = document.createElement('div');
+              row.style.cssText = 'font-size:11px;color:var(--text-muted);padding:3px 0;border-bottom:1px solid var(--border);';
+              row.textContent = (c.prenom || '') + ' ' + (c.nom || '');
+              panel.appendChild(row);
+            });
+          }
+          if (totalValides > 0) {
+            const titleOk = document.createElement('div');
+            titleOk.style.cssText = 'font-size:11px;color:#4ade80;font-weight:700;margin:8px 0 6px;';
+            titleOk.textContent = '✅ Validés :';
+            panel.appendChild(titleOk);
+            (validations || []).forEach(v => {
+              const row = document.createElement('div');
+              row.style.cssText = 'font-size:11px;color:var(--text-muted);padding:3px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;';
+              row.innerHTML = '<span>' + (v.chauffeur_nom || '') + '</span><span style="color:#4ade80;">' + (v.heure_validation || '') + '</span>';
+              panel.appendChild(row);
+            });
+          }
+          validationBubble.appendChild(panel);
+          setTimeout(() => {
+            document.addEventListener('click', function closePanel(e) {
+              if (!panel.contains(e.target) && e.target !== validationBtn) {
+                panel.remove();
+                document.removeEventListener('click', closePanel);
+              }
+            });
+          }, 0);
+        };
+      });
+  }
+  bar.appendChild(validationBubble);
+
   return bar;
 }
