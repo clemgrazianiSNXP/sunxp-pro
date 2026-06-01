@@ -153,7 +153,7 @@ async function loadProfile() {
   if (!sb() || !currentUser) { console.warn('loadProfile: sb ou currentUser manquant'); return; }
   try {
     console.log('loadProfile: chargement pour user', currentUser.id);
-    const { data, error } = await sb().from('user_profiles').select('*').eq('id', currentUser.id).single();
+    const { data, error } = await sb().from('user_profiles').select('*').eq('id', currentUser.id).maybeSingle();
     if (error) { console.warn('loadProfile error:', error.message, error); return; }
     console.log('loadProfile: profil trouvé', data);
     if (data) currentProfile = data;
@@ -168,8 +168,14 @@ async function redirectByRole() {
   // Logger la connexion
   if (typeof logActivity === 'function') logActivity('login', {});
   if (!currentProfile) {
+    // Vérifier si c'est un admin sans profil (rôle admin dans les metadata)
+    const userMeta = currentUser?.user_metadata || {};
+    if (userMeta.role === 'admin' || userMeta.role === 'responsable') {
+      console.log('redirectByRole: pas de profil mais metadata admin/responsable, showApp');
+      showApp();
+      return;
+    }
     console.warn('redirectByRole: pas de profil — compte supprimé ou non configuré');
-    // Déconnecter l'utilisateur et afficher un message
     if (sb()) await sb().auth.signOut();
     showLoginPage();
     setTimeout(() => {
