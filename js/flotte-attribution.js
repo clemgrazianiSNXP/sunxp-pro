@@ -406,11 +406,32 @@ function buildAttrToolbar(sid, rows) {
       .eq('station_id', sid)
       .eq('date_jour', todayStr)
       .then(({ data: validations }) => {
-        const chauffeurs = typeof loadChauffeurs === 'function' ? loadChauffeurs(sid) : [];
+        // Ne compter que les chauffeurs saisis dans Heures aujourd'hui (qui travaillent)
+        const heuresKey = sid + '-heures-' + todayStr;
+        let chauffeursQuiTravaillent = [];
+        try {
+          const raw = localStorage.getItem(heuresKey);
+          if (raw) {
+            const heuresData = JSON.parse(raw);
+            if (heuresData.rows) {
+              chauffeursQuiTravaillent = Object.values(heuresData.rows)
+                .filter(r => r.nom && r.statut === 'Présent')
+                .map(r => ({ nom: r.nom.trim(), id_amazon: r.key ? r.key.replace(/^row_/, '') : '' }));
+            }
+          }
+        } catch(_) {}
+
+        // Fallback : chercher l'id_amazon depuis le répertoire
+        const repertoire = typeof loadChauffeurs === 'function' ? loadChauffeurs(sid) : [];
+        const travaillent = chauffeursQuiTravaillent.map(ct => {
+          const found = repertoire.find(c => ((c.prenom || '') + ' ' + (c.nom || '')).trim() === ct.nom);
+          return { nom: ct.nom, id_amazon: found ? found.id_amazon : ct.id_amazon };
+        }).filter(c => c.id_amazon);
+
         const validatedIds = (validations || []).map(v => v.chauffeur_id);
-        const nonValides = chauffeurs.filter(c => c.id_amazon && !validatedIds.includes(c.id_amazon));
-        const totalValides = validations ? validations.length : 0;
-        const total = chauffeurs.length;
+        const nonValides = travaillent.filter(c => !validatedIds.includes(c.id_amazon));
+        const totalValides = travaillent.filter(c => validatedIds.includes(c.id_amazon)).length;
+        const total = travaillent.length;
 
         // Mettre le nombre directement dans le texte du bouton
         validationBtn.textContent = '📋 Matériel ' + (nonValides.length > 0 ? '(' + nonValides.length + ')' : '✅');
