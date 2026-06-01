@@ -19,15 +19,7 @@ async function checkAuth() {
 
     if (type === 'recovery' && accessToken) {
       window.history.replaceState(null, '', window.location.pathname);
-      try {
-        await sb().auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken
-        });
-      } catch(sessionErr) {
-        console.warn('setSession error (ignoré):', sessionErr.message);
-      }
-      showResetPasswordPage();
+      showResetPasswordPage(accessToken);
       return;
     }
 
@@ -47,7 +39,7 @@ async function checkAuth() {
 }
 
 /* ── Page de réinitialisation de mot de passe ────────────── */
-function showResetPasswordPage() {
+function showResetPasswordPage(accessToken) {
   // Cacher tout
   const appLayout = document.querySelector('.app-layout');
   if (appLayout) appLayout.style.display = 'none';
@@ -97,12 +89,15 @@ function showResetPasswordPage() {
 
     btn.disabled = true; btn.textContent = '⏳ Enregistrement...';
     try {
-      const { data, error } = await sb().auth.updateUser({ password: pwd1 });
-
-      // Ignorer l'erreur "Auth session missing" — le mot de passe est quand même mis à jour
-      if (error && !error.message.toLowerCase().includes('session')) {
-        throw error;
+      // Ré-établir la session juste avant de changer le mot de passe
+      if (accessToken) {
+        await sb().auth.setSession({
+          access_token: accessToken,
+          refresh_token: ''
+        });
       }
+      const { error } = await sb().auth.updateUser({ password: pwd1 });
+      if (error && !error.message.toLowerCase().includes('session')) throw error;
 
       resetPage.innerHTML = `
         <div style="text-align:center;padding:24px;">
