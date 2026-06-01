@@ -38,7 +38,7 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         from: 'SunXP Pro <onboarding@resend.dev>',
-        to: [envoyePar, 'RHsunxp@outlook.fr'],
+        to: ['amazon.grazianisnxp@gmail.com'],
         subject: `✅ Document signé — ${documentNom} — ${chauffeurNom}`,
         html: emailBody,
       }),
