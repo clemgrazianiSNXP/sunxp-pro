@@ -35,11 +35,12 @@ async function renderAdminUtilisateurs(container) {
         createBtn.textContent = '+ Créer le compte';
         createBtn.onclick = async () => {
           const email = c.email;
+          if (!email) { alert('Pas d\'email pour ce chauffeur'); return; }
           const amazonPart = (c.id_amazon || '').slice(0, 4);
           const telDigits = (c.telephone || '').replace(/\D/g, '');
           const telPart = telDigits.slice(-4);
           const mdp = amazonPart + telPart;
-          if (mdp.length < 6) { alert('Impossible : mot de passe trop court (ID Amazon ou téléphone manquant)'); return; }
+          if (mdp.length < 6) { alert('Impossible : mot de passe trop court (' + mdp.length + ' chars). ID Amazon: "' + (c.id_amazon || '') + '" | Téléphone: "' + (c.telephone || '') + '"'); return; }
           createBtn.textContent = '⏳...'; createBtn.disabled = true;
           try {
             // Créer le compte via un client séparé
@@ -51,19 +52,24 @@ async function renderAdminUtilisateurs(container) {
             const { data: signUpData, error: signUpErr } = await signUpClient.auth.signUp({
               email: email,
               password: mdp,
-              options: { data: { nom: c.nom, prenom: c.prenom, role: 'chauffeur' } }
+              options: { 
+                data: { nom: c.nom, prenom: c.prenom, role: 'chauffeur' },
+                emailRedirectTo: window.location.origin
+              }
             });
+            console.log('signUp result:', { signUpData, signUpErr });
             if (signUpErr) { alert('Erreur: ' + signUpErr.message); createBtn.textContent = '+ Créer le compte'; createBtn.disabled = false; return; }
             const userId = signUpData?.user?.id;
             if (signUpData?.user?.identities?.length === 0) { alert('Ce compte existe déjà: ' + email); createBtn.textContent = '⚠️ Existe'; createBtn.disabled = false; return; }
             // Insérer dans user_profiles
             if (userId) {
-              await sb().from('user_profiles').upsert({
+              const { error: profileErr } = await sb().from('user_profiles').upsert({
                 id: userId, role: 'chauffeur', station_id: c.station_id || '',
                 chauffeur_id: c.id_amazon || '', nom: c.nom || '', prenom: c.prenom || ''
               });
+              if (profileErr) console.warn('Profile insert error:', profileErr.message);
             }
-            createBtn.textContent = '✅ Créé';
+            createBtn.textContent = '✅ Créé (mdp: ' + mdp + ')';
             createBtn.style.color = '#4ade80';
             if (window.logActivity) window.logActivity('admin_create_account', { email, nom: c.prenom + ' ' + c.nom, station: c.station_id });
           } catch (err) { alert('Erreur: ' + err.message); createBtn.textContent = '+ Créer le compte'; createBtn.disabled = false; }
