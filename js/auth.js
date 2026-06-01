@@ -10,16 +10,27 @@ async function checkAuth() {
   if (!sb()) { showLoginPage(); return; }
 
   try {
-    // Détecter un lien de réinitialisation de mot de passe
-    const hash = new URLSearchParams(window.location.hash.replace('#', ''));
+    // Détecter un lien de réinitialisation de mot de passe dans le hash
+    const hashStr = window.location.hash.substring(1);
+    const hash = new URLSearchParams(hashStr);
     const query = new URLSearchParams(window.location.search);
     const type = hash.get('type') || query.get('type');
     const accessToken = hash.get('access_token') || query.get('access_token');
     const refreshToken = hash.get('refresh_token') || query.get('refresh_token') || '';
 
     if (type === 'recovery' && accessToken) {
+      // Laisser Supabase établir la session depuis le hash AVANT de nettoyer l'URL
+      try {
+        const { data, error } = await sb().auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken
+        });
+        console.log('Recovery setSession:', data ? 'OK' : 'no data', error ? error.message : '');
+      } catch(e) {
+        console.warn('Recovery setSession error:', e.message);
+      }
       window.history.replaceState(null, '', window.location.pathname);
-      showResetPasswordPage(accessToken, refreshToken);
+      showResetPasswordPage();
       return;
     }
 
@@ -39,7 +50,7 @@ async function checkAuth() {
 }
 
 /* ── Page de réinitialisation de mot de passe ────────────── */
-function showResetPasswordPage(accessToken, refreshToken) {
+function showResetPasswordPage() {
   // Cacher tout
   const appLayout = document.querySelector('.app-layout');
   if (appLayout) appLayout.style.display = 'none';
@@ -89,14 +100,6 @@ function showResetPasswordPage(accessToken, refreshToken) {
 
     btn.disabled = true; btn.textContent = '⏳ Enregistrement...';
     try {
-      // Ré-établir la session juste avant de changer le mot de passe
-      if (accessToken) {
-        const { error: sessErr } = await sb().auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken || ''
-        });
-        if (sessErr) console.warn('setSession warning:', sessErr.message);
-      }
       const { error } = await sb().auth.updateUser({ password: pwd1 });
       if (error) throw error;
 
