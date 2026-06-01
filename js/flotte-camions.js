@@ -161,16 +161,29 @@ function showQRCode(vin, plaque) {
   overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;';
   const box = document.createElement('div');
   box.style.cssText = 'background:var(--bg-sidebar);border:1px solid var(--border);border-radius:12px;padding:24px;text-align:center;';
-  // Générer QR via API gratuite
   box.innerHTML = `
     <div style="font-size:14px;font-weight:700;margin-bottom:8px;">${plaque}</div>
-    <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(vin)}" alt="QR ${vin}" style="border-radius:8px;margin-bottom:8px;">
+    <div id="qrcode-container" style="display:flex;justify-content:center;margin-bottom:8px;"></div>
     <div style="font-size:10px;color:var(--text-muted);margin-bottom:12px;word-break:break-all;">${vin}</div>
     <button class="h-btn" onclick="this.closest('div[style]').parentElement.remove()">Fermer</button>
   `;
   overlay.appendChild(box);
   overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
   document.body.appendChild(overlay);
+  // Générer le QR code localement
+  setTimeout(() => {
+    const container = document.getElementById('qrcode-container');
+    if (container && typeof QRCode !== 'undefined') {
+      new QRCode(container, {
+        text: vin,
+        width: 200,
+        height: 200,
+        colorDark: '#000000',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.H
+      });
+    }
+  }, 0);
 }
 
 
