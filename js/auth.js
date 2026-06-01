@@ -172,8 +172,23 @@ async function redirectByRole() {
   // Logger la connexion
   if (typeof logActivity === 'function') logActivity('login', {});
   if (!currentProfile) {
-    console.warn('redirectByRole: pas de profil dans user_profiles, accès responsable par défaut');
-    showApp();
+    console.warn('redirectByRole: pas de profil dans user_profiles');
+    // Afficher un écran d'erreur au lieu de donner accès responsable
+    const loginPage = document.getElementById('login-page');
+    if (loginPage) loginPage.style.display = 'none';
+    const portal = document.getElementById('chauffeur-portal');
+    if (portal) {
+      portal.hidden = false;
+      portal.innerHTML = `
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:80vh;gap:16px;padding:24px;text-align:center;">
+          <div style="font-size:48px;">⚠️</div>
+          <h2 style="font-size:18px;color:var(--text-primary);margin:0;">Impossible de charger votre profil</h2>
+          <p style="font-size:13px;color:var(--text-muted);max-width:300px;">Votre profil n'a pas été trouvé. Vérifiez votre connexion internet et réessayez.</p>
+          <button onclick="window.location.reload()" class="rep-btn rep-btn-primary" style="padding:10px 24px;">🔄 Recharger</button>
+          <button onclick="window.logout()" class="h-btn" style="padding:8px 20px;">🚪 Se déconnecter</button>
+        </div>
+      `;
+    }
     return;
   }
 
@@ -382,9 +397,9 @@ function showChauffeurDirect() {
     const tryOpenPortal = async (attempts) => {
       if (attempts > 20) {
         console.warn('showChauffeurDirect: chauffeur non trouvé après 20 tentatives');
-        // Afficher un écran d'erreur avec bouton recharger
+        // Cacher l'app-layout pour ne pas exposer l'espace responsable
         const appLayout = document.querySelector('.app-layout');
-        if (appLayout) { appLayout.hidden = false; appLayout.style.display = ''; }
+        if (appLayout) { appLayout.hidden = true; appLayout.style.display = 'none'; }
         const portal = document.getElementById('chauffeur-portal');
         if (portal) {
           portal.hidden = false;
