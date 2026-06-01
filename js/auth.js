@@ -156,7 +156,11 @@ async function loadProfile() {
     const { data, error } = await sb().from('user_profiles').select('*').eq('id', currentUser.id).maybeSingle();
     if (error) { console.warn('loadProfile error:', error.message, error); return; }
     console.log('loadProfile: profil trouvé', data);
-    if (data) currentProfile = data;
+    if (data) {
+      currentProfile = data;
+      // Stocker le rôle spécifique globalement
+      window.currentRoleSpecifique = data.role_specifique || null;
+    }
   } catch (e) { console.warn('loadProfile catch:', e.message); }
 }
 

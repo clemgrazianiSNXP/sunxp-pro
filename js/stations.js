@@ -1,5 +1,47 @@
 /* js/stations.js — Gestion de la sélection de station (SunXP Pro) */
 
+/* ── Accès par rôle spécifique ────────────────────────────── */
+const ROLE_ACCES = {
+  'Dispatcher':            { modules: 'all', hamburger: 'all' },
+  'Ressources Humaines':   { modules: 'all', hamburger: 'all' },
+  'Responsable Qualité':   { modules: 'all', hamburger: 'all' },
+  'Chef d\'équipe':        {
+    modules: ['accueil', 'heures', 'planning', 'flotte'],
+    hamburger: ['analyse', 'badges-mgr', 'documents', 'parametres', 'cles-codes']
+  },
+  'Gestionnaire de Flotte': {
+    modules: ['accueil', 'flotte', 'primes'],
+    hamburger: []
+  },
+  'Chef de Parc':          {
+    modules: ['accueil', 'flotte'],
+    hamburger: []
+  },
+  'Mecanicien':            {
+    modules: ['accueil', 'flotte'],
+    hamburger: []
+  },
+};
+
+window.hasModuleAccess = function(moduleId) {
+  const role = window.currentRoleSpecifique;
+  if (!role) return true;
+  const acces = ROLE_ACCES[role];
+  if (!acces) return true;
+  if (acces.modules === 'all') return true;
+  return acces.modules.includes(moduleId);
+};
+
+window.hasHamburgerAccess = function(tabId) {
+  const role = window.currentRoleSpecifique;
+  if (!role) return true;
+  const acces = ROLE_ACCES[role];
+  if (!acces) return true;
+  if (acces.hamburger === 'all') return true;
+  if (acces.hamburger.length === 0) return false;
+  return acces.hamburger.includes(tabId);
+};
+
 /* ── État interne ─────────────────────────────────────────── */
 let stations = [];
 let activeStation = null;
