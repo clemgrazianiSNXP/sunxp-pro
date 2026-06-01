@@ -57,14 +57,15 @@ async function showAlumniPortal() {
   try {
     if (!sb()) { content.innerHTML = '<p style="color:var(--text-muted);">Connexion indisponible.</p>'; return; }
 
-    // Chercher les documents par nom complet (prenom nom ou nom prenom)
-    const nomComplet1 = (currentProfile.prenom || '') + ' ' + (currentProfile.nom || '');
-    const nomComplet2 = (currentProfile.nom || '') + ' ' + (currentProfile.prenom || '');
+    const stationId = currentProfile.station_id || '';
+    const nomComplet = ((currentProfile.prenom || '') + ' ' + (currentProfile.nom || '')).trim();
 
-    const { data: docs, error } = await sb()
+    // Les docs_employes sont stockés comme un tableau dans le champ data, par station
+    const { data: docsRow, error } = await sb()
       .from('docs_employes')
-      .select('*')
-      .or(`chauffeur_nom.eq.${nomComplet1.trim()},chauffeur_nom.eq.${nomComplet2.trim()}`);
+      .select('data')
+      .eq('station_id', stationId)
+      .maybeSingle();
 
     if (error) {
       content.innerHTML = `<p style="color:#f87171;">Erreur: ${error.message}</p>`;
@@ -79,7 +80,11 @@ async function showAlumniPortal() {
     title.textContent = '📄 Mes documents';
     content.appendChild(title);
 
-    if (!docs || !docs.length) {
+    // Filtrer les documents pour ce chauffeur
+    const allDocs = (docsRow && docsRow.data && Array.isArray(docsRow.data)) ? docsRow.data : [];
+    const docs = allDocs.filter(d => d.chauffeurNom && d.chauffeurNom.trim().toLowerCase() === nomComplet.toLowerCase());
+
+    if (!docs.length) {
       const empty = document.createElement('div');
       empty.style.cssText = 'text-align:center;padding:40px 20px;color:var(--text-muted);font-size:13px;';
       empty.innerHTML = '<div style="font-size:40px;margin-bottom:12px;">📭</div>Aucun document disponible pour le moment.<br><span style="font-size:11px;">Contactez votre ancien responsable si vous pensez qu\'il manque des documents.</span>';
@@ -94,13 +99,13 @@ async function showAlumniPortal() {
 
         const icon = document.createElement('div');
         icon.style.cssText = 'font-size:24px;flex-shrink:0;';
-        icon.textContent = '📄';
+        icon.textContent = (doc.fileName || '').match(/\.(jpg|jpeg|png)$/i) ? '🖼' : '📄';
 
         const info = document.createElement('div');
         info.style.cssText = 'flex:1;';
         info.innerHTML = `
-          <div style="font-size:13px;font-weight:700;color:var(--text-primary);">${doc.nom_document || doc.type || 'Document'}</div>
-          <div style="font-size:10px;color:var(--text-muted);">${doc.created_at ? new Date(doc.created_at).toLocaleDateString('fr-FR') : ''}</div>
+          <div style="font-size:13px;font-weight:700;color:var(--text-primary);">${doc.docName || 'Document'}</div>
+          <div style="font-size:10px;color:var(--text-muted);">${doc.createdAt ? new Date(doc.createdAt).toLocaleDateString('fr-FR') : ''}</div>
         `;
 
         const dlBtn = document.createElement('button');
@@ -108,7 +113,7 @@ async function showAlumniPortal() {
         dlBtn.style.cssText = 'font-size:11px;padding:6px 12px;flex-shrink:0;';
         dlBtn.textContent = '⬇ Télécharger';
         dlBtn.onclick = () => {
-          if (doc.file_url) window.open(doc.file_url, '_blank');
+          if (doc.fileUrl) window.open(doc.fileUrl, '_blank');
           else alert('Lien de téléchargement non disponible.');
         };
 
