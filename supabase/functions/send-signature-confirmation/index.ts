@@ -1,10 +1,8 @@
-import { serve } from 'https://deno.land/x/sift@0.6.0/mod.ts';
-
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   const corsHeaders = {
-    'Access-Control-Allow-Origin': 'https://sunxp-pro.vercel.app',
+    'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   };
 
@@ -32,7 +30,7 @@ serve(async (req) => {
       </div>
     `;
 
-    await fetch('https://api.resend.com/emails', {
+    const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${RESEND_API_KEY}`,
@@ -46,7 +44,9 @@ serve(async (req) => {
       }),
     });
 
-    return new Response(JSON.stringify({ success: true }), {
+    const result = await res.json();
+
+    return new Response(JSON.stringify({ success: true, result }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
