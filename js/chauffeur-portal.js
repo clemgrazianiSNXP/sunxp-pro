@@ -171,7 +171,7 @@ function portalHeures() {
       </div>
       <div style="font-size:12px;color:var(--text-muted);">${wt.joursTravailes} jour${wt.joursTravailes !== 1 ? 's' : ''} travaillé${wt.joursTravailes !== 1 ? 's' : ''}</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;font-size:11px;color:var(--text-muted);margin-top:2px;">
-        <span>🔄 Backups : ${wt.backupsMin > 0 ? minToTime(wt.backupsMin) : '—'}</span>
+        <span>🔄 BU : ${wt.backupsMin > 0 ? minToTime(wt.backupsMin) : '—'}</span>
         <span>📞 Astreinte : ${wt.astreinteMin > 0 ? minToTime(wt.astreinteMin) : '—'}</span>
       </div>
       <div style="font-size:10px;color:var(--accent);text-align:center;margin-top:4px;">▼ Voir le détail par jour</div>`;
@@ -228,7 +228,7 @@ function portalHeures() {
     <div style="font-size:28px;font-weight:700;color:var(--accent);">${minToTime(mt.totalMin) || '0:00'}</div>
     <div style="font-size:13px;">${mt.joursTravailes} jour${mt.joursTravailes !== 1 ? 's' : ''} travaillé${mt.joursTravailes !== 1 ? 's' : ''}</div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;font-size:11px;color:var(--text-muted);margin-top:4px;">
-      <span>🔄 Backups : ${mt.backupsMin > 0 ? minToTime(mt.backupsMin) : '—'}</span>
+      <span>🔄 BU : ${mt.backupsMin > 0 ? minToTime(mt.backupsMin) : '—'}</span>
       <span>📞 Astreinte : ${mt.astreinteMin > 0 ? minToTime(mt.astreinteMin) : '—'}</span>
     </div>`;
   wrap.appendChild(totalCard);
