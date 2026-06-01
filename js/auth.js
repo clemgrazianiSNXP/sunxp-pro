@@ -421,7 +421,7 @@ function showChauffeurDirect() {
       if (portal && attempts === 0) {
         portal.hidden = false;
         const appLayout = document.querySelector('.app-layout');
-        if (appLayout) { appLayout.hidden = false; appLayout.style.display = ''; }
+        if (appLayout) { appLayout.hidden = true; appLayout.style.display = 'none'; }
         portal.innerHTML = `
           <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:80vh;gap:16px;">
             <div style="font-size:40px;animation:spin 1s linear infinite;">⏳</div>
