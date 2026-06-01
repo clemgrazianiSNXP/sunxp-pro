@@ -265,3 +265,25 @@ SECURITY DEFINER
 AS $$
   SELECT pg_database_size(current_database()) / (1024.0 * 1024.0);
 $$;
+
+-- 21. Table Suivi Entretien (véhicules)
+CREATE TABLE IF NOT EXISTS suivi_entretien (
+  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  station_id TEXT NOT NULL REFERENCES stations(id) ON DELETE CASCADE,
+  data JSONB NOT NULL DEFAULT '[]',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(station_id)
+);
+ALTER TABLE suivi_entretien ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "allow_all" ON suivi_entretien FOR ALL USING (true) WITH CHECK (true);
+
+-- 22. Table Suivi Papiers (documents véhicules)
+CREATE TABLE IF NOT EXISTS suivi_papiers (
+  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  station_id TEXT NOT NULL REFERENCES stations(id) ON DELETE CASCADE,
+  data JSONB NOT NULL DEFAULT '[]',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(station_id)
+);
+ALTER TABLE suivi_papiers ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "allow_all" ON suivi_papiers FOR ALL USING (true) WITH CHECK (true);
