@@ -199,8 +199,8 @@ function renderParametres() {
     wrap.appendChild(compactSection);
   }
 
-  // ── Modifier mot de passe (chauffeur + responsable) ──
-  if (typeof sb === 'function' && sb()) {
+  // ── Modifier mot de passe (chauffeur uniquement) ──
+  if (typeof sb === 'function' && sb() && typeof isDriverMode === 'function' && isDriverMode()) {
     const pwSection = document.createElement('div');
     pwSection.innerHTML = '<h3 style="font-size:14px;margin-bottom:10px;color:var(--accent);">🔒 Mot de passe</h3>';
     const pwBtn = document.createElement('button');
