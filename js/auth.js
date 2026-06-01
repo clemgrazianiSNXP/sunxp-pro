@@ -51,14 +51,25 @@ async function checkAuth() {
     // Détecter le flow implicite (hash fragment)
     const hashStr = window.location.hash.substring(1);
     if (hashStr.includes('type=recovery')) {
-      // Attendre que onAuthStateChange se déclenche
-      await new Promise(r => setTimeout(r, 1500));
-      const { data: { session } } = await sb().auth.getSession();
-      if (session) {
-        window.history.replaceState(null, '', window.location.pathname);
-        showResetPasswordPage();
-        return;
+      const hashParams = new URLSearchParams(hashStr);
+      const hashToken = hashParams.get('access_token') || '';
+      
+      // Vérifier si le token est un vrai JWT (doit contenir des points)
+      if (hashToken && hashToken.includes('.')) {
+        // Vrai JWT — attendre que onAuthStateChange se déclenche
+        await new Promise(r => setTimeout(r, 1500));
+        const { data: { session } } = await sb().auth.getSession();
+        if (session) {
+          window.history.replaceState(null, '', window.location.pathname);
+          showResetPasswordPage();
+          return;
+        }
       }
+      
+      // Token invalide ou pas de session — afficher un message d'erreur
+      window.history.replaceState(null, '', window.location.pathname);
+      showResetPasswordPage();
+      return;
     }
 
     // Connexion normale
