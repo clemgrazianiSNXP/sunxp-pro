@@ -87,12 +87,26 @@ function loadActiveIdFromStorage() {
 
 /* ── Chargement des stations ──────────────────────────────── */
 async function loadStations() {
-  /* 1. Essayer localStorage d'abord */
-  const cached = loadStationsFromStorage();
-  if (cached && Array.isArray(cached)) {
-    stations = cached;
-  } else {
-    /* 2. Fallback : charger depuis data/stations.json */
+  /* 1. Essayer Supabase via dbLoadStations (met à jour localStorage) */
+  if (typeof dbLoadStations === 'function') {
+    try {
+      const fromDb = await dbLoadStations();
+      if (fromDb && fromDb.length) {
+        stations = fromDb;
+      }
+    } catch (_) {}
+  }
+
+  /* 2. Si pas de résultat Supabase, essayer localStorage */
+  if (!stations.length) {
+    const cached = loadStationsFromStorage();
+    if (cached && Array.isArray(cached) && cached.length) {
+      stations = cached;
+    }
+  }
+
+  /* 3. Fallback : charger depuis data/stations.json */
+  if (!stations.length) {
     try {
       const res = await fetch('data/stations.json');
       if (!res.ok) throw new Error('Fetch failed');

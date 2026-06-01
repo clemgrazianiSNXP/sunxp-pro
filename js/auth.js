@@ -313,44 +313,57 @@ function showApp() {
   const loginPage = document.getElementById('login-page');
   if (loginPage) loginPage.style.display = 'none';
 
-  // Si le profil a une station définie → aller directement sans passer par le role-screen
+  const logoutBtn = document.getElementById('topbar-logout');
+  if (logoutBtn) logoutBtn.style.display = '';
+  if (typeof showToolbar === 'function') showToolbar(true);
+
+  // Si admin → afficher le role-screen (choix station + card admin)
+  if (typeof isAdmin === 'function' && isAdmin()) {
+    const roleScreen = document.getElementById('role-screen');
+    if (roleScreen) roleScreen.hidden = false;
+    return;
+  }
+
+  // Si responsable avec station définie → aller directement
   if (currentProfile && currentProfile.station_id) {
     const sid = currentProfile.station_id;
     localStorage.setItem('stationActive', sid);
     sessionStorage.setItem('stationActive', sid);
-
-    // Cacher le role-screen
+    localStorage.setItem('sunxp_role', 'responsable');
     const roleScreen = document.getElementById('role-screen');
     if (roleScreen) roleScreen.hidden = true;
 
-    // Afficher le bouton logout et la toolbar
-    const logoutBtn = document.getElementById('topbar-logout');
-    if (logoutBtn) logoutBtn.style.display = '';
-    if (typeof showToolbar === 'function') showToolbar(true);
-
-    // Charger directement la station
-    if (typeof setActiveStation === 'function') {
-      setActiveStation(sid);
-    } else {
-      let attempts = 0;
-      const trySet = setInterval(() => {
-        attempts++;
-        if (typeof setActiveStation === 'function') {
-          clearInterval(trySet);
-          setActiveStation(sid);
-        }
-        if (attempts > 20) clearInterval(trySet);
-      }, 100);
-    }
+    // Appeler loadStations qui va :
+    // 1. Charger la liste des stations
+    // 2. Trouver stationActive dans localStorage (qu'on vient de setter)
+    // 3. Appeler setActiveStation(found) avec l'objet complet
+    // 4. Afficher l'app layout
+    loadStations();
     return;
   }
 
-  // Sinon — afficher l'écran de sélection de station normalement
+  // Sinon (responsable sans station) → aller directement au choix de station
   const roleScreen = document.getElementById('role-screen');
-  if (roleScreen) roleScreen.hidden = false;
-  const logoutBtn = document.getElementById('topbar-logout');
-  if (logoutBtn) logoutBtn.style.display = '';
-  if (typeof showToolbar === 'function') showToolbar(true);
+  if (roleScreen) roleScreen.hidden = true;
+  localStorage.setItem('sunxp_role', 'responsable');
+  const stationScreen = document.getElementById('station-screen');
+  if (stationScreen) {
+    stationScreen.hidden = false;
+    stationScreen.style.display = '';
+  }
+  if (typeof loadStations === 'function') {
+    loadStations();
+  } else {
+    let attempts = 0;
+    const tryLoad = setInterval(() => {
+      attempts++;
+      if (typeof loadStations === 'function') {
+        clearInterval(tryLoad);
+        loadStations();
+      }
+      if (attempts > 20) clearInterval(tryLoad);
+    }, 100);
+  }
 }
 
 /* ── Afficher le portail chauffeur directement ────────────── */
