@@ -330,12 +330,17 @@ function buildProductivite() {
   const wrap=document.createElement('div');wrap.style.cssText='width:100%;max-width:600px;';
   const sid=actSid();const y=activiteDate.getFullYear();const m=activiteDate.getMonth();
   const daysInMonth=new Date(y,m+1,0).getDate();
+  const mPad=String(m+1).padStart(2,'0');
+  // Charger toutes les données du mois en une seule passe
+  const monthPrefix=sid+'-activite-'+y+'-'+mPad;
+  const monthData={};
+  for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith(monthPrefix)){try{monthData[k]=JSON.parse(localStorage.getItem(k));}catch(_){}}}
   // Collecte toutes les données du mois par chauffeur
   const stats={}; // { chauffeur: { totalArrets, totalArH, jours } }
   for(let d=1;d<=daysInMonth;d++){
     const date=new Date(y,m,d);const key=sid+'-activite-'+date.toISOString().slice(0,10);
-    try{const raw=localStorage.getItem(key);if(!raw)continue;const data=JSON.parse(raw);
-      (data.routes||[]).forEach(r=>{if(!r.chauffeur)return;if(!stats[r.chauffeur])stats[r.chauffeur]={totalArrets:0,totalArH:0,jours:0};
+    const data=monthData[key]||null;if(!data)continue;
+    try{(data.routes||[]).forEach(r=>{if(!r.chauffeur)return;if(!stats[r.chauffeur])stats[r.chauffeur]={totalArrets:0,totalArH:0,jours:0};
         stats[r.chauffeur].totalArrets+=r.arrets||0;stats[r.chauffeur].totalArH+=Math.round((r.arrets||0)/7.25);stats[r.chauffeur].jours++;});
     }catch(_){}
   }
