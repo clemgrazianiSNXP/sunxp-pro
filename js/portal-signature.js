@@ -124,8 +124,8 @@ function showSignatureModal(doc, parentWrap, sid, chauffeurId) {
   // Canvas signature
   const canvas = document.getElementById('signature-canvas');
   const ctx = canvas.getContext('2d');
-  ctx.strokeStyle = '#1a1a2e';
-  ctx.lineWidth = 2.5;
+  ctx.strokeStyle = '#000000';
+  ctx.lineWidth = 3;
   ctx.lineCap = 'round';
   let drawing = false;
   let hasSigned = false;
@@ -164,10 +164,22 @@ function showSignatureModal(doc, parentWrap, sid, chauffeurId) {
       const signatureDate = new Date().toISOString();
       const nom = ((portalChauffeur.prenom || '') + ' ' + (portalChauffeur.nom || '')).trim();
 
+      // Uploader la signature dans Supabase Storage pour avoir une URL publique
+      let signatureUrl = '';
+      try {
+        const blob = await (await fetch(signatureData)).blob();
+        const fileName = `signatures/${doc.id}_${Date.now()}.png`;
+        const { data: uploadData } = await sb().storage.from('documents-employes').upload(fileName, blob, { contentType: 'image/png', upsert: true });
+        if (uploadData) {
+          const { data: urlData } = sb().storage.from('documents-employes').getPublicUrl(fileName);
+          if (urlData) signatureUrl = urlData.publicUrl;
+        }
+      } catch(uploadErr) { console.warn('Upload signature:', uploadErr.message); }
+
       // Sauvegarder dans Supabase
       await sb().from('documents_signature').update({
         statut: 'signe',
-        signature_data: signatureData,
+        signature_data: signatureUrl || signatureData,
         signature_date: signatureDate,
       }).eq('id', doc.id);
 
@@ -179,7 +191,7 @@ function showSignatureModal(doc, parentWrap, sid, chauffeurId) {
             documentNom: doc.document_nom,
             signatureDate: new Date(signatureDate).toLocaleString('fr-FR'),
             envoyePar: doc.envoye_par,
-            signatureData: signatureData
+            signatureData: signatureUrl || signatureData
           }
         });
       } catch(emailErr) {
