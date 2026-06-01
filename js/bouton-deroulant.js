@@ -43,17 +43,35 @@ function toggleMenuPanel() {
           <button class="menu-panel-tab" data-tab="contacts-ch" onclick="setMenuTab('contacts-ch')" title="Contacts">📇</button>
         `;
       } else {
-        // Responsable : demandes + analyse + badges + docs + paramètres + contacts + stations
-        tabsContainer.innerHTML = `
-          <button class="menu-panel-tab" data-tab="demandes-mgr" onclick="setMenuTab('demandes-mgr')" title="Demandes chauffeurs">📋</button>
-          <button class="menu-panel-tab" data-tab="analyse" onclick="setMenuTab('analyse')" title="Analyse & Performance">📊</button>
-          <button class="menu-panel-tab" data-tab="badges-mgr" onclick="setMenuTab('badges-mgr')" title="Badges chauffeurs">🏆</button>
-          <button class="menu-panel-tab" data-tab="documents" onclick="setMenuTab('documents')" title="Documents bureau">📄</button>
-          <button class="menu-panel-tab active" data-tab="parametres" onclick="setMenuTab('parametres')" title="Paramètres">⚙️</button>
-          <button class="menu-panel-tab" data-tab="cles-codes" onclick="setMenuTab('cles-codes')" title="Clés & Codes">🔑</button>
-          <button class="menu-panel-tab" data-tab="contacts" onclick="setMenuTab('contacts')" title="Contacts">📇</button>
-          <button class="menu-panel-tab" data-tab="stations-mgr" onclick="setMenuTab('stations-mgr')" title="Gérer les stations">🏢</button>
-        `;
+        // Responsable : filtrer selon le rôle spécifique
+        const rolesSansHamburger = ['Gestionnaire de Flotte', 'Chef de Parc', 'Mecanicien'];
+        if (rolesSansHamburger.includes(window.currentRoleSpecifique)) {
+          const hamburgerBtn = document.getElementById('hamburger-btn');
+          if (hamburgerBtn) hamburgerBtn.style.display = 'none';
+          return;
+        }
+
+        const hamburgerTabs = [
+          { tab: 'demandes-mgr', icon: '📋', title: 'Demandes chauffeurs' },
+          { tab: 'analyse', icon: '📊', title: 'Analyse & Performance' },
+          { tab: 'badges-mgr', icon: '🏆', title: 'Badges chauffeurs' },
+          { tab: 'documents', icon: '📄', title: 'Documents bureau' },
+          { tab: 'parametres', icon: '⚙️', title: 'Paramètres' },
+          { tab: 'cles-codes', icon: '🔑', title: 'Clés & Codes' },
+          { tab: 'contacts', icon: '📇', title: 'Contacts' },
+          { tab: 'stations-mgr', icon: '🏢', title: 'Gérer les stations' },
+        ];
+
+        hamburgerTabs.forEach(t => {
+          if (typeof window.hasHamburgerAccess === 'function' && !window.hasHamburgerAccess(t.tab)) return;
+          const btn = document.createElement('button');
+          btn.className = 'menu-panel-tab' + (t.tab === 'parametres' ? ' active' : '');
+          btn.dataset.tab = t.tab;
+          btn.title = t.title;
+          btn.textContent = t.icon;
+          btn.onclick = () => setMenuTab(t.tab);
+          tabsContainer.appendChild(btn);
+        });
       }
     }
     bindTabTooltips();

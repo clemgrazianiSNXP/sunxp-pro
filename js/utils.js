@@ -41,6 +41,11 @@ function showModule(moduleId) {
  */
 function initNavigation() {
   document.querySelectorAll('.nav-tab').forEach(tab => {
+    // Filtrer selon le rôle spécifique
+    if (typeof window.hasModuleAccess === 'function' && !window.hasModuleAccess(tab.dataset.module)) {
+      tab.style.display = 'none';
+      return;
+    }
     tab.addEventListener('click', () => {
       showModule(tab.dataset.module);
       dispatchModuleInit(tab.dataset.module);
