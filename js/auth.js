@@ -9,29 +9,29 @@ async function checkAuth() {
   await waitForSupabase();
   if (!sb()) { showLoginPage(); return; }
 
-  try {
-    // Détecter un lien de réinitialisation de mot de passe dans le hash
-    const hashStr = window.location.hash.substring(1);
-    const hash = new URLSearchParams(hashStr);
-    const query = new URLSearchParams(window.location.search);
-    const type = hash.get('type') || query.get('type');
-    const accessToken = hash.get('access_token') || query.get('access_token');
-    const refreshToken = hash.get('refresh_token') || query.get('refresh_token') || '';
-
-    if (type === 'recovery' && accessToken) {
-      // Laisser Supabase établir la session depuis le hash AVANT de nettoyer l'URL
-      try {
-        const { data, error } = await sb().auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken
-        });
-        console.log('Recovery setSession:', data ? 'OK' : 'no data', error ? error.message : '');
-      } catch(e) {
-        console.warn('Recovery setSession error:', e.message);
-      }
+  // Écouter les événements auth (recovery, sign in, etc.)
+  sb().auth.onAuthStateChange((event, session) => {
+    console.log('Auth event:', event);
+    if (event === 'PASSWORD_RECOVERY') {
+      // Supabase a détecté le lien de recovery et établi la session
       window.history.replaceState(null, '', window.location.pathname);
       showResetPasswordPage();
-      return;
+    }
+  });
+
+  try {
+    // Vérifier si c'est un lien de recovery (fallback si onAuthStateChange ne se déclenche pas)
+    const hashStr = window.location.hash.substring(1);
+    if (hashStr.includes('type=recovery')) {
+      // Attendre un peu que onAuthStateChange se déclenche
+      await new Promise(r => setTimeout(r, 1000));
+      // Si on est toujours là, c'est que l'événement ne s'est pas déclenché
+      const { data: { session } } = await sb().auth.getSession();
+      if (session) {
+        window.history.replaceState(null, '', window.location.pathname);
+        showResetPasswordPage();
+        return;
+      }
     }
 
     // Connexion normale
