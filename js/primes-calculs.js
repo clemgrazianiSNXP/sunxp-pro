@@ -1,4 +1,4 @@
-/* js/primes-calculs.js — Calculs des primes */
+﻿/* js/primes-calculs.js — Calculs des primes */
 
 const PRIME_BAREME = { 0:0,1:0,2:0,3:0,4:0,5:0,6:0,7:55,8:63,9:71,10:78,11:89,12:94,13:102,14:110,15:117 };
 const PRIME_MAX = 140;
@@ -68,7 +68,7 @@ function getReportPrecedent(stationId, year, month) {
   const prevMonth = month === 0 ? 11 : month - 1;
   const prevYear  = month === 0 ? year - 1 : year;
   const prevData  = loadPrimesData(stationId, prevYear, prevMonth);
-  const chauffeurs = getChauffeursList(stationId);
+  const chauffeurs = loadChauffeurs(stationId);
   // Passer depth=1 pour que la protection fonctionne correctement
   const prevReports = getReportPrecedentRec(stationId, prevYear, prevMonth, 1);
   const reports = {};
@@ -93,7 +93,7 @@ function getReportPrecedentRec(stationId, year, month, depth) {
   const prevMonth = month === 0 ? 11 : month - 1;
   const prevYear  = month === 0 ? year - 1 : year;
   const prevData  = loadPrimesData(stationId, prevYear, prevMonth);
-  const chauffeurs = getChauffeursList(stationId);
+  const chauffeurs = loadChauffeurs(stationId);
   // Toujours incrémenter depth correctement
   const prevReports = getReportPrecedentRec(stationId, prevYear, prevMonth, depth + 1);
   const reports = {};
@@ -109,13 +109,6 @@ function getReportPrecedentRec(stationId, year, month, depth) {
     reports[key] = total < 0 ? total : 0;
   });
   return reports;
-}
-
-function getChauffeursList(stationId) {
-  try {
-    const raw = localStorage.getItem(stationId + '-repertoire');
-    return raw ? JSON.parse(raw) : [];
-  } catch(_) { return []; }
 }
 
 /**
