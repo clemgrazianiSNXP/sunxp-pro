@@ -408,7 +408,7 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
     <td>${isSpecial ? '' : `<span class="h-fin-pause" id="finpause-${row.key}" style="color:#4ade80;font-weight:700;"></span>`}</td>
     <td>${isSpecial ? '' : `<input class="h-inp" data-f="secteur" value="${row.secteur}" style="width:90px;" ${dis}>`}</td>
     <td>${isSpecial ? '' : `<input class="h-inp h-calc" data-f="retourDepot" value="${row.retourDepot}" ${dis}>`}</td>
-    <td>${isSpecial ? '' : `<input class="h-inp h-inp-sm" data-f="backups" value="${row.backups}" style="width:32px;color:#f97316;font-weight:700;" ${dis}>`}</td>
+    <td>${isSpecial ? '' : `<input class="h-inp h-inp-sm" data-f="backups" value="${row.backups}" style="width:44px;color:#f97316;font-weight:700;" ${dis}>`}</td>
     <td>${isSpecial ? '' : `<input class="h-inp h-inp-sm" data-f="mentor" value="${row.mentor}" style="color:${mentorColor(row.mentor, row.trajet)};font-weight:700;width:36px;" ${dis}>`}</td>
     <td class="h-trajet-stars" data-key="${row.key}">${isSpecial ? '' : buildStarRating(row.trajet, dis)}</td>
     <td>${isSpecial ? '' : `<input class="h-inp h-inp-faute" data-f="faute" value="${row.faute || ''}" placeholder="" style="width:90px;max-width:90px;" ${dis}>`}</td>
