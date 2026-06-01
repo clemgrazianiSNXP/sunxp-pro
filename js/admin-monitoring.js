@@ -1,5 +1,4 @@
-/* js/admin-monitoring.js — Onglet Monitoring (SunXP Pro Admin) */
-console.log('admin-monitoring.js chargé');
+﻿/* js/admin-monitoring.js — Onglet Monitoring (SunXP Pro Admin) */
 
 async function renderAdminMonitoring(container) {
   container.innerHTML = '<p style="color:var(--text-muted);">Chargement...</p>';

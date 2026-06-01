@@ -1,5 +1,4 @@
-/* js/admin.js — Panneau d'administration (SunXP Pro) */
-console.log('admin.js chargé');
+﻿/* js/admin.js — Panneau d'administration (SunXP Pro) */
 
 const ADMIN_EMAILS = ['amazon.grazianisnxp@gmail.com'];
 const ADMIN_TABS = ['monitoring', 'sauvegarde', 'utilisateurs', 'logs', 'maintenance', 'notifications'];

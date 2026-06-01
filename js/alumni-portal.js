@@ -1,5 +1,4 @@
-/* js/alumni-portal.js — Portail Alumni (anciens employés) (SunXP Pro) */
-console.log('alumni-portal.js chargé');
+﻿/* js/alumni-portal.js — Portail Alumni (anciens employés) (SunXP Pro) */
 
 /**
  * Affiche le portail alumni : page simple avec documents téléchargeables.

@@ -1,5 +1,4 @@
-/* js/suivi-papiers.js — Suivi Papiers RH (SunXP Pro) */
-console.log('suivi-papiers.js chargé');
+﻿/* js/suivi-papiers.js — Suivi Papiers RH (SunXP Pro) */
 
 const PAPIERS_TYPES = [
   { code: 'AM', label: 'Arrêt Maladie' },

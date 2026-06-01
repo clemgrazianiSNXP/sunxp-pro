@@ -1,5 +1,4 @@
-/* js/identifier-chauffeurs.js — Identifier des chauffeurs par ID Amazon (SunXP Pro) */
-console.log('identifier-chauffeurs.js chargé');
+﻿/* js/identifier-chauffeurs.js — Identifier des chauffeurs par ID Amazon (SunXP Pro) */
 
 // repView est déclaré dans repertoire.js
 

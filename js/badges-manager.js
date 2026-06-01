@@ -1,5 +1,4 @@
-/* js/badges-manager.js — Vue responsable des badges chauffeurs (SunXP Pro) */
-console.log('badges-manager.js chargé');
+﻿/* js/badges-manager.js — Vue responsable des badges chauffeurs (SunXP Pro) */
 
 function renderBadgesManager() {
   const wrap = document.createElement('div');

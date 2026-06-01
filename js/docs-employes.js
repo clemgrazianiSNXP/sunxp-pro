@@ -1,5 +1,4 @@
-/* js/docs-employes.js — Documents employés (sous-onglet RH) avec Supabase Storage */
-console.log('docs-employes.js chargé');
+﻿/* js/docs-employes.js — Documents employés (sous-onglet RH) avec Supabase Storage */
 
 const DOCS_EMP_BUCKET = 'docs-employes';
 

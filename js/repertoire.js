@@ -1,5 +1,4 @@
-/* js/repertoire.js — Onglet Répertoire (SunXP Pro) */
-console.log('repertoire.js chargé');
+﻿/* js/repertoire.js — Onglet Répertoire (SunXP Pro) */
 
 let repSearchQuery = '';
 let repView = 'chauffeurs'; // 'chauffeurs' | 'responsables' | 'identifier'

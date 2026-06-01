@@ -1,5 +1,4 @@
-/* js/eos-extraction.js — Import CSV + génération EOS (SunXP Pro) */
-console.log('eos-extraction.js chargé');
+﻿/* js/eos-extraction.js — Import CSV + génération EOS (SunXP Pro) */
 
 const EOS_REASON_MAP = {
   'BUSINESS CLOSED': 'bc',

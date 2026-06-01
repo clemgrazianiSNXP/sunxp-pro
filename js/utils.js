@@ -1,5 +1,12 @@
 /* Utilitaires communs partagés entre tous les modules */
 
+// Désactiver les logs en production
+if (window.location.hostname !== 'localhost' && !window.location.hostname.includes('127.0.0.1')) {
+  console.log = () => {};
+  console.info = () => {};
+  // Garder console.warn et console.error pour les vraies erreurs
+}
+
 /**
  * Active un module et son onglet correspondant.
  * Retire la classe `active` de tous les .nav-tab et .module-view,

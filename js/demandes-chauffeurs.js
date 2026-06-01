@@ -1,5 +1,4 @@
-/* js/demandes-chauffeurs.js — Gestion des demandes chauffeurs (Repos, Acompte, Congés Payés) */
-console.log('demandes-chauffeurs.js chargé');
+﻿/* js/demandes-chauffeurs.js — Gestion des demandes chauffeurs (Repos, Acompte, Congés Payés) */
 
 let demandesSubTab = 'repos';
 

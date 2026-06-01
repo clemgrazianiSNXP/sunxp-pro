@@ -1,5 +1,4 @@
-/* js/game-colis.js — Mini-jeu Dernier Colis 🏃 (SunXP Pro) */
-console.log('game-colis.js chargé');
+﻿/* js/game-colis.js — Mini-jeu Dernier Colis 🏃 (SunXP Pro) */
 
 function startGameDernier() {
   const portal = document.getElementById('chauffeur-portal');

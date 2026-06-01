@@ -1,5 +1,4 @@
-/* js/admin-sauvegarde.js — Onglet Sauvegarde (SunXP Pro Admin) */
-console.log('admin-sauvegarde.js chargé');
+﻿/* js/admin-sauvegarde.js — Onglet Sauvegarde (SunXP Pro Admin) */
 
 function renderAdminSauvegarde(container) {
   container.innerHTML = '';

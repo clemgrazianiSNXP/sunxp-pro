@@ -1,5 +1,4 @@
-/* js/flotte-documents.js — Documents Camions (SunXP Pro) */
-console.log('flotte-documents.js chargé');
+﻿/* js/flotte-documents.js — Documents Camions (SunXP Pro) */
 
 const DOCS_CAMIONS_BUCKET = 'documents';
 

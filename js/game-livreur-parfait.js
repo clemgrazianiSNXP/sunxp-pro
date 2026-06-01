@@ -1,5 +1,4 @@
-/* js/game-livreur-parfait.js - Mini-jeu Livreur Parfait 🎯 (SunXP Pro) */
-console.log('game-livreur-parfait.js charge');
+﻿/* js/game-livreur-parfait.js - Mini-jeu Livreur Parfait 🎯 (SunXP Pro) */
 
 function startGameLivreurParfait() {
   const portal = document.getElementById('chauffeur-portal');

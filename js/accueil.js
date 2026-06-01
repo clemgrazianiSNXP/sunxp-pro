@@ -1,5 +1,4 @@
-/* js/accueil.js — Tableau de bord Accueil Responsable (SunXP Pro) */
-console.log('accueil.js chargé');
+﻿/* js/accueil.js — Tableau de bord Accueil Responsable (SunXP Pro) */
 
 function navigateToTab(module, tab) {
   if (typeof showModule === 'function') showModule(module);

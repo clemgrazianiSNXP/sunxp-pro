@@ -1,5 +1,4 @@
-/* js/game-boite.js — Mini-jeu Bonne Boîte aux Lettres 🚪 (SunXP Pro) */
-console.log('game-boite.js chargé');
+﻿/* js/game-boite.js — Mini-jeu Bonne Boîte aux Lettres 🚪 (SunXP Pro) */
 
 function startGameBoite() {
   const portal = document.getElementById('chauffeur-portal');

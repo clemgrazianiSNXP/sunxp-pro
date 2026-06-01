@@ -1,5 +1,4 @@
-/* js/game-scan.js — Mini-jeu Scan Express ⚡ (SunXP Pro) */
-console.log('game-scan.js chargé');
+﻿/* js/game-scan.js — Mini-jeu Scan Express ⚡ (SunXP Pro) */
 
 function startGameScan() {
   const portal = document.getElementById('chauffeur-portal');

@@ -1,5 +1,4 @@
-/* js/ressources-humaines.js — Module Ressources Humaines (SunXP Pro) */
-console.log('ressources-humaines.js chargé');
+﻿/* js/ressources-humaines.js — Module Ressources Humaines (SunXP Pro) */
 
 let rhTab = 'check-tsm'; // 'check-tsm' | 'extraction-paie' | 'suivi-papiers' | 'docs-employes'
 

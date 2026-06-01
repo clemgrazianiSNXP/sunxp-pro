@@ -1,5 +1,4 @@
-/* js/chauffeur-portal-extra.js — Onglets Dégâts et Rapport pour le portail chauffeur */
-console.log('chauffeur-portal-extra.js chargé');
+﻿/* js/chauffeur-portal-extra.js — Onglets Dégâts et Rapport pour le portail chauffeur */
 
 /* ── Onglet Dégâts ────────────────────────────────────────── */
 function portalDegats() {

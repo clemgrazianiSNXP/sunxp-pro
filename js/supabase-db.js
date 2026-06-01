@@ -1,5 +1,4 @@
-/* js/supabase-db.js — Couche d'abstraction Supabase + fallback localStorage (SunXP Pro) */
-console.log('supabase-db.js chargé');
+﻿/* js/supabase-db.js — Couche d'abstraction Supabase + fallback localStorage (SunXP Pro) */
 
 const SUPABASE_URL = 'https://uqgwmrvtjulpbblucrht.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVxZ3dtcnZ0anVscGJibHVjcmh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3ODA0MDcsImV4cCI6MjA5MjM1NjQwN30.h1NkKsNuqFubREY0Zzt2VIJYqjJHKn14BUALocVwk5s';

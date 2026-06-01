@@ -1,5 +1,4 @@
-/* js/games.js — Système de mini-jeux chauffeur (SunXP Pro) */
-console.log('games.js chargé');
+﻿/* js/games.js — Système de mini-jeux chauffeur (SunXP Pro) */
 
 const GAMES_LIST = [
   { id: 'enveloppe', icon: '📬', name: "L'Enveloppe" },

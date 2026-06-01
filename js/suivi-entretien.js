@@ -1,5 +1,4 @@
-/* js/suivi-entretien.js — Suivi Entretien Flotte (SunXP Pro) */
-console.log('suivi-entretien.js chargé');
+﻿/* js/suivi-entretien.js — Suivi Entretien Flotte (SunXP Pro) */
 
 const ENTRETIEN_BUCKET = 'entretien-flotte';
 

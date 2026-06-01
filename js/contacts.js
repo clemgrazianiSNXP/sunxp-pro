@@ -1,5 +1,4 @@
-/* js/contacts.js — Contacts station (SunXP Pro) */
-console.log('contacts.js chargé');
+﻿/* js/contacts.js — Contacts station (SunXP Pro) */
 
 function getContactsSid() { return window.getActiveStationId ? window.getActiveStationId() : 'default'; }
 function getContactsKey() { return getContactsSid() + '-contacts'; }

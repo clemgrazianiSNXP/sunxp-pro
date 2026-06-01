@@ -1,5 +1,4 @@
-/* js/rapport-concessions.js — Onglet Rapport Concessions dans Statistiques (SunXP Pro) */
-console.log('rapport-concessions.js chargé');
+﻿/* js/rapport-concessions.js — Onglet Rapport Concessions dans Statistiques (SunXP Pro) */
 
 (function () {
   const LS_PREFIX = () => (window.getActiveStationId ? window.getActiveStationId() : 'default') + '-concessions-';

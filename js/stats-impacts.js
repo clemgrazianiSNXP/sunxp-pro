@@ -1,5 +1,4 @@
-/* js/stats-impacts.js — Alertes impacts POD & DWC (SunXP Pro) */
-console.log('stats-impacts.js chargé');
+﻿/* js/stats-impacts.js — Alertes impacts POD & DWC (SunXP Pro) */
 
 const POD_THRESHOLD = 98;
 const DWC_THRESHOLD = 85;

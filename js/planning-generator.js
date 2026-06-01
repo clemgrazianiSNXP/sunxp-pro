@@ -1,5 +1,4 @@
-/* js/planning-generator.js — Générateur automatique de planning (SunXP Pro) */
-console.log('planning-generator.js chargé');
+﻿/* js/planning-generator.js — Générateur automatique de planning (SunXP Pro) */
 
 /**
  * Génère le planning RSTD pour les chauffeurs et formateurs.

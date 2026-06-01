@@ -1,5 +1,4 @@
-/* js/documents-chauffeurs.js — Documents par chauffeur avec Supabase Storage (SunXP Pro) */
-console.log('documents-chauffeurs.js chargé');
+﻿/* js/documents-chauffeurs.js — Documents par chauffeur avec Supabase Storage (SunXP Pro) */
 
 function getDocsChauffeursSid() {
   return window.getActiveStationId ? window.getActiveStationId() : 'default';

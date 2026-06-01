@@ -1,5 +1,4 @@
-/* js/bouton-deroulant.js — Menu hamburger déroulant (SunXP Pro) */
-console.log('bouton-deroulant.js chargé');
+﻿/* js/bouton-deroulant.js — Menu hamburger déroulant (SunXP Pro) */
 
 let menuPanelOpen = false;
 let menuPanelTab = null; // 'parametres' | 'documents' | 'analyse'

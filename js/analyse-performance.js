@@ -1,5 +1,4 @@
-/* js/analyse-performance.js — Onglet Analyse & Performance (SunXP Pro) */
-console.log('analyse-performance.js chargé');
+﻿/* js/analyse-performance.js — Onglet Analyse & Performance (SunXP Pro) */
 
 function renderAnalysePerformance() {
   const wrap = document.createElement('div');

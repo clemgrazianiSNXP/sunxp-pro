@@ -1,5 +1,4 @@
-/* js/badges.js — UI des badges chauffeur (SunXP Pro) */
-console.log('badges.js chargé');
+﻿/* js/badges.js — UI des badges chauffeur (SunXP Pro) */
 
 function renderBadgesTab() {
   const wrap = document.createElement('div');

@@ -1,5 +1,4 @@
-/* js/flotte-degats.js — Suivi des dégâts véhicules (SunXP Pro) */
-console.log('flotte-degats.js chargé');
+﻿/* js/flotte-degats.js — Suivi des dégâts véhicules (SunXP Pro) */
 
 function getDegatsKey() { return (window.getActiveStationId ? window.getActiveStationId() : 'default') + '-degats'; }
 function loadDegats() { try { return JSON.parse(localStorage.getItem(getDegatsKey())) || []; } catch(_) { return []; } }

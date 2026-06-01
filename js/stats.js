@@ -1,5 +1,4 @@
-/* js/stats.js — Onglet Qualité (SunXP Pro) */
-console.log('stats.js chargé');
+﻿/* js/stats.js — Onglet Qualité (SunXP Pro) */
 
 let statsMainTab = 'statistiques'; // 'statistiques' ou 'rapport'
 let statsTab = 'dsdpmo';

@@ -1,5 +1,4 @@
-/* js/game-gps.js — Mini-jeu GPS Cassé 🗺️ (SunXP Pro) */
-console.log('game-gps.js chargé');
+﻿/* js/game-gps.js — Mini-jeu GPS Cassé 🗺️ (SunXP Pro) */
 
 function startGameGPS() {
   const portal = document.getElementById('chauffeur-portal');

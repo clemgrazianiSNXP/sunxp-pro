@@ -1,5 +1,4 @@
-/* js/rapport-chauffeur.js — Vue Rapport Chauffeur unifié (SunXP Pro) */
-console.log('rapport-chauffeur.js chargé');
+﻿/* js/rapport-chauffeur.js — Vue Rapport Chauffeur unifié (SunXP Pro) */
 
 (function () {
   const LS_CONC = () => sid() + '-concessions-';

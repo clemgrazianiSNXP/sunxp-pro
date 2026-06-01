@@ -1,5 +1,4 @@
-/* js/demandes-auto.js — Fonctions d'automatisation planning lors validation demandes (SunXP Pro) */
-console.log('demandes-auto.js chargé');
+﻿/* js/demandes-auto.js — Fonctions d'automatisation planning lors validation demandes (SunXP Pro) */
 
 /**
  * Ajoute un code (RD, CP) au planning pour un chauffeur à une date donnée.

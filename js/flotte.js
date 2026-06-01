@@ -1,5 +1,4 @@
-/* js/flotte.js — Module Flotte (SunXP Pro) */
-console.log('flotte.js chargé');
+﻿/* js/flotte.js — Module Flotte (SunXP Pro) */
 
 let flotteTab = 'camions'; // 'camions' | 'degats' | 'problemes' | 'entretien' | 'documents' | 'attribution'
 

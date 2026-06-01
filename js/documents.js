@@ -1,5 +1,4 @@
-/* js/documents.js — Onglet Documents du menu déroulant (SunXP Pro) */
-console.log('documents.js chargé');
+﻿/* js/documents.js — Onglet Documents du menu déroulant (SunXP Pro) */
 
 const DOCUMENTS_BUCKET = 'documents';
 

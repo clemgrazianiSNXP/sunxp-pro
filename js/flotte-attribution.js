@@ -1,5 +1,4 @@
-/* js/flotte-attribution.js — Attribution camions tableau (SunXP Pro) v3 */
-console.log('flotte-attribution.js chargé');
+﻿/* js/flotte-attribution.js — Attribution camions tableau (SunXP Pro) v3 */
 
 let attrDate = new Date();
 let attrSearchNoData = false;

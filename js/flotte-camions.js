@@ -1,5 +1,4 @@
-/* js/flotte-camions.js — Répertoire des camions (SunXP Pro) */
-console.log('flotte-camions.js chargé');
+﻿/* js/flotte-camions.js — Répertoire des camions (SunXP Pro) */
 
 function getCamionsKey() { return (window.getActiveStationId ? window.getActiveStationId() : 'default') + '-camions'; }
 function loadCamions() { try { return JSON.parse(localStorage.getItem(getCamionsKey())) || []; } catch(_) { return []; } }

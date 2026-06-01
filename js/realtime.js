@@ -1,5 +1,4 @@
-/* js/realtime.js — Supabase Realtime pour heures et notifications (SunXP Pro) */
-console.log('realtime.js chargé');
+﻿/* js/realtime.js — Supabase Realtime pour heures et notifications (SunXP Pro) */
 
 let realtimeChannel = null;
 

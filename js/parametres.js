@@ -1,5 +1,4 @@
-/* js/parametres.js — Onglet Paramètres du menu déroulant (SunXP Pro) */
-console.log('parametres.js chargé');
+﻿/* js/parametres.js — Onglet Paramètres du menu déroulant (SunXP Pro) */
 
 const THEMES = [
   { id: 'dark',    label: 'Sombre (défaut)',  cls: '' },

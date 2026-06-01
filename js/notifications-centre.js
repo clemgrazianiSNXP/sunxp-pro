@@ -1,5 +1,4 @@
-/* js/notifications-centre.js — Système de notifications admin (SunXP Pro) */
-console.log('notifications-centre.js chargé');
+﻿/* js/notifications-centre.js — Système de notifications admin (SunXP Pro) */
 
 const NOTIF_TYPES = {
   update: { icon: '🔧', label: 'Mise à jour', color: '#3b82f6' },

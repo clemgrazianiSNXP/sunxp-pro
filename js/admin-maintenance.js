@@ -1,5 +1,4 @@
-/* js/admin-maintenance.js — Onglet Maintenance (SunXP Pro Admin) */
-console.log('admin-maintenance.js chargé');
+﻿/* js/admin-maintenance.js — Onglet Maintenance (SunXP Pro Admin) */
 
 async function renderAdminMaintenance(container) {
   container.innerHTML = '<p style="color:var(--text-muted);">Chargement...</p>';

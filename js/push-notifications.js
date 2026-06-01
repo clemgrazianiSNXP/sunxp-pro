@@ -1,5 +1,4 @@
-/* js/push-notifications.js — Web Push Notifications (SunXP Pro) */
-console.log('push-notifications.js chargé');
+﻿/* js/push-notifications.js — Web Push Notifications (SunXP Pro) */
 
 const VAPID_PUBLIC_KEY = 'BJdo4JX1B7xZxW771ektPPRij38y5lwix6FtghbqvxakdvnrS3u5ici_vhmqwRYTqBMx5Zgh4vMKPJLnFBpaNzM';
 

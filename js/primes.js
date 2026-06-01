@@ -1,5 +1,4 @@
-/* js/primes.js — Onglet Primes (SunXP Pro) */
-console.log('primes.js chargé');
+﻿/* js/primes.js — Onglet Primes (SunXP Pro) */
 
 let primesYear  = new Date().getFullYear();
 let primesMonth = new Date().getMonth();

@@ -1,5 +1,4 @@
-/* js/activite.js — Onglet Activité Journalière (SunXP Pro) */
-console.log('activite.js chargé');
+﻿/* js/activite.js — Onglet Activité Journalière (SunXP Pro) */
 
 let activiteDate = new Date();
 let activiteRoutes = [];

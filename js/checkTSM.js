@@ -1,5 +1,4 @@
-/* js/checkTSM.js — Tableau simplifié des heures pour Check TSM (SunXP Pro) */
-console.log('checkTSM.js chargé');
+﻿/* js/checkTSM.js — Tableau simplifié des heures pour Check TSM (SunXP Pro) */
 
 let checkTSMDate = new Date();
 

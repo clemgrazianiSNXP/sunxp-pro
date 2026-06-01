@@ -1,5 +1,4 @@
-/* js/cles-codes.js — Clés & Codes partagés entre chauffeurs (SunXP Pro) */
-console.log('cles-codes.js chargé');
+﻿/* js/cles-codes.js — Clés & Codes partagés entre chauffeurs (SunXP Pro) */
 
 let _clesLastFetch = 0;
 const CLES_CACHE_TTL = 30000; // 30 secondes

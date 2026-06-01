@@ -1,5 +1,4 @@
-/* js/heures.js — Onglet Heures (SunXP Pro) */
-console.log('heures.js chargé');
+﻿/* js/heures.js — Onglet Heures (SunXP Pro) */
 
 const VAGUE_COLORS_DARK  = ['#2d1f4e', '#1a3a2a', '#1a2a3e', '#3a2a1a', '#1a3a3a', '#2a1a3a', '#3a1a2a', '#1a2a2a'];
 const VAGUE_COLORS_LIGHT = ['#e8e0f0', '#d8ece0', '#d8e4f0', '#f0e8d8', '#d8f0f0', '#e8d8f0', '#f0d8e0', '#d8e8e8'];

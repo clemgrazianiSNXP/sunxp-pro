@@ -1,5 +1,4 @@
-/* js/badges-calculs.js — Logique de calcul des badges chauffeur (SunXP Pro) */
-console.log('badges-calculs.js chargé');
+﻿/* js/badges-calculs.js — Logique de calcul des badges chauffeur (SunXP Pro) */
 
 const BADGE_DEFS = [
   // DNR 🎯

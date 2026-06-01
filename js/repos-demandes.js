@@ -1,5 +1,4 @@
-/* js/repos-demandes.js — Demandes de repos chauffeurs (SunXP Pro) */
-console.log('repos-demandes.js chargé');
+﻿/* js/repos-demandes.js — Demandes de repos chauffeurs (SunXP Pro) */
 
 function fmtReposDates(d) {
   const d1 = d.date1 ? new Date(d.date1).toLocaleDateString('fr-FR', {weekday:'short',day:'numeric',month:'short'}) : '?';

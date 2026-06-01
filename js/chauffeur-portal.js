@@ -1,5 +1,4 @@
-/* js/chauffeur-portal.js — Portail chauffeur mobile (SunXP Pro) */
-console.log('chauffeur-portal.js chargé');
+﻿/* js/chauffeur-portal.js — Portail chauffeur mobile (SunXP Pro) */
 
 let portalChauffeur = null;
 let portalStationId = null;

@@ -1,5 +1,4 @@
-/* js/game-enveloppe.js — Mini-jeu L'Enveloppe 📬 (SunXP Pro) */
-console.log('game-enveloppe.js chargé');
+﻿/* js/game-enveloppe.js — Mini-jeu L'Enveloppe 📬 (SunXP Pro) */
 
 function startGameEnveloppe() {
   // Create fullscreen game container

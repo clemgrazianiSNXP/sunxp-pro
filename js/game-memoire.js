@@ -1,5 +1,4 @@
-/* js/game-memoire.js — Mini-jeu Mémoire Tournée 🧠 (SunXP Pro) */
-console.log('game-memoire.js chargé');
+﻿/* js/game-memoire.js — Mini-jeu Mémoire Tournée 🧠 (SunXP Pro) */
 
 function startGameMemoire() {
   const portal = document.getElementById('chauffeur-portal');

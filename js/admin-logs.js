@@ -1,5 +1,4 @@
-/* js/admin-logs.js — Onglet Logs (SunXP Pro Admin) */
-console.log('admin-logs.js chargé');
+﻿/* js/admin-logs.js — Onglet Logs (SunXP Pro Admin) */
 
 let _logsPage = 0;
 let _logsFilters = { station: '', action: '', dateFrom: '', dateTo: '' };

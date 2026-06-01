@@ -1,5 +1,4 @@
-/* js/flotte-problemes.js — Signalement de problèmes camions (SunXP Pro) */
-console.log('flotte-problemes.js chargé');
+﻿/* js/flotte-problemes.js — Signalement de problèmes camions (SunXP Pro) */
 
 function getProbSid() { return window.getActiveStationId ? window.getActiveStationId() : 'default'; }
 function getProbKey() { return getProbSid() + '-problemes-camions'; }

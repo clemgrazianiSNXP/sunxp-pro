@@ -1,5 +1,4 @@
-/* js/auth.js — Authentification Supabase (SunXP Pro) */
-console.log('auth.js chargé');
+﻿/* js/auth.js — Authentification Supabase (SunXP Pro) */
 
 let currentUser = null;
 let currentProfile = null;

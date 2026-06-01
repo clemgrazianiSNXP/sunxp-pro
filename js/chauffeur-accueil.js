@@ -1,5 +1,4 @@
-/* js/chauffeur-accueil.js — Accueil chauffeur (SunXP Pro) */
-console.log('chauffeur-accueil.js chargé');
+﻿/* js/chauffeur-accueil.js — Accueil chauffeur (SunXP Pro) */
 
 /* ── Rendu accueil chauffeur ──────────────────────────────── */
 function portalAccueil() {

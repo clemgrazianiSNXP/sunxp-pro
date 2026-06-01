@@ -1,5 +1,4 @@
-/* js/planning.js — Onglet Planning mensuel (SunXP Pro) */
-console.log('planning.js chargé');
+﻿/* js/planning.js — Onglet Planning mensuel (SunXP Pro) */
 
 const PLANNING_CODES = ['RSTD','REP','CP','AT','ABS','BU','AM','AST','DSP','CE','MAT','PAT','GAR','PARC','BUR','HN','OFF','RD','RDL','CSS','MAP','CHIME','SAFETY','DBL','RLV1','RLV2','RLV3'];
 

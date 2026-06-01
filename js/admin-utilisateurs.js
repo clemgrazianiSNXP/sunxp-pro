@@ -1,5 +1,4 @@
-/* js/admin-utilisateurs.js — Onglet Utilisateurs (SunXP Pro Admin) */
-console.log('admin-utilisateurs.js chargé');
+﻿/* js/admin-utilisateurs.js — Onglet Utilisateurs (SunXP Pro Admin) */
 
 async function renderAdminUtilisateurs(container) {
   container.innerHTML = '<p style="color:var(--text-muted);">Chargement...</p>';

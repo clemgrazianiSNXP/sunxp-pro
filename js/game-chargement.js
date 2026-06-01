@@ -1,5 +1,4 @@
-/* js/game-chargement.js — Mini-jeu Chargement Parfait 🏗️ (SunXP Pro) */
-console.log('game-chargement.js chargé');
+﻿/* js/game-chargement.js — Mini-jeu Chargement Parfait 🏗️ (SunXP Pro) */
 
 function startGameChargement() {
   const portal = document.getElementById('chauffeur-portal');

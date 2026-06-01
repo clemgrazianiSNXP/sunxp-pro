@@ -1,5 +1,4 @@
-/* js/chef-equipe.js — Module Chef d'équipe (SunXP Pro) */
-console.log('chef-equipe.js chargé');
+﻿/* js/chef-equipe.js — Module Chef d'équipe (SunXP Pro) */
 
 let ceTab = 'extraction-eos';
 
