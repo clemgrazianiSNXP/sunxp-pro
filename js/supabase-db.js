@@ -12,7 +12,7 @@ function initSupabase() {
     if (window.supabase && window.supabase.createClient) {
       _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
         auth: {
-          detectSessionInUrl: false,
+          detectSessionInUrl: true,
           persistSession: true,
           autoRefreshToken: true
         }
