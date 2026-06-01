@@ -116,7 +116,7 @@ function renderAdminSauvegarde(container) {
         'docs_chauffeurs', 'docs_employes', 'documents',
         'suivi_papiers', 'suivi_entretien',
         'user_profiles', 'push_subscriptions',
-        'activity_logs', 'app_settings',
+        'app_settings',
         'admin_notifications', 'admin_notifications_lues',
         'game_scores'
       ];
@@ -124,7 +124,7 @@ function renderAdminSauvegarde(container) {
       let done = 0;
       for (const t of tables) {
         prog.textContent = `Export ${t}... (${done}/${tables.length})`;
-        try { const { data } = await sb().from(t).select('*'); backup.tables[t] = data || []; } catch (_) { backup.tables[t] = []; }
+        try { const { data } = await sb().from(t).select('*').limit(10000); backup.tables[t] = data || []; } catch (_) { backup.tables[t] = []; }
         done++;
       }
       prog.textContent = '✅ Export terminé ! Téléchargement...';
