@@ -23,7 +23,23 @@ function saveActivite() {
 function loadActivite() {
   try {
     const raw = localStorage.getItem(actKey());
-    if (!raw) { activiteRoutes=[]; activiteBU=[]; activiteAST=[]; activiteGolden={}; return; }
+    if (!raw) {
+      activiteRoutes=[]; activiteBU=[]; activiteAST=[]; activiteGolden={};
+      // Fallback Supabase si pas en localStorage
+      if (typeof sb === 'function' && sb()) {
+        const sid = actSid();
+        const dateStr = (activiteDate || new Date()).toISOString().slice(0, 10);
+        sb().from('activite').select('data').eq('station_id', sid).eq('date_jour', dateStr).maybeSingle().then(({ data }) => {
+          if (data && data.data) {
+            localStorage.setItem(actKey(), JSON.stringify(data.data));
+            const d = data.data;
+            activiteRoutes=d.routes||[]; activiteBU=d.bu||[]; activiteAST=d.ast||[]; activiteGolden=d.golden||{};
+            renderActivite();
+          }
+        }).catch(() => {});
+      }
+      return;
+    }
     const d = JSON.parse(raw);
     activiteRoutes=d.routes||[]; activiteBU=d.bu||[]; activiteAST=d.ast||[]; activiteGolden=d.golden||{};
   } catch(_) { activiteRoutes=[]; activiteBU=[]; activiteAST=[]; activiteGolden={}; }

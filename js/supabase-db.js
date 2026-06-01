@@ -508,6 +508,14 @@ window.preloadStationData = async function (stationId) {
   if (!sb()) return;
   console.log('📥 Préchargement données station', stationId, '...');
 
+  // Calculer la date limite — 3 mois en arrière
+  const limitDate = new Date();
+  limitDate.setMonth(limitDate.getMonth() - 3);
+  const limitDateStr = limitDate.toISOString().slice(0, 10);
+  const limitYearMonth = limitDateStr.slice(0, 7);
+  const limitYear = limitDate.getFullYear();
+  const limitMonth = limitDate.getMonth() + 1;
+
   // Créer l'écran de chargement
   const loadingScreen = document.createElement('div');
   loadingScreen.id = 'preload-loading-screen';
@@ -536,7 +544,7 @@ window.preloadStationData = async function (stationId) {
     updateProgress(5, 'Connexion à Supabase...');
 
     // Heures
-    const { data: heuresData } = await sb().from('heures').select('date_jour, data').eq('station_id', stationId);
+    const { data: heuresData } = await sb().from('heures').select('date_jour, data').eq('station_id', stationId).gte('date_jour', limitDateStr);
     if (heuresData) {
       // Only ADD/UPDATE from Supabase, never delete local data
       heuresData.forEach(h => {
@@ -548,7 +556,7 @@ window.preloadStationData = async function (stationId) {
     updateProgress(32, '⏰ Chargement des heures...');
 
     // Stats
-    const { data: statsData } = await sb().from('stats').select('type, semaine, data').eq('station_id', stationId);
+    const { data: statsData } = await sb().from('stats').select('type, semaine, data').eq('station_id', stationId).gte('semaine', limitYearMonth);
     if (statsData) {
       // Nettoyer les anciennes stats locales qui n'existent plus dans Supabase
       const supabaseKeys = new Set(statsData.map(s => stationId + '-stats-' + s.type + '-' + s.semaine));
@@ -567,7 +575,7 @@ window.preloadStationData = async function (stationId) {
     updateProgress(42, '📊 Chargement des statistiques...');
 
     // Primes — ne charger que si pas déjà en localStorage
-    const { data: primesData } = await sb().from('primes').select('annee, mois, data').eq('station_id', stationId);
+    const { data: primesData } = await sb().from('primes').select('annee, mois, data').eq('station_id', stationId).or(`annee.gt.${limitYear},and(annee.eq.${limitYear},mois.gte.${limitMonth})`);
     if (primesData) {
       let loaded = 0;
       primesData.forEach(p => {
@@ -582,7 +590,7 @@ window.preloadStationData = async function (stationId) {
     updateProgress(60, '💰 Chargement des primes...');
 
     // Activité
-    const { data: actData } = await sb().from('activite').select('date_jour, data').eq('station_id', stationId);
+    const { data: actData } = await sb().from('activite').select('date_jour, data').eq('station_id', stationId).gte('date_jour', limitDateStr);
     if (actData) {
       const supabaseKeys = new Set(actData.map(a => stationId + '-activite-' + a.date_jour));
       for (let i = localStorage.length - 1; i >= 0; i--) {
@@ -598,7 +606,7 @@ window.preloadStationData = async function (stationId) {
     updateProgress(67, '🚛 Chargement de l\'activité...');
 
     // Concessions
-    const { data: concData } = await sb().from('concessions').select('semaine, data').eq('station_id', stationId);
+    const { data: concData } = await sb().from('concessions').select('semaine, data').eq('station_id', stationId).gte('semaine', limitYearMonth);
     if (concData) {
       const supabaseKeys = new Set(concData.map(c => stationId + '-concessions-' + c.semaine));
       for (let i = localStorage.length - 1; i >= 0; i--) {
@@ -612,7 +620,7 @@ window.preloadStationData = async function (stationId) {
     }
 
     // Retards
-    const { data: retData } = await sb().from('retards').select('semaine, data').eq('station_id', stationId);
+    const { data: retData } = await sb().from('retards').select('semaine, data').eq('station_id', stationId).gte('semaine', limitYearMonth);
     if (retData) {
       const supabaseKeys = new Set(retData.map(r => stationId + '-retards-' + r.semaine));
       for (let i = localStorage.length - 1; i >= 0; i--) {
@@ -626,7 +634,7 @@ window.preloadStationData = async function (stationId) {
     }
 
     // Absences injustifiées
-    const { data: absData } = await sb().from('absences').select('semaine, data').eq('station_id', stationId);
+    const { data: absData } = await sb().from('absences').select('semaine, data').eq('station_id', stationId).gte('semaine', limitYearMonth);
     if (absData) {
       const supabaseKeys = new Set(absData.map(a => stationId + '-absences-' + a.semaine));
       for (let i = localStorage.length - 1; i >= 0; i--) {
@@ -647,7 +655,7 @@ window.preloadStationData = async function (stationId) {
     }
 
     // EOS
-    const { data: eosData } = await sb().from('eos').select('date_jour, data').eq('station_id', stationId);
+    const { data: eosData } = await sb().from('eos').select('date_jour, data').eq('station_id', stationId).gte('date_jour', limitDateStr);
     if (eosData) {
       const supabaseKeys = new Set(eosData.map(e => stationId + '-eos-' + e.date_jour));
       for (let i = localStorage.length - 1; i >= 0; i--) {

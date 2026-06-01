@@ -38,7 +38,15 @@ function renderHeures() {
   }
 
   const key = stationId + '-heures-' + dateKey(heuresCurrentDate);
-  const saved = loadDay(key);
+  let saved = loadDay(key);
+
+  // Fallback Supabase si pas en localStorage (date ancienne non préchargée)
+  if (!saved && typeof sb === 'function' && sb()) {
+    loadDayFromSupabase(key, stationId, dateKey(heuresCurrentDate)).then(data => {
+      if (data) renderHeures(); // Re-render si données trouvées
+    });
+  }
+
   const rows = buildRowData(chauffeurs, saved);
 
   const body = document.createElement('div');
@@ -896,6 +904,23 @@ function showStatutMenu(e, row, storageKey, allRows, stationId) {
 /* ── Persistance ──────────────────────────────────────────── */
 function loadDay(key) {
   try { const r = localStorage.getItem(key); return r ? JSON.parse(r) : null; } catch (_) { return null; }
+}
+
+// Fallback Supabase pour les dates anciennes non préchargées
+async function loadDayFromSupabase(key, stationId, dateStr) {
+  if (typeof sb !== 'function' || !sb()) return null;
+  try {
+    const { data } = await sb().from('heures')
+      .select('data')
+      .eq('station_id', stationId)
+      .eq('date_jour', dateStr)
+      .maybeSingle();
+    if (data && data.data) {
+      localStorage.setItem(key, JSON.stringify(data.data));
+      return data.data;
+    }
+  } catch(_) {}
+  return null;
 }
 
 function saveDay(key, rows, stationId) {

@@ -111,7 +111,23 @@ function saveStatsData(type, semaine, data) {
   try { localStorage.setItem(key, JSON.stringify(data)); } catch (_) {}
   if (typeof dbSave === 'function') dbSave('stats', key, { station_id: getStationId(), type, semaine }, data);
 }
-function loadStatsData(type, semaine) { try { const r = localStorage.getItem(statsStorageKey(type, semaine)); return r ? JSON.parse(r) : []; } catch (_) { return []; } }
+function loadStatsData(type, semaine) {
+  try {
+    const r = localStorage.getItem(statsStorageKey(type, semaine));
+    if (r) return JSON.parse(r);
+    // Fallback Supabase si pas en localStorage
+    if (typeof sb === 'function' && sb()) {
+      const sid = getStationId();
+      sb().from('stats').select('data').eq('station_id', sid).eq('type', type).eq('semaine', semaine).maybeSingle().then(({ data }) => {
+        if (data && data.data) {
+          localStorage.setItem(statsStorageKey(type, semaine), JSON.stringify(data.data));
+          if (typeof renderStats === 'function') renderStats();
+        }
+      }).catch(() => {});
+    }
+    return [];
+  } catch (_) { return []; }
+}
 
 function getWeeksList(type) {
   const prefix = getStationId() + '-stats-' + type + '-';
