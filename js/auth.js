@@ -161,13 +161,23 @@ async function loadProfile() {
 }
 
 /* ── Redirection selon le rôle ────────────────────────────── */
-function redirectByRole() {
+async function redirectByRole() {
   console.log('redirectByRole: currentProfile =', currentProfile);
   // Vérifier le mode maintenance
   if (typeof checkMaintenanceMode === 'function') checkMaintenanceMode();
   // Logger la connexion
   if (typeof logActivity === 'function') logActivity('login', {});
-  if (!currentProfile) { console.warn('redirectByRole: pas de profil, showApp par défaut'); showApp(); return; }
+  if (!currentProfile) {
+    console.warn('redirectByRole: pas de profil — compte supprimé ou non configuré');
+    // Déconnecter l'utilisateur et afficher un message
+    if (sb()) await sb().auth.signOut();
+    showLoginPage();
+    setTimeout(() => {
+      const errEl = document.getElementById('login-error');
+      if (errEl) { errEl.textContent = 'Ce compte a été supprimé ou n\'est pas configuré. Contactez votre responsable.'; errEl.style.display = 'block'; }
+    }, 100);
+    return;
+  }
 
   // Vérifier si alumni
   if (currentProfile.statut === 'alumni') {
