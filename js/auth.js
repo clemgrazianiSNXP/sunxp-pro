@@ -201,8 +201,10 @@ function showLoginPage() {
           <input type="password" id="login-password" class="rep-input" placeholder="Mot de passe" style="padding:12px;font-size:14px;">
           <button id="login-btn" style="padding:12px;font-size:14px;font-weight:700;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;transition:opacity 0.15s;">Se connecter</button>
         </div>
-        <p style="text-align:center;margin-top:16px;font-size:11px;color:var(--text-muted);">
-          <a href="legal.html" target="_blank" style="color:var(--text-muted);text-decoration:underline;">CGU & Confidentialité</a>
+        <p style="text-align:center;margin-top:16px;font-size:11px;color:var(--text-muted);line-height:1.6;">
+          En vous connectant, vous acceptez nos 
+          <a href="legal.html" target="_blank" style="color:var(--accent);text-decoration:underline;">CGU & Politique de confidentialité</a>.<br>
+          Vos données sont traitées par SunXP Pro conformément au RGPD.
         </p>
       </div>`;
     document.body.appendChild(loginPage);
