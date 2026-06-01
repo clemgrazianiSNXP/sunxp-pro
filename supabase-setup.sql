@@ -287,3 +287,24 @@ CREATE TABLE IF NOT EXISTS suivi_papiers (
 );
 ALTER TABLE suivi_papiers ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "allow_all" ON suivi_papiers FOR ALL USING (true) WITH CHECK (true);
+
+-- 23. Table Documents Signature (documents nécessitant signature chauffeur)
+CREATE TABLE IF NOT EXISTS documents_signature (
+  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  station_id TEXT NOT NULL REFERENCES stations(id) ON DELETE CASCADE,
+  chauffeur_id TEXT NOT NULL DEFAULT '',
+  chauffeur_nom TEXT NOT NULL DEFAULT '',
+  document_id TEXT NOT NULL,
+  document_nom TEXT NOT NULL DEFAULT '',
+  fichier_url TEXT DEFAULT '',
+  statut TEXT NOT NULL DEFAULT 'en_attente' CHECK (statut IN ('en_attente', 'signe', 'refuse')),
+  signature_url TEXT DEFAULT '',
+  signe_at TIMESTAMPTZ,
+  envoye_par TEXT DEFAULT '',
+  envoye_at TIMESTAMPTZ DEFAULT NOW(),
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_docsig_station ON documents_signature(station_id);
+CREATE INDEX IF NOT EXISTS idx_docsig_chauffeur ON documents_signature(chauffeur_id);
+ALTER TABLE documents_signature ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "allow_all" ON documents_signature FOR ALL USING (true) WITH CHECK (true);

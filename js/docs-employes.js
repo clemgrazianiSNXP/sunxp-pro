@@ -183,6 +183,11 @@ function showDocEmpForm(doc, stationId, allPersons) {
       <label style="font-size:11px;color:var(--text-muted);">Fichier (PDF, image...)</label>
       <input type="file" id="de-file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" style="font-size:12px;">
       ${doc?.fileUrl ? `<a href="${doc.fileUrl}" target="_blank" style="font-size:11px;color:var(--accent);">📎 Document actuel</a>` : ''}
+      <label style="font-size:11px;color:var(--text-muted);">Signature requise</label>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
+        <input type="checkbox" id="de-signature" ${doc?.signatureRequise ? 'checked' : ''} style="accent-color:var(--accent);width:16px;height:16px;">
+        <label for="de-signature" style="font-size:12px;color:var(--text-primary);cursor:pointer;">Ce document nécessite une signature du chauffeur</label>
+      </div>
     </div>
     <div style="display:flex;gap:10px;margin-top:16px;justify-content:flex-end;">
       <button class="h-btn" id="de-cancel" style="padding:8px 16px;">Annuler</button>
@@ -213,12 +218,43 @@ function showDocEmpForm(doc, stationId, allPersons) {
       if (url) fileUrl = url;
     }
 
-    const entry = { id, chauffeurNom, docName, fileUrl, fileName, createdAt: doc?.createdAt || new Date().toISOString() };
+    const entry = { id, chauffeurNom, docName, fileUrl, fileName, signatureRequise: modal.querySelector('#de-signature').checked, createdAt: doc?.createdAt || new Date().toISOString() };
 
     const all = loadDocsEmployes(stationId);
     const idx = all.findIndex(x => x.id === id);
     if (idx >= 0) all[idx] = entry; else all.push(entry);
     saveDocsEmployes(stationId, all);
+
+    // Si signature requise et fichier uploadé → insérer dans documents_signature
+    if (entry.signatureRequise && fileUrl) {
+      let chauffeurId = '';
+      try {
+        const repertoire = JSON.parse(localStorage.getItem(stationId + '-repertoire')) || [];
+        const found = repertoire.find(c => ((c.prenom || '') + ' ' + (c.nom || '')).trim() === chauffeurNom);
+        if (found) chauffeurId = found.id_amazon || '';
+      } catch(_) {}
+
+      if (typeof sb === 'function' && sb()) {
+        try {
+          await sb().from('documents_signature').insert({
+            station_id: stationId,
+            chauffeur_id: chauffeurId,
+            chauffeur_nom: chauffeurNom,
+            document_id: id,
+            document_nom: docName,
+            fichier_url: fileUrl,
+            statut: 'en_attente',
+            envoye_par: typeof currentUser !== 'undefined' ? (currentUser?.email || '') : '',
+            envoye_at: new Date().toISOString()
+          });
+          if (typeof sendPushToStation === 'function' && stationId) {
+            sendPushToStation(stationId, '📝 Document à signer', docName + ' — Veuillez signer ce document dans votre espace.', chauffeurId);
+          }
+        } catch(e) {
+          console.warn('Erreur insertion documents_signature:', e.message);
+        }
+      }
+    }
 
     overlay.remove();
     renderRH();
