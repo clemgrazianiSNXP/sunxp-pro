@@ -34,9 +34,10 @@ async function checkAuth() {
       }
     }
 
-    // Détecter le flow implicite (hash fragment avec type=recovery)
+    // Détecter le flow implicite (hash fragment avec type=recovery) ou query param
     const hashStr = window.location.hash.substring(1);
-    if (hashStr.includes('type=recovery')) {
+    const queryType = query.get('type');
+    if (hashStr.includes('type=recovery') || queryType === 'recovery') {
       // Attendre que Supabase traite le hash et établisse la session
       await new Promise(r => setTimeout(r, 500));
       window.history.replaceState(null, '', window.location.pathname);
