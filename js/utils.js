@@ -66,7 +66,7 @@ function dispatchModuleInit(moduleId) {
     flotte:     () => typeof initFlotte     === 'function' && initFlotte(),
     'chef-equipe': () => typeof initChefEquipe === 'function' && initChefEquipe(),
     repos:      () => typeof initRepos      === 'function' && initRepos(),
-    admin:      () => typeof initAdmin      === 'function' && initAdmin(),
+    admin:      () => typeof openAdminPanel === 'function' && openAdminPanel(),
   };
   if (fns[moduleId]) fns[moduleId]();
 }

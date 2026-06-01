@@ -14,68 +14,6 @@ function isAdmin() {
 }
 
 /**
- * Initialise le panneau admin.
- */
-function initAdmin() {
-  const container = document.getElementById('module-admin');
-  if (!container) return;
-
-  if (!isAdmin()) {
-    container.innerHTML = '<p style="padding:24px;color:var(--text-muted);">⛔ Accès refusé. Vous n\'avez pas les droits administrateur.</p>';
-    if (typeof showModule === 'function') showModule('accueil');
-    if (typeof dispatchModuleInit === 'function') dispatchModuleInit('accueil');
-    return;
-  }
-
-  renderAdmin();
-}
-
-/**
- * Rendu principal du panneau admin avec navigation par sous-onglets.
- */
-function renderAdmin() {
-  const container = document.getElementById('module-admin');
-  if (!container) return;
-  container.innerHTML = '';
-  container.style.cssText = 'display:flex;flex-direction:column;align-items:stretch;padding:0;overflow:hidden;';
-
-  const toolbar = document.createElement('div');
-  toolbar.className = 'h-toolbar';
-  toolbar.innerHTML = `<div class="h-toolbar-left" style="flex-wrap:wrap;gap:4px;">
-    <button class="h-btn rh-tab-btn ${adminTab==='monitoring'?'rh-tab-active':''}" data-admtab="monitoring">📊 Monitoring</button>
-    <button class="h-btn rh-tab-btn ${adminTab==='sauvegarde'?'rh-tab-active':''}" data-admtab="sauvegarde">💾 Sauvegarde</button>
-    <button class="h-btn rh-tab-btn ${adminTab==='utilisateurs'?'rh-tab-active':''}" data-admtab="utilisateurs">👥 Utilisateurs</button>
-    <button class="h-btn rh-tab-btn ${adminTab==='logs'?'rh-tab-active':''}" data-admtab="logs">📋 Logs</button>
-    <button class="h-btn rh-tab-btn ${adminTab==='maintenance'?'rh-tab-active':''}" data-admtab="maintenance">🔧 Maintenance</button>
-    <button class="h-btn rh-tab-btn ${adminTab==='notifications'?'rh-tab-active':''}" data-admtab="notifications">📢 Notifs</button>
-  </div><div class="h-toolbar-center"></div><div class="h-toolbar-right"></div>`;
-  toolbar.querySelectorAll('.rh-tab-btn').forEach(b => {
-    b.onclick = () => { adminTab = b.dataset.admtab; renderAdmin(); };
-  });
-  container.appendChild(toolbar);
-
-  const content = document.createElement('div');
-  content.style.cssText = 'flex:1;overflow:auto;padding:16px;';
-
-  if (adminTab === 'monitoring') {
-    content.innerHTML = '<p style="color:var(--text-muted);text-align:center;margin-top:40px;">📊 Monitoring — contenu à venir</p>';
-  } else if (adminTab === 'sauvegarde') {
-    content.innerHTML = '<p style="color:var(--text-muted);text-align:center;margin-top:40px;">💾 Sauvegarde — contenu à venir</p>';
-  } else if (adminTab === 'utilisateurs') {
-    content.innerHTML = '<p style="color:var(--text-muted);text-align:center;margin-top:40px;">👥 Utilisateurs — contenu à venir</p>';
-  } else if (adminTab === 'logs') {
-    content.innerHTML = '<p style="color:var(--text-muted);text-align:center;margin-top:40px;">📋 Logs — contenu à venir</p>';
-  } else if (adminTab === 'maintenance') {
-    content.innerHTML = '<p style="color:var(--text-muted);text-align:center;margin-top:40px;">🔧 Maintenance — contenu à venir</p>';
-  } else if (adminTab === 'notifications') {
-    content.innerHTML = '<p style="color:var(--text-muted);text-align:center;margin-top:40px;">📢 Notifications — contenu à venir</p>';
-    if (typeof renderAdminNotifications === 'function') renderAdminNotifications(content);
-  }
-
-  container.appendChild(content);
-}
-
-/**
  * Injecte dynamiquement la card "Admin" sur l'écran de choix de rôle.
  */
 function injectAdminCard() {
@@ -172,7 +110,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Exports globaux
-window.initAdmin = initAdmin;
 window.isAdmin = isAdmin;
 
 /* ── Vérification mode maintenance (appelé depuis auth.js) ── */
