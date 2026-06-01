@@ -2,7 +2,7 @@
 
 let flotteTab = 'camions'; // 'camions' | 'degats' | 'problemes' | 'entretien' | 'documents' | 'attribution'
 
-function initFlotte() { flotteTab = 'camions'; renderFlotte(); }
+function initFlotte() { flotteTab = 'attribution'; renderFlotte(); }
 
 /* ── Badge CT expirantes pour sous-onglet Suivi Entretien ── */
 function getCTBadgeHTML(sid) {
@@ -22,12 +22,12 @@ function renderFlotte() {
   const toolbar = document.createElement('div');
   toolbar.className = 'h-toolbar';
   toolbar.innerHTML = `<div class="h-toolbar-left">
+    <button class="h-btn rh-tab-btn ${flotteTab==='attribution'?'rh-tab-active':''}" data-ft="attribution">🔑 Attribution</button>
     <button class="h-btn rh-tab-btn ${flotteTab==='camions'?'rh-tab-active':''}" data-ft="camions">🚛 Camions</button>
     <button class="h-btn rh-tab-btn ${flotteTab==='degats'?'rh-tab-active':''}" data-ft="degats">🔧 Dégâts</button>
     <button class="h-btn rh-tab-btn ${flotteTab==='problemes'?'rh-tab-active':''}" data-ft="problemes">⚠️ Problèmes</button>
     <button class="h-btn rh-tab-btn ${flotteTab==='entretien'?'rh-tab-active':''}" data-ft="entretien" style="position:relative;">🛠 Suivi Entretien${getCTBadgeHTML(sid)}</button>
     <button class="h-btn rh-tab-btn ${flotteTab==='documents'?'rh-tab-active':''}" data-ft="documents">📄 Documents</button>
-    <button class="h-btn rh-tab-btn ${flotteTab==='attribution'?'rh-tab-active':''}" data-ft="attribution">🔑 Attribution</button>
   </div><div class="h-toolbar-center"></div><div class="h-toolbar-right"></div>`;
   toolbar.querySelectorAll('.rh-tab-btn').forEach(b => { b.onclick = () => { flotteTab = b.dataset.ft; renderFlotte(); }; });
   container.appendChild(toolbar);

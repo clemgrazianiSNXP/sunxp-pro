@@ -364,17 +364,20 @@ function buildAttrToolbar(sid, rows) {
     }
   };
 
-  // Dupliquer veille
+  // Dupliquer → J+1
   var dupBtn = document.createElement('button');
   dupBtn.className = 'rep-btn rep-btn-primary';
   dupBtn.style.cssText = 'font-size:11px;padding:6px 12px;margin-left:auto;';
-  dupBtn.textContent = '📋 Dupliquer veille';
+  dupBtn.textContent = '📋 Dupliquer → J+1';
   dupBtn.onclick = function() {
     attrSearchNoData = false;
-    var yest = new Date(attrDate); yest.setDate(yest.getDate() - 1);
-    var prevData = loadAttr(sid, yest);
-    if (!prevData) { alert('Pas de données la veille.'); return; }
-    saveAttr(sid, attrDate, JSON.parse(JSON.stringify(prevData)));
+    // Copier les données d'aujourd'hui vers demain
+    var currentData = loadAttr(sid, attrDate);
+    if (!currentData) { alert('Pas de données pour ce jour.'); return; }
+    var tomorrow = new Date(attrDate); tomorrow.setDate(tomorrow.getDate() + 1);
+    saveAttr(sid, tomorrow, JSON.parse(JSON.stringify(currentData)));
+    // Naviguer vers demain
+    attrDate = tomorrow;
     if (typeof renderFlotte === 'function') renderFlotte();
   };
 
