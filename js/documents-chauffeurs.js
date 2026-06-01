@@ -1,5 +1,8 @@
 ﻿/* js/documents-chauffeurs.js — Documents par chauffeur avec Supabase Storage (SunXP Pro) */
 
+const _docsChauffeurCache = {};
+const DOCS_CHAUFFEUR_TTL = 60000; // 60 secondes
+
 function getDocsChauffeursSid() {
   return window.getActiveStationId ? window.getActiveStationId() : 'default';
 }
@@ -21,24 +24,39 @@ function loadDocsChauffeur(chauffeurNom) {
   try { return JSON.parse(localStorage.getItem(getDocsChKey(chauffeurNom))) || []; } catch (_) { return []; }
 }
 async function loadDocsChauffeurAsync(chauffeurNom) {
+  const sid = getDocsChauffeursSid();
+  const cacheKey = sid + '-' + chauffeurNom;
+  const cached = _docsChauffeurCache[cacheKey];
+
+  // Retourner le cache si moins de 60 secondes
+  if (cached && Date.now() - cached.ts < DOCS_CHAUFFEUR_TTL) {
+    return cached.data;
+  }
+
   // Essayer de charger depuis Supabase d'abord
   if (typeof sb === 'function' && sb()) {
     try {
       const { data, error } = await sb().from('docs_chauffeurs').select('data')
-        .eq('station_id', getDocsChauffeursSid())
+        .eq('station_id', sid)
         .eq('chauffeur', chauffeurNom)
         .maybeSingle();
       if (!error && data && data.data) {
         localStorage.setItem(getDocsChKey(chauffeurNom), JSON.stringify(data.data));
+        // Mettre en cache
+        _docsChauffeurCache[cacheKey] = { data: data.data, ts: Date.now() };
         return data.data;
       }
     } catch (_) {}
   }
-  return loadDocsChauffeur(chauffeurNom);
+  const result = loadDocsChauffeur(chauffeurNom);
+  _docsChauffeurCache[cacheKey] = { data: result, ts: Date.now() };
+  return result;
 }
 function saveDocsChauffeur(chauffeurNom, docs) {
   const key = getDocsChKey(chauffeurNom);
   try { localStorage.setItem(key, JSON.stringify(docs)); } catch (_) {}
+  // Invalider le cache après modification
+  delete _docsChauffeurCache[getDocsChauffeursSid() + '-' + chauffeurNom];
   // Sync vers Supabase
   if (typeof dbSave === 'function') {
     dbSave('docs_chauffeurs', key, { station_id: getDocsChauffeursSid(), chauffeur: chauffeurNom }, docs);
