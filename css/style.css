@@ -1413,8 +1413,7 @@ body.theme-cubic .nav-tab.active {
     max-width: 100% !important;
   }
 
-  /* Sidebar cachée sur mobile — déjà géré */
-  .sidebar { display: none !important; }
+  /* Sidebar — ne pas cacher les onglets de navigation */
 
   /* Module view — pleine largeur */
   .module-view {
