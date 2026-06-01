@@ -76,6 +76,7 @@ function renderPortal() {
   else if (portalTab === 'rapport' && typeof portalRapport === 'function') body.appendChild(portalRapport());
   else if (portalTab === 'badges' && typeof renderBadgesTab === 'function') body.appendChild(renderBadgesTab());
   else if (portalTab === 'mes-docs' && typeof renderMesDocuments === 'function') body.appendChild(renderMesDocuments());
+  else if (portalTab === 'signer' && typeof portalDocumentsASigner === 'function') { portalDocumentsASigner().then(el => body.appendChild(el)); }
   else body.appendChild(portalProd());
   c.appendChild(body);
 

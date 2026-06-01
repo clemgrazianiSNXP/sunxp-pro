@@ -299,6 +299,8 @@ CREATE TABLE IF NOT EXISTS documents_signature (
   fichier_url TEXT DEFAULT '',
   statut TEXT NOT NULL DEFAULT 'en_attente' CHECK (statut IN ('en_attente', 'signe', 'refuse')),
   signature_url TEXT DEFAULT '',
+  signature_data TEXT DEFAULT '',
+  signature_date TIMESTAMPTZ,
   signe_at TIMESTAMPTZ,
   envoye_par TEXT DEFAULT '',
   envoye_at TIMESTAMPTZ DEFAULT NOW(),

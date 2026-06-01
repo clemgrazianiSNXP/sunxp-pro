@@ -58,6 +58,7 @@ function portalAccueil() {
     { id: 'rapport', icon: '📋', label: 'Mon Rapport', color: '#f97316' },
     { id: 'badges', icon: '🏆', label: 'Mes Badges', color: '#38bdf8' },
     { id: 'mes-docs', icon: '📄', label: 'Mes Documents', color: '#10b981' },
+    { id: 'signer', icon: '📝', label: 'À Signer', color: '#fbbf24' },
     { id: 'games', icon: '🎮', label: 'Mes Jeux', color: '#ff00ff' }
   ];
 
