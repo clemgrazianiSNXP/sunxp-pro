@@ -57,7 +57,7 @@ function renderAttribution() {
 
   // Header
   const thead = document.createElement('thead');
-  thead.innerHTML = '<tr style="text-align:center;"><th style="padding:2px;font-size:8px;"></th><th style="padding:4px 1px;font-size:9px;">TP</th><th style="padding:4px 1px;font-size:9px;">UTA</th><th style="padding:4px 2px;font-size:9px;text-align:center;">Plaque</th><th style="padding:4px 1px;font-size:9px;text-align:center;">Statut</th><th style="padding:4px 2px;font-size:9px;text-align:center;">Chauffeur</th><th style="padding:4px 1px;font-size:9px;">PDA</th><th style="padding:4px 1px;font-size:9px;">Trs</th><th style="padding:4px 1px;font-size:9px;">Lic</th><th style="padding:4px 1px;font-size:9px;">Clé</th><th style="padding:4px 1px;font-size:9px;">VIGIK</th><th style="padding:2px 0;font-size:8px;" title="Retour PDA">rP</th><th style="padding:2px 0;font-size:8px;" title="Retour Trousseau">rT</th><th style="padding:2px 0;font-size:8px;" title="Retour Licence">rL</th><th style="padding:2px 0;font-size:8px;" title="Retour Clé">rC</th><th style="padding:2px 0;font-size:8px;" title="Retour VIGIK">rV</th><th style="padding:2px 0;font-size:8px;">✓</th><th style="padding:4px 2px;font-size:9px;">Com.</th></tr>';
+  thead.innerHTML = '<tr style="text-align:center;"><th style="padding:2px;font-size:8px;"></th><th style="padding:4px 1px;font-size:9px;">Agence</th><th style="padding:4px 1px;font-size:9px;">TP</th><th style="padding:4px 1px;font-size:9px;">UTA</th><th style="padding:4px 2px;font-size:9px;text-align:center;">Plaque</th><th style="padding:4px 1px;font-size:9px;text-align:center;">Statut</th><th style="padding:4px 2px;font-size:9px;text-align:center;">Chauffeur</th><th style="padding:4px 1px;font-size:9px;">PDA</th><th style="padding:4px 1px;font-size:9px;">Trs</th><th style="padding:4px 1px;font-size:9px;">Lic</th><th style="padding:4px 1px;font-size:9px;">Clé</th><th style="padding:4px 1px;font-size:9px;">VIGIK</th><th style="padding:2px 0;font-size:8px;" title="Retour PDA">rP</th><th style="padding:2px 0;font-size:8px;" title="Retour Trousseau">rT</th><th style="padding:2px 0;font-size:8px;" title="Retour Licence">rL</th><th style="padding:2px 0;font-size:8px;" title="Retour Clé">rC</th><th style="padding:2px 0;font-size:8px;" title="Retour VIGIK">rV</th><th style="padding:2px 0;font-size:8px;">✓</th><th style="padding:4px 2px;font-size:9px;">Com.</th></tr>';
   table.appendChild(thead);
 
   // Body
@@ -72,6 +72,13 @@ function renderAttribution() {
     tdDrag.textContent = '⋮⋮';
     tdDrag.className = 'drag-handle';
     tr.appendChild(tdDrag);
+
+    // Agence (depuis les données camion)
+    var tdAgence = document.createElement('td');
+    tdAgence.style.cssText = 'padding:2px 4px;font-size:9px;color:var(--text-muted);white-space:nowrap;text-align:center;';
+    var camionData = camions.find(function(c) { return c.plaque === r.plaque; });
+    tdAgence.textContent = (camionData && camionData.agence) ? camionData.agence : '—';
+    tr.appendChild(tdAgence);
 
     // TP (input texte comme UTA)
     var tdTp = document.createElement('td');
