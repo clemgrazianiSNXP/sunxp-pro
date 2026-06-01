@@ -372,7 +372,12 @@ function showChauffeurDirect() {
         const logoutBtn = document.getElementById('topbar-logout');
         if (logoutBtn) logoutBtn.style.display = '';
         initChauffeurPortal(chauffeur, sid);
+      } else if (chauffeur && typeof initChauffeurPortal !== 'function') {
+        // initChauffeurPortal pas encore chargé — réessayer
+        console.warn('tryOpenPortal: initChauffeurPortal non disponible, tentative', attempts);
+        setTimeout(() => tryOpenPortal(attempts + 1), 500);
       } else {
+        // Chauffeur pas encore trouvé dans le répertoire — réessayer
         setTimeout(() => tryOpenPortal(attempts + 1), 500);
       }
     };
