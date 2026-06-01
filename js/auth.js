@@ -9,16 +9,6 @@ async function checkAuth() {
   await waitForSupabase();
   if (!sb()) { showLoginPage(); return; }
 
-  // Écouter les événements auth (recovery, sign in, etc.)
-  sb().auth.onAuthStateChange((event, session) => {
-    console.log('Auth event:', event);
-    if (event === 'PASSWORD_RECOVERY') {
-      // Supabase a détecté le lien de recovery et établi la session
-      window.history.replaceState(null, '', window.location.pathname);
-      showResetPasswordPage();
-    }
-  });
-
   try {
     // Détecter le flow PKCE (code dans les query params)
     const query = new URLSearchParams(window.location.search);
@@ -26,18 +16,14 @@ async function checkAuth() {
     const type = query.get('type');
 
     if (code) {
-      // Flow PKCE : échanger le code contre une session
       try {
         const { data, error } = await sb().auth.exchangeCodeForSession(code);
-        console.log('exchangeCodeForSession:', data ? 'OK' : 'no data', error ? error.message : '');
         if (!error && data?.session) {
           window.history.replaceState(null, '', window.location.pathname);
-          // Si c'est un recovery, afficher la page de reset
-          if (type === 'recovery' || data.session.user?.recovery_sent_at) {
+          if (type === 'recovery') {
             showResetPasswordPage();
             return;
           }
-          // Sinon connexion normale
           currentUser = data.session.user;
           await loadProfile();
           redirectByRole();
@@ -48,25 +34,11 @@ async function checkAuth() {
       }
     }
 
-    // Détecter le flow implicite (hash fragment)
+    // Détecter le flow implicite (hash fragment avec type=recovery)
     const hashStr = window.location.hash.substring(1);
     if (hashStr.includes('type=recovery')) {
-      const hashParams = new URLSearchParams(hashStr);
-      const hashToken = hashParams.get('access_token') || '';
-      
-      // Vérifier si le token est un vrai JWT (doit contenir des points)
-      if (hashToken && hashToken.includes('.')) {
-        // Vrai JWT — attendre que onAuthStateChange se déclenche
-        await new Promise(r => setTimeout(r, 1500));
-        const { data: { session } } = await sb().auth.getSession();
-        if (session) {
-          window.history.replaceState(null, '', window.location.pathname);
-          showResetPasswordPage();
-          return;
-        }
-      }
-      
-      // Token invalide ou pas de session — afficher un message d'erreur
+      // Attendre que Supabase traite le hash et établisse la session
+      await new Promise(r => setTimeout(r, 500));
       window.history.replaceState(null, '', window.location.pathname);
       showResetPasswordPage();
       return;
