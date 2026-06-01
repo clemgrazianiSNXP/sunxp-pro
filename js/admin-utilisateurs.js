@@ -39,8 +39,8 @@ async function renderAdminUtilisateurs(container) {
           const amazonPart = (c.id_amazon || '').slice(0, 4);
           const telDigits = (c.telephone || '').replace(/\D/g, '');
           const telPart = telDigits.slice(-4);
-          const mdp = amazonPart + telPart;
-          if (mdp.length < 6) { alert('Impossible : mot de passe trop court (' + mdp.length + ' chars). ID Amazon: "' + (c.id_amazon || '') + '" | Téléphone: "' + (c.telephone || '') + '"'); return; }
+          let mdp = amazonPart + telPart;
+          if (mdp.length < 6) mdp = mdp + '0000'.slice(0, 6 - mdp.length); // Compléter à 6 min
           createBtn.textContent = '⏳...'; createBtn.disabled = true;
           try {
             // Créer le compte via un client séparé
