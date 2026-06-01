@@ -6,7 +6,7 @@ console.log('demandes-auto.js chargé');
  * Écrase RSTD/REP (planning généré) mais pas les autres codes manuels.
  */
 function applyDemandeToPlanning(stationId, chauffeurNom, dateStr, code) {
-  const date = new Date(dateStr);
+  const date = new Date(dateStr + 'T12:00:00');
   const year = date.getFullYear();
   const month = date.getMonth();
   const day = date.getDate();
@@ -31,10 +31,11 @@ function applyDemandeToPlanning(stationId, chauffeurNom, dateStr, code) {
  * Applique CP pour chaque jour d'un congé accepté.
  */
 function applyCongeToPlanning(stationId, demande) {
-  const start = new Date(demande.dateDebut);
-  const end = new Date(demande.dateFin);
+  const start = new Date((demande.dateDebut || '').slice(0, 10) + 'T12:00:00');
+  const end = new Date((demande.dateFin || '').slice(0, 10) + 'T12:00:00');
   const nom = demande.chauffeurNom;
   for (let dt = new Date(start); dt <= end; dt.setDate(dt.getDate() + 1)) {
+    dt.setHours(12, 0, 0, 0); // Maintenir midi pour éviter les problèmes de fuseau
     applyDemandeToPlanning(stationId, nom, dt.toISOString(), 'CP');
   }
 }
