@@ -372,7 +372,18 @@ function buildAttrToolbar(sid, rows) {
   };
 
   bar.appendChild(prev); bar.appendChild(label); bar.appendChild(next);
-  bar.appendChild(todayBtn); bar.appendChild(dateSearch); bar.appendChild(searchBtn); bar.appendChild(dupBtn);
+  bar.appendChild(todayBtn); bar.appendChild(dateSearch); bar.appendChild(searchBtn);
+
+  // Bulle validation matériel (avant Dupliquer)
+  const validationBubble = document.createElement('div');
+  validationBubble.style.cssText = 'position:relative;display:inline-block;margin-left:auto;overflow:visible;';
+  const validationBtn = document.createElement('button');
+  validationBtn.className = 'h-btn';
+  validationBtn.style.cssText = 'font-size:11px;padding:5px 10px;position:relative;overflow:visible;';
+  validationBtn.textContent = '📋 Matériel';
+  validationBubble.appendChild(validationBtn);
+  bar.appendChild(validationBubble);
+  bar.appendChild(dupBtn);
 
   // Compteur vans par statut
   var countOK = 0, countBU = 0, countX = 0;
@@ -387,15 +398,7 @@ function buildAttrToolbar(sid, rows) {
   countEl.innerHTML = '<span style="color:#4ade80;">OK: ' + countOK + '</span><span style="color:#60a5fa;">BU: ' + countBU + '</span><span style="color:#f87171;">X: ' + countX + '</span>';
   bar.appendChild(countEl);
 
-  // Bulle validation matériel
-  const validationBubble = document.createElement('div');
-  validationBubble.style.cssText = 'position:relative;display:inline-block;margin-left:8px;overflow:visible;';
-  const validationBtn = document.createElement('button');
-  validationBtn.className = 'h-btn';
-  validationBtn.style.cssText = 'font-size:11px;padding:5px 10px;position:relative;';
-  validationBtn.textContent = '📋 Matériel';
-  validationBubble.appendChild(validationBtn);
-
+  // Charger les validations du jour pour le badge
   const todayStr = new Date().toISOString().slice(0, 10);
   if (typeof sb === 'function' && sb()) {
     sb().from('materiel_validations')
@@ -409,19 +412,17 @@ function buildAttrToolbar(sid, rows) {
         const totalValides = validations ? validations.length : 0;
         const total = chauffeurs.length;
 
-        if (nonValides.length > 0) {
-          const badge = document.createElement('span');
-          badge.style.cssText = 'position:absolute;top:-8px;right:-8px;background:#f87171;color:#fff;font-size:9px;font-weight:700;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;z-index:10;';
-          badge.textContent = nonValides.length;
-          validationBubble.appendChild(badge);
-        }
+        // Mettre le nombre directement dans le texte du bouton
+        validationBtn.textContent = '📋 Matériel ' + (nonValides.length > 0 ? '(' + nonValides.length + ')' : '✅');
+        if (nonValides.length > 0) validationBtn.style.color = '#f87171';
+        else validationBtn.style.color = '#4ade80';
 
         validationBtn.onclick = () => {
           const existing = document.getElementById('materiel-panel');
           if (existing) { existing.remove(); return; }
           const panel = document.createElement('div');
           panel.id = 'materiel-panel';
-          panel.style.cssText = 'position:absolute;top:36px;right:0;background:var(--bg-sidebar);border:1px solid var(--border);border-radius:10px;padding:14px;min-width:280px;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,0.3);';
+          panel.style.cssText = 'position:absolute;top:36px;left:0;background:var(--bg-sidebar);border:1px solid var(--border);border-radius:10px;padding:14px;min-width:280px;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,0.3);';
           panel.innerHTML = '<div style="font-size:13px;font-weight:700;margin-bottom:10px;">📋 Validation matériel — ' + todayStr + '</div><div style="font-size:12px;color:#4ade80;margin-bottom:8px;">✅ ' + totalValides + '/' + total + ' validés</div>';
 
           if (nonValides.length) {
@@ -460,7 +461,6 @@ function buildAttrToolbar(sid, rows) {
         };
       });
   }
-  bar.appendChild(validationBubble);
 
   return bar;
 }
