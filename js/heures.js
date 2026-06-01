@@ -206,6 +206,15 @@ function buildToolbar(stationId) {
   bar.querySelector('#h-view-semaine').onclick = () => { heuresFirstRender = true; heuresView = 'semaine'; renderHeures(); };
   bar.querySelector('#h-view-mois').onclick = () => { heuresFirstRender = true; heuresView = 'mois'; renderHeures(); };
 
+  // Recherche calendrier
+  const dateSearch = document.createElement('input'); dateSearch.type = 'date'; dateSearch.value = heuresCurrentDate.toISOString().slice(0,10);
+  dateSearch.style.cssText = 'width:140px;padding:5px 8px;font-size:11px;border:1px solid var(--border);border-radius:4px;background:var(--bg-primary);color:var(--text-primary);';
+  const searchBtn = document.createElement('button'); searchBtn.className = 'h-btn'; searchBtn.textContent = 'Chercher'; searchBtn.style.cssText = 'padding:5px 10px;font-size:11px;';
+  searchBtn.onclick = () => { if (!dateSearch.value) return; heuresCurrentDate = new Date(dateSearch.value); renderHeures(); };
+  dateSearch.addEventListener('keydown', e => { if (e.key === 'Enter') searchBtn.click(); });
+  bar.querySelector('.h-toolbar-center').appendChild(dateSearch);
+  bar.querySelector('.h-toolbar-center').appendChild(searchBtn);
+
   // Bulle d'alerte heures supplémentaires semaine précédente (jour et semaine uniquement)
   if (heuresView !== 'mois') {
     const overtimeData = getOvertimeData(stationId, heuresCurrentDate);
