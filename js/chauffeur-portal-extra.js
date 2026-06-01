@@ -275,3 +275,93 @@ function portalRapport() {
 
   return wrap;
 }
+
+/* ── Onglet Mes Documents (chauffeur) ─────────────────────── */
+function renderMesDocuments() {
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'display:flex;flex-direction:column;gap:12px;';
+  const nom = ((portalChauffeur.prenom || '') + ' ' + (portalChauffeur.nom || '')).trim();
+  const sid = portalStationId;
+
+  const title = document.createElement('div');
+  title.style.cssText = 'text-align:center;margin-bottom:8px;';
+  title.innerHTML = '<div style="font-size:15px;font-weight:700;">📄 Mes Documents</div><div style="font-size:12px;color:var(--text-muted);">Documents RH mis à disposition par votre responsable</div>';
+  wrap.appendChild(title);
+
+  // Charger les documents depuis localStorage (synced from docs_employes)
+  let allDocs = [];
+  try { allDocs = JSON.parse(localStorage.getItem(sid + '-docs-employes')) || []; } catch (_) {}
+
+  // Filtrer pour ce chauffeur
+  const myDocs = allDocs.filter(d => d.chauffeurNom && d.chauffeurNom.trim().toLowerCase() === nom.toLowerCase());
+
+  // Fallback Supabase si localStorage vide
+  if (!myDocs.length && typeof sb === 'function' && sb()) {
+    const loading = document.createElement('div');
+    loading.style.cssText = 'text-align:center;padding:20px;color:var(--text-muted);font-size:12px;';
+    loading.textContent = '⏳ Chargement depuis le serveur...';
+    wrap.appendChild(loading);
+
+    sb().from('docs_employes').select('data').eq('station_id', sid).maybeSingle().then(({ data }) => {
+      if (data && data.data && Array.isArray(data.data)) {
+        localStorage.setItem(sid + '-docs-employes', JSON.stringify(data.data));
+        // Re-render
+        const container = wrap.parentElement;
+        if (container) {
+          container.innerHTML = '';
+          container.appendChild(renderMesDocuments());
+        }
+      } else {
+        loading.textContent = 'Aucun document disponible.';
+      }
+    }).catch(() => { loading.textContent = 'Erreur de chargement.'; });
+
+    return wrap;
+  }
+
+  if (!myDocs.length) {
+    const empty = document.createElement('div');
+    empty.className = 'portal-card';
+    empty.style.cssText += 'text-align:center;';
+    empty.innerHTML = '<div style="font-size:28px;margin-bottom:8px;">📂</div><div style="font-size:13px;color:var(--text-muted);">Aucun document disponible pour le moment.</div><div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Vos documents RH apparaîtront ici quand votre responsable les ajoutera.</div>';
+    wrap.appendChild(empty);
+    return wrap;
+  }
+
+  // Afficher les documents
+  myDocs.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+
+  const countCard = document.createElement('div');
+  countCard.style.cssText = 'background:var(--bg-sidebar);border:1px solid var(--border);border-radius:10px;padding:12px 16px;text-align:center;';
+  countCard.innerHTML = `<span style="font-size:13px;font-weight:700;color:var(--accent);">${myDocs.length} document${myDocs.length > 1 ? 's' : ''}</span>`;
+  wrap.appendChild(countCard);
+
+  myDocs.forEach(doc => {
+    const card = document.createElement('div');
+    card.style.cssText = 'background:var(--bg-sidebar);border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px;';
+
+    const icon = (doc.fileName || '').match(/\.(jpg|jpeg|png)$/i) ? '🖼' : '📄';
+    const dateStr = doc.createdAt ? new Date(doc.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }) : '';
+
+    card.innerHTML = `
+      <span style="font-size:28px;">${icon}</span>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:700;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(doc.docName || 'Document')}</div>
+        <div style="font-size:11px;color:var(--text-muted);">${dateStr}</div>
+      </div>
+    `;
+
+    if (doc.fileUrl) {
+      const viewBtn = document.createElement('a');
+      viewBtn.href = doc.fileUrl;
+      viewBtn.target = '_blank';
+      viewBtn.style.cssText = 'background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600;text-decoration:none;white-space:nowrap;';
+      viewBtn.textContent = '👁 Voir';
+      card.appendChild(viewBtn);
+    }
+
+    wrap.appendChild(card);
+  });
+
+  return wrap;
+}

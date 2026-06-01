@@ -57,6 +57,7 @@ function portalAccueil() {
     { id: 'degats', icon: '🔧', label: 'Mes Dégâts', color: '#f87171' },
     { id: 'rapport', icon: '📋', label: 'Mon Rapport', color: '#f97316' },
     { id: 'badges', icon: '🏆', label: 'Mes Badges', color: '#38bdf8' },
+    { id: 'mes-docs', icon: '📄', label: 'Mes Documents', color: '#10b981' },
     { id: 'games', icon: '🎮', label: 'Mes Jeux', color: '#ff00ff' }
   ];
 

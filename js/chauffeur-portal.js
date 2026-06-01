@@ -75,6 +75,7 @@ function renderPortal() {
   else if (portalTab === 'degats' && typeof portalDegats === 'function') body.appendChild(portalDegats());
   else if (portalTab === 'rapport' && typeof portalRapport === 'function') body.appendChild(portalRapport());
   else if (portalTab === 'badges' && typeof renderBadgesTab === 'function') body.appendChild(renderBadgesTab());
+  else if (portalTab === 'mes-docs' && typeof renderMesDocuments === 'function') body.appendChild(renderMesDocuments());
   else body.appendChild(portalProd());
   c.appendChild(body);
 
