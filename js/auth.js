@@ -395,7 +395,7 @@ function showChauffeurDirect() {
 
     // Forcer le preload des données de la station puis ouvrir le portail
     const tryOpenPortal = async (attempts) => {
-      if (attempts > 20) {
+      if (attempts > 40) {
         console.warn('showChauffeurDirect: chauffeur non trouvé après 20 tentatives');
         // Cacher l'app-layout pour ne pas exposer l'espace responsable
         const appLayout = document.querySelector('.app-layout');
