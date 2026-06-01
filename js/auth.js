@@ -173,7 +173,16 @@ async function redirectByRole() {
   if (typeof logActivity === 'function') logActivity('login', {});
   if (!currentProfile) {
     console.warn('redirectByRole: pas de profil dans user_profiles');
-    // Afficher un écran d'erreur au lieu de donner accès responsable
+    // Si c'est un admin connu ou un email responsable → laisser passer quand même
+    if (currentUser && currentUser.email) {
+      const adminEmails = ['amazon.grazianisnxp@gmail.com'];
+      if (adminEmails.includes(currentUser.email) || currentUser.email.includes('snxp') || currentUser.email.includes('sunxp')) {
+        console.log('redirectByRole: email reconnu, accès responsable malgré profil manquant');
+        showApp();
+        return;
+      }
+    }
+    // Sinon afficher un écran d'erreur
     const loginPage = document.getElementById('login-page');
     if (loginPage) loginPage.style.display = 'none';
     const portal = document.getElementById('chauffeur-portal');
