@@ -48,11 +48,11 @@ function renderAttribution() {
 
   const table = document.createElement('table');
   table.className = 'h-table';
-  table.style.cssText = 'font-size:11px;width:100%;border-collapse:collapse;table-layout:fixed;';
+  table.style.cssText = 'font-size:11px;min-width:900px;border-collapse:collapse;';
 
   // Colgroup pour contrôler les largeurs
   const colgroup = document.createElement('colgroup');
-  colgroup.innerHTML = '<col style="width:16px"><col style="width:24px"><col style="width:36px"><col style="width:70px"><col style="width:40px"><col style="width:130px"><col style="width:34px"><col style="width:34px"><col style="width:30px"><col style="width:40px"><col style="width:40px"><col style="width:20px"><col style="width:20px"><col style="width:20px"><col style="width:20px"><col style="width:20px"><col style="width:20px"><col style="width:120px">';
+  colgroup.innerHTML = '<col style="width:18px"><col style="width:36px"><col style="width:40px"><col style="width:50px"><col style="width:72px"><col style="width:42px"><col style="width:120px"><col style="width:40px"><col style="width:40px"><col style="width:36px"><col style="width:48px"><col style="width:44px"><col style="width:22px"><col style="width:22px"><col style="width:22px"><col style="width:22px"><col style="width:22px"><col style="width:22px"><col style="width:140px">';
   table.appendChild(colgroup);
 
   // Header
