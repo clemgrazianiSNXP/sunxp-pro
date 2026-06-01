@@ -94,6 +94,7 @@ async function renderAdminUtilisateurs(container) {
           <button class="h-btn admin-reset-pwd" data-uid="${p.id}" data-name="${(p.prenom || '') + ' ' + (p.nom || '')}" style="font-size:10px;padding:4px 8px;color:#fbbf24;border-color:#fbbf24;">🔑 Reset MDP</button>
           <button class="h-btn admin-alumni-toggle" data-uid="${p.id}" data-name="${(p.prenom || '') + ' ' + (p.nom || '')}" data-statut="${p.statut || 'actif'}" style="font-size:10px;padding:4px 8px;color:${isAlumni ? '#4ade80' : '#6b7280'};border-color:${isAlumni ? '#4ade80' : '#6b7280'};">${isAlumni ? '✅ Réactiver' : '📦 Alumni'}</button>
           <button class="h-btn admin-delete-user" data-uid="${p.id}" data-name="${(p.prenom || '') + ' ' + (p.nom || '')}" style="font-size:10px;padding:4px 8px;color:#f87171;border-color:#f87171;">🗑 Supprimer</button>
+          <button class="h-btn admin-export-rgpd" data-uid="${p.id}" data-name="${(p.prenom || '') + ' ' + (p.nom || '')}" data-station="${p.station_id || ''}" data-chauffeur="${p.chauffeur_id || ''}" style="font-size:10px;padding:4px 8px;color:#58a6ff;border-color:#58a6ff;">📥 RGPD</button>
         `;
         wrap.appendChild(div);
       });
@@ -179,6 +180,202 @@ async function renderAdminUtilisateurs(container) {
           else { alert('✅ Compte supprimé: ' + name.trim()); if (window.logActivity) window.logActivity('admin_delete_user', { user_id: uid, nom: name.trim() }); }
           renderAdminUtilisateurs(container);
         } catch (e) { alert('Erreur: ' + e.message); btn.textContent = '🗑 Supprimer'; btn.disabled = false; }
+      });
+    });
+
+    // Bind boutons Export RGPD
+    container.querySelectorAll('.admin-export-rgpd').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const uid = btn.dataset.uid;
+        const nom = btn.dataset.name.trim();
+        const stationId = btn.dataset.station;
+        const chauffeurId = btn.dataset.chauffeur;
+        btn.textContent = '⏳...'; btn.disabled = true;
+
+        // Récupérer le profil
+        const p = (profiles || []).find(pr => pr.id === uid) || {};
+
+        // Collecter les données
+        const exportData = { heures: [], stats_dsdpmo: [], primes: [], docs_employes: [], game_scores: [] };
+
+        try {
+          if (stationId && chauffeurId) {
+            // Heures
+            const { data: heuresRows } = await sb().from('heures').select('date_jour, data').eq('station_id', stationId);
+            if (heuresRows) {
+              heuresRows.forEach(row => {
+                if (row.data && row.data.rows) {
+                  Object.values(row.data.rows).forEach(r => {
+                    if (r.nom && r.nom.trim() === nom) {
+                      exportData.heures.push({ date: row.date_jour, statut: r.statut || '', heureVague: r.heureVague || '', retourDepot: r.retourDepot || '', pause: r.pause || '' });
+                    }
+                  });
+                }
+              });
+            }
+
+            // Stats
+            const { data: statsRows } = await sb().from('stats').select('*').eq('station_id', stationId);
+            if (statsRows) {
+              statsRows.forEach(s => {
+                if (s.data && Array.isArray(s.data)) {
+                  s.data.forEach(d => {
+                    if (d.nom && d.nom.trim() === nom) {
+                      exportData.stats_dsdpmo.push({ semaine: s.semaine, colis: d.colis || '', dcrPct: d.dcrPct || '', dnrDpmo: d.dnrDpmo || '' });
+                    }
+                  });
+                }
+              });
+            }
+
+            // Primes
+            const { data: primesRows } = await sb().from('primes').select('*').eq('station_id', stationId);
+            if (primesRows) {
+              primesRows.forEach(pr => {
+                if (pr.data && pr.data[chauffeurId]) {
+                  const row = pr.data[chauffeurId];
+                  exportData.primes.push({ annee: pr.annee, mois: pr.mois, jours: row.jours || '', absences: row.absences || '' });
+                }
+              });
+            }
+
+            // Docs employes
+            const { data: docsRows } = await sb().from('docs_employes').select('*').eq('station_id', stationId).eq('chauffeur_nom', nom);
+            if (docsRows) {
+              docsRows.forEach(d => {
+                if (d.data && Array.isArray(d.data)) exportData.docs_employes.push(...d.data);
+              });
+            }
+
+            // Game scores
+            const { data: gameRows } = await sb().from('game_scores').select('*').eq('chauffeur_id', chauffeurId).eq('station_id', stationId);
+            if (gameRows) exportData.game_scores = gameRows;
+          }
+        } catch (e) { console.warn('RGPD export data error:', e.message); }
+
+        // Générer un fichier HTML lisible
+        const formatDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR') : '—';
+        const formatDateTime = (d) => d ? new Date(d).toLocaleString('fr-FR') : '—';
+
+        let html = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Données personnelles — ${nom}</title>
+<style>
+  body { font-family: Arial, sans-serif; max-width: 900px; margin: 0 auto; padding: 24px; color: #1a1a2e; }
+  h1 { color: #0066cc; border-bottom: 2px solid #0066cc; padding-bottom: 8px; }
+  h2 { color: #0066cc; margin-top: 32px; font-size: 16px; border-left: 4px solid #0066cc; padding-left: 10px; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+  th { background: #0066cc; color: white; padding: 8px 12px; text-align: left; }
+  td { padding: 7px 12px; border-bottom: 1px solid #e0e0e0; }
+  tr:nth-child(even) { background: #f5f8ff; }
+  .meta { background: #f0f4ff; border: 1px solid #ccd9ff; border-radius: 8px; padding: 16px; margin-bottom: 24px; font-size: 13px; }
+  .empty { color: #999; font-style: italic; font-size: 13px; padding: 8px 0; }
+  .footer { margin-top: 40px; font-size: 11px; color: #999; border-top: 1px solid #e0e0e0; padding-top: 12px; }
+</style>
+</head>
+<body>
+<h1>📋 Données personnelles — ${nom}</h1>
+<div class="meta">
+  <strong>Date d'export :</strong> ${formatDateTime(new Date().toISOString())}<br>
+  <strong>Objet :</strong> Exercice du droit d'accès RGPD<br>
+  <strong>Responsable du traitement :</strong> SunXP Pro — M. Battaglia<br>
+  <strong>Contact :</strong> RHsunxp@outlook.fr
+</div>
+
+<h2>👤 Informations personnelles</h2>
+<table>
+  <tr><th>Champ</th><th>Valeur</th></tr>
+  <tr><td>Nom</td><td>${p.nom || '—'}</td></tr>
+  <tr><td>Prénom</td><td>${p.prenom || '—'}</td></tr>
+  <tr><td>Rôle</td><td>${p.role || '—'}</td></tr>
+  <tr><td>Station</td><td>${p.station_id || '—'}</td></tr>
+  <tr><td>ID Amazon</td><td>${p.chauffeur_id || '—'}</td></tr>
+  <tr><td>Statut</td><td>${p.statut || 'actif'}</td></tr>
+</table>
+
+<h2>⏰ Heures travaillées (${exportData.heures.length} entrées)</h2>
+${exportData.heures.length ? `
+<table>
+  <tr><th>Date</th><th>Statut</th><th>Heure départ</th><th>Retour dépôt</th><th>Pause</th></tr>
+  ${exportData.heures.slice(0, 100).map(h => `
+  <tr>
+    <td>${formatDate(h.date)}</td>
+    <td>${h.statut || '—'}</td>
+    <td>${h.heureVague || '—'}</td>
+    <td>${h.retourDepot || '—'}</td>
+    <td>${h.pause || '—'} min</td>
+  </tr>`).join('')}
+  ${exportData.heures.length > 100 ? `<tr><td colspan="5" style="color:#999;font-style:italic;">... et ${exportData.heures.length - 100} entrées supplémentaires</td></tr>` : ''}
+</table>` : '<p class="empty">Aucune donnée d\'heures.</p>'}
+
+<h2>📊 Statistiques de performance (${exportData.stats_dsdpmo.length} semaines)</h2>
+${exportData.stats_dsdpmo.length ? `
+<table>
+  <tr><th>Semaine</th><th>Colis livrés</th><th>DCR %</th><th>DNR DPMO</th></tr>
+  ${exportData.stats_dsdpmo.map(s => `
+  <tr>
+    <td>${s.semaine || '—'}</td>
+    <td>${s.colis || '—'}</td>
+    <td>${s.dcrPct || '—'} %</td>
+    <td>${s.dnrDpmo || '—'}</td>
+  </tr>`).join('')}
+</table>` : '<p class="empty">Aucune statistique disponible.</p>'}
+
+<h2>💰 Primes (${exportData.primes.length} mois)</h2>
+${exportData.primes.length ? `
+<table>
+  <tr><th>Période</th><th>Jours travaillés</th><th>Prime base</th><th>Absences</th></tr>
+  ${exportData.primes.map(pr => `
+  <tr>
+    <td>${pr.annee || '—'} / ${pr.mois || '—'}</td>
+    <td>${pr.jours || '—'}</td>
+    <td>${pr.jours ? (pr.jours >= 16 ? '140' : '—') : '—'} €</td>
+    <td>${pr.absences || '0'}</td>
+  </tr>`).join('')}
+</table>` : '<p class="empty">Aucune donnée de prime.</p>'}
+
+<h2>📄 Documents RH (${exportData.docs_employes.length} documents)</h2>
+${exportData.docs_employes.length ? `
+<table>
+  <tr><th>Document</th><th>Date d'ajout</th><th>Lien</th></tr>
+  ${exportData.docs_employes.map(d => `
+  <tr>
+    <td>${d.docName || d.nom_document || '—'}</td>
+    <td>${formatDate(d.createdAt || d.created_at)}</td>
+    <td>${d.fileUrl ? `<a href="${d.fileUrl}" target="_blank">Voir le document</a>` : '—'}</td>
+  </tr>`).join('')}
+</table>` : '<p class="empty">Aucun document RH.</p>'}
+
+<h2>🎮 Scores de jeux (${exportData.game_scores.length} entrées)</h2>
+${exportData.game_scores.length ? `
+<table>
+  <tr><th>Jeu</th><th>Score</th><th>Date</th></tr>
+  ${exportData.game_scores.map(s => `
+  <tr>
+    <td>${s.game_id || '—'}</td>
+    <td>${s.score || '—'}</td>
+    <td>${formatDate(s.created_at)}</td>
+  </tr>`).join('')}
+</table>` : '<p class="empty">Aucun score de jeu.</p>'}
+
+<div class="footer">
+  Document généré le ${formatDateTime(new Date().toISOString())} par SunXP Pro.<br>
+  Pour toute question : RHsunxp@outlook.fr — Conformément au Règlement (UE) 2016/679 (RGPD).
+</div>
+</body>
+</html>`;
+
+        const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url;
+        a.download = 'donnees-rgpd-' + nom.replace(/\s/g, '-').toLowerCase() + '-' + new Date().toISOString().slice(0, 10) + '.html';
+        a.click(); URL.revokeObjectURL(url);
+
+        btn.textContent = '✅ Exporté'; btn.disabled = false;
+        if (window.logActivity) window.logActivity('admin_export_rgpd', { user_id: uid, nom });
+        alert('✅ Export RGPD généré pour ' + nom);
       });
     });
   } catch (e) { container.innerHTML = '<p style="color:#f87171;">Erreur: ' + e.message + '</p>'; }
