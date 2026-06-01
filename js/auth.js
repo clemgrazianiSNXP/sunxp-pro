@@ -350,7 +350,7 @@ function showChauffeurDirect() {
 
       // Forcer le preload si le répertoire n'est pas encore chargé
       let repertoire = (() => { try { return JSON.parse(localStorage.getItem(sid + '-repertoire')) || []; } catch(_) { return []; } })();
-      if (!repertoire.length && typeof preloadStationData === 'function' && attempts === 0) {
+      if (!repertoire.length && typeof preloadStationData === 'function' && attempts <= 1) {
         await preloadStationData(sid);
         repertoire = (() => { try { return JSON.parse(localStorage.getItem(sid + '-repertoire')) || []; } catch(_) { return []; } })();
       }
@@ -361,7 +361,12 @@ function showChauffeurDirect() {
       const searchId = (currentProfile.chauffeur_id || '').trim().toUpperCase().replace(/\s/g, '');
       const chauffeur = repertoire.find(c =>
         c.id_amazon && c.id_amazon.trim().toUpperCase().replace(/\s/g, '') === searchId
-      );
+      ) || repertoire.find(c => {
+        // Fallback : chercher par nom+prénom si l'ID ne matche pas
+        const pNom = ((currentProfile.prenom || '') + ' ' + (currentProfile.nom || '')).trim().toLowerCase();
+        const cNom = ((c.prenom || '') + ' ' + (c.nom || '')).trim().toLowerCase();
+        return pNom && cNom && pNom === cNom;
+      });
       console.log('tryOpenPortal: searchId =', searchId, '| trouvé =', !!chauffeur, '| initChauffeurPortal =', typeof initChauffeurPortal);
       if (chauffeur && typeof initChauffeurPortal === 'function') {
         console.log('✅ Chauffeur trouvé, ouverture portail');
