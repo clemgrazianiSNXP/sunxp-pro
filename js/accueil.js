@@ -1,6 +1,24 @@
 /* js/accueil.js — Tableau de bord Accueil Responsable (SunXP Pro) */
 console.log('accueil.js chargé');
 
+function navigateToTab(module, tab) {
+  if (typeof showModule === 'function') showModule(module);
+  // Attendre que le module soit rendu puis ouvrir le bon onglet
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      if (tab === 'demandes-mgr' || tab === 'badges-mgr' || tab === 'analyse') {
+        const btn = document.getElementById('hamburger-btn');
+        if (btn) btn.click();
+        requestAnimationFrame(() => {
+          if (typeof setMenuTab === 'function') setMenuTab(tab);
+        });
+      } else if (tab && typeof setMenuTab === 'function') {
+        setMenuTab(tab);
+      }
+    });
+  });
+}
+
 function initAccueil() { renderAccueil(); if (typeof updateNavBadges === 'function') updateNavBadges(); }
 
 function renderAccueil() {
@@ -100,7 +118,7 @@ function buildDemandesCard(sid) {
   }
 
   card.querySelector('.accueil-card-body').style.cursor = 'pointer';
-  card.querySelector('.accueil-card-body').onclick = function() { showModule('heures'); setTimeout(function() { var btn = document.getElementById('hamburger-btn'); if (btn) btn.click(); setTimeout(function() { if (typeof setMenuTab === 'function') setMenuTab('demandes-mgr'); }, 100); }, 100); };
+  card.querySelector('.accueil-card-body').onclick = () => navigateToTab('heures', 'demandes-mgr');
   return card;
 }
 
@@ -186,7 +204,7 @@ function buildProblemesCard(sid) {
   }
 
   card.querySelector('.accueil-card-body').style.cursor = 'pointer';
-  card.querySelector('.accueil-card-body').onclick = () => { showModule('flotte'); setTimeout(() => { if (typeof renderFlotte === 'function') { flotteTab = 'problemes'; renderFlotte(); } }, 50); };
+  card.querySelector('.accueil-card-body').onclick = () => { showModule('flotte'); requestAnimationFrame(() => { if (typeof renderFlotte === 'function') { flotteTab = 'problemes'; renderFlotte(); } }); };
   return card;
 }
 
@@ -241,7 +259,7 @@ function buildVMExpirationCard(sid) {
   }
 
   card.querySelector('.accueil-card-body').style.cursor = 'pointer';
-  card.querySelector('.accueil-card-body').onclick = () => { showModule('rh'); setTimeout(() => { rhTab = 'suivi-papiers'; renderRH(); }, 50); };
+  card.querySelector('.accueil-card-body').onclick = () => { showModule('rh'); requestAnimationFrame(() => { rhTab = 'suivi-papiers'; renderRH(); }); };
   return card;
 }
 
@@ -266,7 +284,7 @@ function buildCTExpirationCard(sid) {
   }
 
   card.querySelector('.accueil-card-body').style.cursor = 'pointer';
-  card.querySelector('.accueil-card-body').onclick = () => { showModule('flotte'); setTimeout(() => { flotteTab = 'entretien'; renderFlotte(); }, 50); };
+  card.querySelector('.accueil-card-body').onclick = () => { showModule('flotte'); requestAnimationFrame(() => { flotteTab = 'entretien'; renderFlotte(); }); };
   return card;
 }
 
@@ -438,7 +456,7 @@ function buildAcomptesVirementCard(sid) {
   }
 
   card.querySelector('.accueil-card-body').style.cursor = 'pointer';
-  card.querySelector('.accueil-card-body').onclick = () => { showModule('heures'); setTimeout(() => { const btn = document.getElementById('hamburger-btn'); if (btn) btn.click(); setTimeout(() => { if (typeof setMenuTab === 'function') setMenuTab('demandes-mgr'); }, 100); }, 100); };
+  card.querySelector('.accueil-card-body').onclick = () => navigateToTab('heures', 'demandes-mgr');
   return card;
 }
 
