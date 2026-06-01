@@ -19,7 +19,7 @@ async function checkAuth() {
 
     if (type === 'recovery' && accessToken) {
       window.history.replaceState(null, '', window.location.pathname);
-      showResetPasswordPage(accessToken);
+      showResetPasswordPage(accessToken, refreshToken);
       return;
     }
 
@@ -39,7 +39,7 @@ async function checkAuth() {
 }
 
 /* ── Page de réinitialisation de mot de passe ────────────── */
-function showResetPasswordPage(accessToken) {
+function showResetPasswordPage(accessToken, refreshToken) {
   // Cacher tout
   const appLayout = document.querySelector('.app-layout');
   if (appLayout) appLayout.style.display = 'none';
@@ -91,13 +91,14 @@ function showResetPasswordPage(accessToken) {
     try {
       // Ré-établir la session juste avant de changer le mot de passe
       if (accessToken) {
-        await sb().auth.setSession({
+        const { error: sessErr } = await sb().auth.setSession({
           access_token: accessToken,
-          refresh_token: ''
+          refresh_token: refreshToken || ''
         });
+        if (sessErr) console.warn('setSession warning:', sessErr.message);
       }
       const { error } = await sb().auth.updateUser({ password: pwd1 });
-      if (error && !error.message.toLowerCase().includes('session')) throw error;
+      if (error) throw error;
 
       resetPage.innerHTML = `
         <div style="text-align:center;padding:24px;">
