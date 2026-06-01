@@ -168,20 +168,8 @@ async function redirectByRole() {
   // Logger la connexion
   if (typeof logActivity === 'function') logActivity('login', {});
   if (!currentProfile) {
-    // Vérifier si c'est un admin sans profil (rôle admin dans les metadata)
-    const userMeta = currentUser?.user_metadata || {};
-    if (userMeta.role === 'admin' || userMeta.role === 'responsable') {
-      console.log('redirectByRole: pas de profil mais metadata admin/responsable, showApp');
-      showApp();
-      return;
-    }
-    console.warn('redirectByRole: pas de profil — compte supprimé ou non configuré');
-    if (sb()) await sb().auth.signOut();
-    showLoginPage();
-    setTimeout(() => {
-      const errEl = document.getElementById('login-error');
-      if (errEl) { errEl.textContent = 'Ce compte a été supprimé ou n\'est pas configuré. Contactez votre responsable.'; errEl.style.display = 'block'; }
-    }, 100);
+    console.warn('redirectByRole: pas de profil dans user_profiles, accès responsable par défaut');
+    showApp();
     return;
   }
 
