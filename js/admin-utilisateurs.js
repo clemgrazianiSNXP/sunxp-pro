@@ -31,9 +31,10 @@ async function renderAdminUtilisateurs(container) {
         `;
         const createBtn = document.createElement('button');
         createBtn.className = 'h-btn';
-        createBtn.style.cssText = 'font-size:9px;padding:3px 8px;color:#4ade80;border-color:#4ade80;white-space:nowrap;';
+        createBtn.style.cssText = 'font-size:9px;padding:3px 8px;color:#4ade80;border-color:#4ade80;white-space:nowrap;position:relative;z-index:10;';
         createBtn.textContent = '+ Créer le compte';
-        createBtn.onclick = async (e) => {
+        createBtn.addEventListener('click', async (e) => {
+          e.preventDefault();
           e.stopPropagation();
           console.log('🔧 Créer le compte cliqué pour:', c.email, c.id_amazon);
           const email = c.email;
@@ -75,7 +76,7 @@ async function renderAdminUtilisateurs(container) {
             createBtn.style.color = '#4ade80';
             if (window.logActivity) window.logActivity('admin_create_account', { email, nom: c.prenom + ' ' + c.nom, station: c.station_id });
           } catch (err) { alert('Erreur: ' + err.message); createBtn.textContent = '+ Créer le compte'; createBtn.disabled = false; }
-        };
+        });
         row.appendChild(createBtn);
         scList.appendChild(row);
       });
