@@ -78,28 +78,6 @@ async function savePushSubscription(subscription) {
   }
 }
 
-/* ── Envoyer une notification à tous les chauffeurs d'une station ── */
-async function sendPushToStation(stationId, title, body) {
-  if (!sb || !sb()) return;
-
-  try {
-    // Appeler la Edge Function Supabase
-    const { data, error } = await sb().functions.invoke('send-push', {
-      body: { station_id: stationId, title: title, body: body }
-    });
-
-    if (error) {
-      console.error('Erreur envoi push:', error.message);
-      return false;
-    }
-    console.log('✅ Push envoyé:', data);
-    return true;
-  } catch (e) {
-    console.error('sendPushToStation error:', e.message);
-    return false;
-  }
-}
-
 /* ── Utilitaire : convertir la clé VAPID ──────────────────── */
 function urlBase64ToUint8Array(base64String) {
   const padding = '='.repeat((4 - base64String.length % 4) % 4);
@@ -115,4 +93,3 @@ function urlBase64ToUint8Array(base64String) {
 /* ── Init automatique pour les chauffeurs ─────────────────── */
 // Appelé depuis chauffeur-accueil.js après connexion
 window.initPushNotifications = initPushNotifications;
-window.sendPushToStation = sendPushToStation;
