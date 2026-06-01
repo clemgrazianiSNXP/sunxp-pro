@@ -27,7 +27,10 @@ function renderAttribution() {
   if (!attrSearchNoData) {
     rows = loadAttr(sid, attrDate);
     if (!rows) {
-      rows = camions.map(c => ({ plaque: c.plaque, modele: (c.marque || '') + ' ' + (c.modele || ''), bva: c.bva || false, chauffeur: '', pda: '', trs: '', lic: '', clef: '', vigik: '', com: '' }));
+      rows = camions
+        .slice()
+        .sort(function(a, b) { return (a.agence || '').localeCompare(b.agence || ''); })
+        .map(c => ({ plaque: c.plaque, modele: (c.marque || '') + ' ' + (c.modele || ''), bva: c.bva || false, chauffeur: '', pda: '', trs: '', lic: '', clef: '', vigik: '', com: '' }));
       saveAttr(sid, attrDate, rows);
     }
   }
