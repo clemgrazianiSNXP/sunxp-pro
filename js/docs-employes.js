@@ -139,6 +139,12 @@ function renderDocsEmployes() {
               const all = loadDocsEmployes(stationId).filter(x => x.id !== d.id);
               if (d.fileName) deleteDocEmpFile(stationId, d.id, d.fileName);
               saveDocsEmployes(stationId, all);
+              // Supprimer aussi la signature associée dans Supabase
+              if (d.signatureRequise && typeof sb === 'function' && sb()) {
+                sb().from('documents_signature').delete().eq('document_id', d.id).then(() => {
+                  console.log('Signature supprimée pour document', d.id);
+                }).catch(e => console.warn('Erreur suppression signature:', e.message));
+              }
               renderRH();
             });
           }
