@@ -11,6 +11,10 @@ function initPrimes() {
 
 function getStationIdP() { return window.getActiveStationId ? window.getActiveStationId() : 'default'; }
 
+function getChauffeursList(sid) {
+  return typeof loadChauffeurs === 'function' ? loadChauffeurs(sid) : [];
+}
+
 /* ── Rendu principal ──────────────────────────────────────── */
 function renderPrimes() {
   const container = document.getElementById('module-primes');
