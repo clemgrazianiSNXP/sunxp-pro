@@ -156,6 +156,9 @@ function renderDocsEmployes() {
   renderList('');
   wrap.appendChild(listContainer);
 
+  // Suivi des signatures
+  renderSignatureStatus(stationId, wrap);
+
   return wrap;
 }
 
@@ -259,4 +262,50 @@ function showDocEmpForm(doc, stationId, allPersons) {
     overlay.remove();
     renderRH();
   };
+}
+
+
+/* ── Suivi des signatures côté responsable ────────────────── */
+async function renderSignatureStatus(stationId, container) {
+  if (!sb || !sb()) return;
+  try {
+    const { data } = await sb()
+      .from('documents_signature')
+      .select('*')
+      .eq('station_id', stationId)
+      .order('envoye_at', { ascending: false });
+
+    if (!data || !data.length) return;
+
+    const section = document.createElement('div');
+    section.style.cssText = 'margin-top:20px;';
+    section.innerHTML = '<div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:10px;">✍️ Suivi des signatures</div>';
+
+    data.forEach(doc => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--bg-sidebar);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;font-size:12px;';
+
+      const statut = doc.statut === 'signe'
+        ? '<span style="color:#4ade80;font-weight:700;">✅ Signé</span>'
+        : '<span style="color:#fbbf24;font-weight:700;">⏳ En attente</span>';
+
+      const date = doc.statut === 'signe'
+        ? new Date(doc.signature_date).toLocaleDateString('fr-FR')
+        : new Date(doc.envoye_at).toLocaleDateString('fr-FR');
+
+      row.innerHTML = `
+        <div style="flex:1;">
+          <div style="font-weight:600;">${doc.document_nom}</div>
+          <div style="font-size:10px;color:var(--text-muted);">${doc.chauffeur_nom} — ${date}</div>
+        </div>
+        ${statut}
+        ${doc.statut === 'signe' && doc.signature_data ? `<img src="${doc.signature_data}" style="height:30px;border:1px solid var(--border);border-radius:4px;">` : ''}
+      `;
+      section.appendChild(row);
+    });
+
+    container.appendChild(section);
+  } catch(e) {
+    console.warn('renderSignatureStatus:', e.message);
+  }
 }

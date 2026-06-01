@@ -201,3 +201,30 @@ function showSignatureModal(doc, parentWrap, sid, chauffeurId) {
     }
   };
 }
+
+
+/* ── Badge documents en attente ───────────────────────────── */
+async function checkDocumentsASignerBadge() {
+  if (!sb || !sb()) return;
+  try {
+    const { count } = await sb()
+      .from('documents_signature')
+      .select('*', { count: 'exact', head: true })
+      .eq('station_id', portalStationId)
+      .eq('chauffeur_id', portalChauffeur.id_amazon)
+      .eq('statut', 'en_attente');
+
+    if (count && count > 0) {
+      const signerTab = document.querySelector('[data-tab="signer"]');
+      if (signerTab) {
+        const badge = document.createElement('span');
+        badge.style.cssText = 'position:absolute;top:-4px;right:-4px;background:#f87171;color:#fff;font-size:8px;font-weight:700;border-radius:50%;width:14px;height:14px;display:flex;align-items:center;justify-content:center;';
+        badge.textContent = count;
+        signerTab.style.position = 'relative';
+        signerTab.appendChild(badge);
+      }
+    }
+  } catch(e) {
+    console.warn('checkDocumentsASignerBadge:', e.message);
+  }
+}

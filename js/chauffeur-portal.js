@@ -28,6 +28,8 @@ function initChauffeurPortal(chauffeur, stationId) {
   // Charger les semaines publiées depuis Supabase
   if (typeof loadPublishedFromSupabase === 'function') loadPublishedFromSupabase(stationId).then(() => renderPortal());
   else renderPortal();
+  // Vérifier les documents en attente de signature (badge)
+  if (typeof checkDocumentsASignerBadge === 'function') setTimeout(checkDocumentsASignerBadge, 2500);
 }
 
 /* ── Rendu principal ──────────────────────────────────────── */
