@@ -334,7 +334,7 @@ function buildRowData(chauffeurs, saved) {
 /* ── Tableau principal ────────────────────────────────────── */
 function buildTable(rows, storageKey, stationId) {
   const vagueColors = assignVagueColors(rows);
-  const cols = ['Chauffeur','Travail','Vague','Pause','H.Pause','Fin Pause','Secteur','Retour','Backups','Mentor','Trajet','Faute','Ess.','AdBlue','Ticket','Camion'];
+  const cols = ['Chauffeur','Travail','Vague','Pause','H.Pause','Fin Pause','Secteur','Retour','BU','Mentor','Trajet','Faute','Ess.','AdBlue','Ticket','Camion'];
 
   const table = document.createElement('table');
   table.className = 'h-table';
@@ -404,11 +404,11 @@ function buildRow(row, vagueColors, storageKey, stationId, allRows) {
     <td>${isSpecial ? `<input class="h-inp" data-f="specialTravail" value="${specialTravail}" style="color:${specialColor};font-weight:700;width:50px;text-align:center;" ${dis}>` : `<span class="h-travail" id="travail-${row.key}"></span>`}</td>
     <td>${isSpecial ? '' : `<input class="h-inp h-calc" data-f="heureVague" value="${row.heureVague}" ${dis}>`}</td>
     <td>${isSpecial ? '' : `<input class="h-inp h-inp-sm h-calc" data-f="pause" value="${row.pause}" ${dis}>`}</td>
-    <td>${isSpecial ? '' : `<input class="h-inp" data-f="heurePause" value="${row.heurePause}" ${dis}>`}</td>
-    <td>${isSpecial ? '' : `<span class="h-fin-pause" id="finpause-${row.key}"></span>`}</td>
-    <td>${isSpecial ? '' : `<input class="h-inp" data-f="secteur" value="${row.secteur}" style="width:60px;" ${dis}>`}</td>
+    <td>${isSpecial ? '' : `<input class="h-inp" data-f="heurePause" value="${row.heurePause}" style="color:#4ade80;font-weight:700;" ${dis}>`}</td>
+    <td>${isSpecial ? '' : `<span class="h-fin-pause" id="finpause-${row.key}" style="color:#4ade80;font-weight:700;"></span>`}</td>
+    <td>${isSpecial ? '' : `<input class="h-inp" data-f="secteur" value="${row.secteur}" style="width:90px;" ${dis}>`}</td>
     <td>${isSpecial ? '' : `<input class="h-inp h-calc" data-f="retourDepot" value="${row.retourDepot}" ${dis}>`}</td>
-    <td>${isSpecial ? '' : `<input class="h-inp h-inp-sm" data-f="backups" value="${row.backups}" style="width:40px;color:#f97316;font-weight:700;" ${dis}>`}</td>
+    <td>${isSpecial ? '' : `<input class="h-inp h-inp-sm" data-f="backups" value="${row.backups}" style="width:32px;color:#f97316;font-weight:700;" ${dis}>`}</td>
     <td>${isSpecial ? '' : `<input class="h-inp h-inp-sm" data-f="mentor" value="${row.mentor}" style="color:${mentorColor(row.mentor, row.trajet)};font-weight:700;width:36px;" ${dis}>`}</td>
     <td class="h-trajet-stars" data-key="${row.key}">${isSpecial ? '' : buildStarRating(row.trajet, dis)}</td>
     <td>${isSpecial ? '' : `<input class="h-inp h-inp-faute" data-f="faute" value="${row.faute || ''}" placeholder="" style="width:90px;max-width:90px;" ${dis}>`}</td>
@@ -967,7 +967,7 @@ function buildWeekView(stationId, chauffeurs) {
     const q = (query||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
     const filtered = chauffeurs.filter(c => (c.prenom+' '+c.nom).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().includes(q));
     let html = `<h2 style="margin-bottom:12px;font-size:1rem;color:var(--text-muted)">Semaine du ${dateLabel(monday)}</h2>`;
-    html += '<table class="h-table"><thead><tr><th>Chauffeur</th>' + days.map(d => `<th>${d.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric'})}</th>`).join('') + '<th>Total</th><th>Backups</th><th>Astreinte</th><th>Chime</th><th>Safety</th><th>Sup. 35h</th><th>Jours</th><th>Abs.</th></tr></thead><tbody>';
+    html += '<table class="h-table"><thead><tr><th>Chauffeur</th>' + days.map(d => `<th>${d.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric'})}</th>`).join('') + '<th>Total</th><th>BU</th><th>Astreinte</th><th>Chime</th><th>Safety</th><th>Sup. 35h</th><th>Jours</th><th>Abs.</th></tr></thead><tbody>';
     filtered.forEach(c => {
       const ck = (c.prenom + ' ' + c.nom).trim();
       const { totalMin, joursTravailes, backupsMin, astreinteMin, chimeMin, safetyMin, absences } = calcWeekTotal(stationId, ck, monday);
@@ -1037,7 +1037,7 @@ function buildMonthView(stationId, chauffeurs) {
     let html = `<h2 style="margin-bottom:12px;font-size:1rem;color:var(--text-muted)">Mois de ${monthName}</h2>`;
     html += '<table class="h-table"><thead><tr><th>Chauffeur</th>';
     weekHeaders.forEach((wh, i) => { html += `<th title="${mondays[i].toLocaleDateString('fr-FR',{day:'numeric',month:'short'})}">${wh}</th>`; });
-    html += '<th>Total</th><th>Backups</th><th>Astreinte</th><th>Chime</th><th>Safety</th><th>Sup. 35h</th><th>Jours</th><th>Abs.</th></tr></thead><tbody>';
+    html += '<th>Total</th><th>BU</th><th>Astreinte</th><th>Chime</th><th>Safety</th><th>Sup. 35h</th><th>Jours</th><th>Abs.</th></tr></thead><tbody>';
 
     filtered.forEach(c => {
       const ck = (c.prenom + ' ' + c.nom).trim();
