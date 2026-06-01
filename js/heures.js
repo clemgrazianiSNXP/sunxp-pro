@@ -20,6 +20,8 @@ function initHeures() {
 function renderHeures() {
   const container = document.getElementById('module-heures');
   if (!container) return;
+  // Ne pas rendre le module heures responsable en mode chauffeur
+  if (typeof isDriverMode === 'function' && isDriverMode()) return;
   container.innerHTML = '';
   container.style.cssText = 'display:flex;flex-direction:column;align-items:stretch;padding:0;overflow:hidden;';
 
@@ -43,7 +45,7 @@ function renderHeures() {
   // Fallback Supabase si pas en localStorage (date ancienne non préchargée)
   if (!saved && typeof sb === 'function' && sb()) {
     loadDayFromSupabase(key, stationId, dateKey(heuresCurrentDate)).then(data => {
-      if (data) renderHeures(); // Re-render si données trouvées
+      if (data && !isDriverMode()) renderHeures(); // Re-render seulement en mode responsable
     });
   }
 
