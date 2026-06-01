@@ -234,7 +234,7 @@ function buildPortalMateriel(sid, nom, now) {
     validateBtn.style.background = '#4ade80';
     validateBtn.style.color = '#000';
   } else {
-    validateBtn.textContent = '✅ Valider mon matériel';
+    validateBtn.textContent = '📋 Valider mon matériel';
     validateBtn.onclick = async () => {
       const heure = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
       const validData = {

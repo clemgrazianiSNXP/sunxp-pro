@@ -8,7 +8,7 @@ function startGameLivreurParfait() {
   let stageTimer = null, stageTimeLeft = 30;
   let finishedEarly = [false,false,false,false,false];
   const STAGES = ['Memoire','Chargement','Scan Express','Bonne Boite','GPS Casse'];
-  const STAGE_ICONS = ['🧠','🏗️','⚡','🚪','🗺️'];
+  const STAGE_ICONS = ['🧠','🏗️','⚡','📬','🗺️'];
 
   function getRank(s) {
     if (s >= 8001) return '👑 Livreur Parfait';
@@ -29,7 +29,7 @@ function startGameLivreurParfait() {
       + '<div style="padding:4px 0;">1. 🧠 Memoire — retenir l\'ordre</div>'
       + '<div style="padding:4px 0;">2. 🏗️ Chargement — remplir le camion</div>'
       + '<div style="padding:4px 0;">3. ⚡ Scan Express — scanner vite</div>'
-      + '<div style="padding:4px 0;">4. 🚪 Bonne Boite — trouver la boite</div>'
+      + '<div style="padding:4px 0;">4. 📬 Bonne Boite — trouver la boite</div>'
       + '<div style="padding:4px 0;">5. 🗺️ GPS Casse — suivre le chemin</div>'
       + '</div>'
       + '<button onclick="runStage(0)" style="padding:14px 32px;background:linear-gradient(135deg,#f97316,#ef4444);color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:900;cursor:pointer;">▶ COMMENCER</button>'

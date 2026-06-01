@@ -1,4 +1,4 @@
-﻿/* js/game-boite.js — Mini-jeu Bonne Boîte aux Lettres 🚪 (SunXP Pro) */
+﻿/* js/game-boite.js — Mini-jeu Bonne Boîte aux Lettres 📬 (SunXP Pro) */
 
 function startGameBoite() {
   const portal = document.getElementById('chauffeur-portal');
@@ -177,7 +177,7 @@ function startGameBoite() {
       <div style="display:flex;flex-direction:column;height:100%;background:var(--bg-primary,#12121a);color:var(--text-primary,#fff);">
         <div id="boite-header" style="padding:8px 14px;background:var(--bg-sidebar,#1e1e2e);border-bottom:1px solid var(--border,#333);display:flex;align-items:center;gap:8px;flex-shrink:0;">
           <button onclick="initGamesPage()" style="padding:4px 8px;background:var(--bg-primary);color:var(--text-primary);border:1px solid var(--border);border-radius:4px;cursor:pointer;font-size:11px;">←</button>
-          <span style="font-size:12px;font-weight:700;">🚪 Bonne Boîte</span>
+          <span style="font-size:12px;font-weight:700;">📬 Bonne Boîte</span>
           <span id="boite-lives" style="margin-left:auto;"></span>
           <span id="boite-score" style="font-family:monospace;color:var(--accent,#7c6af7);font-size:13px;font-weight:700;">0</span>
         </div>
@@ -266,7 +266,7 @@ function startGameBoite() {
 
     portal.innerHTML = `
       <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:20px;color:#fff;text-align:center;background:var(--bg-primary,#12121a);">
-        <div style="font-size:48px;margin-bottom:10px;">🚪💥</div>
+        <div style="font-size:48px;margin-bottom:10px;">📬💥</div>
         <h2 style="font-size:22px;margin:0 0 8px;">Game Over!</h2>
         <p style="font-size:28px;font-weight:bold;color:#fbbf24;margin:0 0 4px;">${score} pts</p>
         <p style="font-size:13px;color:#9ca3af;margin:0 0 20px;">Niveau ${level} • ${questionNum} colis livrés</p>
