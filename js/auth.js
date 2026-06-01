@@ -312,13 +312,44 @@ function showLoginError(msg) {
 function showApp() {
   const loginPage = document.getElementById('login-page');
   if (loginPage) loginPage.style.display = 'none';
-  // Afficher le role-screen (choix de station) pour les responsables
+
+  // Si le profil a une station définie → aller directement sans passer par le role-screen
+  if (currentProfile && currentProfile.station_id) {
+    const sid = currentProfile.station_id;
+    localStorage.setItem('stationActive', sid);
+    sessionStorage.setItem('stationActive', sid);
+
+    // Cacher le role-screen
+    const roleScreen = document.getElementById('role-screen');
+    if (roleScreen) roleScreen.hidden = true;
+
+    // Afficher le bouton logout et la toolbar
+    const logoutBtn = document.getElementById('topbar-logout');
+    if (logoutBtn) logoutBtn.style.display = '';
+    if (typeof showToolbar === 'function') showToolbar(true);
+
+    // Charger directement la station
+    if (typeof setActiveStation === 'function') {
+      setActiveStation(sid);
+    } else {
+      let attempts = 0;
+      const trySet = setInterval(() => {
+        attempts++;
+        if (typeof setActiveStation === 'function') {
+          clearInterval(trySet);
+          setActiveStation(sid);
+        }
+        if (attempts > 20) clearInterval(trySet);
+      }, 100);
+    }
+    return;
+  }
+
+  // Sinon — afficher l'écran de sélection de station normalement
   const roleScreen = document.getElementById('role-screen');
   if (roleScreen) roleScreen.hidden = false;
-  // Afficher le bouton logout
   const logoutBtn = document.getElementById('topbar-logout');
   if (logoutBtn) logoutBtn.style.display = '';
-  // Afficher la toolbar
   if (typeof showToolbar === 'function') showToolbar(true);
 }
 
