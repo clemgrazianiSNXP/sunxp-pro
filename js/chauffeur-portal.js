@@ -35,7 +35,7 @@ function renderPortal() {
   const c = document.getElementById('chauffeur-portal');
   if (!c) return;
   c.innerHTML = '';
-  c.style.cssText = 'display:flex;flex-direction:column;min-height:100vh;background:var(--bg-primary);color:var(--text-primary);';
+  c.style.cssText = 'display:flex;flex-direction:column;height:100vh;background:var(--bg-primary);color:var(--text-primary);overflow:hidden;';
   // Re-show hamburger when leaving games
   const hamburger = document.getElementById('hamburger-btn');
   if (hamburger) hamburger.style.display = '';

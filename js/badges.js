@@ -23,7 +23,7 @@ async function loadBadgesFromSupabase(stationId, chauffeurId) {
   }
 }
 
-async function renderBadgesTab() {
+function renderBadgesTab() {
   const wrap = document.createElement('div');
   wrap.style.cssText = 'padding:16px;display:flex;flex-direction:column;gap:16px;overflow-y:auto;';
 
@@ -40,13 +40,14 @@ async function renderBadgesTab() {
   let saved = {};
   try { const raw = localStorage.getItem(badgeKey); if (raw) saved = JSON.parse(raw); } catch (_) {}
 
-  // Si localStorage vide, essayer Supabase
+  // Si localStorage vide, essayer Supabase en arrière-plan
   if (!Object.keys(saved).length) {
-    const fromSupabase = await loadBadgesFromSupabase(sid, cId);
-    if (fromSupabase) {
-      saved = fromSupabase;
-      try { localStorage.setItem(badgeKey, JSON.stringify(saved)); } catch (_) {}
-    }
+    loadBadgesFromSupabase(sid, cId).then(fromSupabase => {
+      if (fromSupabase) {
+        try { localStorage.setItem(badgeKey, JSON.stringify(fromSupabase)); } catch (_) {}
+        if (typeof renderPortal === 'function') renderPortal();
+      }
+    });
   }
 
   // Calculer les badges actuels
