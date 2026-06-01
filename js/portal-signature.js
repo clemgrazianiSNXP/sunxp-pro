@@ -160,7 +160,15 @@ function showSignatureModal(doc, parentWrap, sid, chauffeurId) {
     btn.textContent = '⏳...'; btn.disabled = true;
 
     try {
-      const signatureData = canvas.toDataURL('image/png');
+      // Convertir en JPEG avec fond blanc (plus petit, compatible Gmail)
+      const jpegCanvas = document.createElement('canvas');
+      jpegCanvas.width = canvas.width;
+      jpegCanvas.height = canvas.height;
+      const jpegCtx = jpegCanvas.getContext('2d');
+      jpegCtx.fillStyle = '#ffffff';
+      jpegCtx.fillRect(0, 0, jpegCanvas.width, jpegCanvas.height);
+      jpegCtx.drawImage(canvas, 0, 0);
+      const signatureData = jpegCanvas.toDataURL('image/jpeg', 0.85);
       const signatureDate = new Date().toISOString();
       const nom = ((portalChauffeur.prenom || '') + ' ' + (portalChauffeur.nom || '')).trim();
 
