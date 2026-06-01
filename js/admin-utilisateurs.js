@@ -33,7 +33,9 @@ async function renderAdminUtilisateurs(container) {
         createBtn.className = 'h-btn';
         createBtn.style.cssText = 'font-size:9px;padding:3px 8px;color:#4ade80;border-color:#4ade80;white-space:nowrap;';
         createBtn.textContent = '+ Créer le compte';
-        createBtn.onclick = async () => {
+        createBtn.onclick = async (e) => {
+          e.stopPropagation();
+          console.log('🔧 Créer le compte cliqué pour:', c.email, c.id_amazon);
           const email = c.email;
           if (!email) { alert('Pas d\'email pour ce chauffeur'); return; }
           const amazonPart = (c.id_amazon || '').slice(0, 4);
