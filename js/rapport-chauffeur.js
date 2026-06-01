@@ -547,7 +547,7 @@
       html += section('⏰ Retards — Année', rY.length);
       html += groupByWeek(rY, items => {
         let t = '<table class="rep-table" style="width:100%;font-size:12px;"><tbody>';
-        items.forEach(r => { t += `<tr style="border-bottom:1px solid var(--border);"><td style="padding:3px 6px;">${fmtShort(r.date)}</td><td style="padding:3px 6px;text-align:center;font-weight:700;color:#f59e0b;">${r.duree} min</td><td style="padding:3px 6px;color:var(--text-muted);font-size:11px;">${escH(r.comment || '')}</td></tr>`; });
+        items.forEach(r => { t += `<tr style="border-bottom:1px solid var(--border);"><td style="padding:3px 6px;">${fmtShort(r.date)}</td><td style="padding:3px 6px;text-align:center;font-weight:700;color:#f59e0b;">${r.duree} min</td><td style="padding:3px 6px;color:var(--text-muted);font-size:11px;">${escH(r.comment || '')}</td><td style="padding:3px 6px;"><button class="h-btn rap-del-ret-y" data-date="${escH(r.date)}" data-duree="${r.duree}" data-week="${escH(r._week || '')}" style="font-size:10px;padding:1px 5px;color:#f87171;border-color:#f87171;">🗑</button></td></tr>`; });
         return t + '</tbody></table>';
       });
     }
@@ -666,6 +666,19 @@
           const ex = loadAbsences(week);
           const idx = ex.findIndex(a => a.chauffeur === nom && a.date === d);
           if (idx >= 0) { ex.splice(idx, 1); saveAbsences(week, ex); }
+        }
+        rmModal(); renderStats();
+      };
+    });
+
+    // Bind delete retard buttons (année)
+    modal.querySelectorAll('.rap-del-ret-y').forEach(btn => {
+      btn.onclick = () => {
+        const d = btn.dataset.date, du = parseInt(btn.dataset.duree), week = btn.dataset.week;
+        if (week) {
+          const ex = loadRetards(week);
+          const idx = ex.findIndex(r => r.chauffeur === nom && r.date === d && r.duree === du);
+          if (idx >= 0) { ex.splice(idx, 1); saveRetards(week, ex); }
         }
         rmModal(); renderStats();
       };
