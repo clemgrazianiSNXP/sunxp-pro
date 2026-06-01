@@ -308,12 +308,12 @@ window.dbLoadDegats = async function (stationId) {
     const { data, error } = await sb().from('degats').select('*').eq('station_id', stationId);
     if (error) throw error;
     if (data && data.length) {
-      const degats = data.map(d => ({ id: d.degat_id, plaque: d.plaque, chauffeur: d.chauffeur, date: d.date_incident, description: d.description, photos: d.photos || [] }));
+      const degats = data.map(d => ({ id: d.degat_id, plaque: d.plaque, chauffeur: d.chauffeur, date: d.date_incident, description: d.description, photos: d.photos || [], montant: d.montant || null, montant_valide: d.montant_valide || false }));
       localStorage.setItem(stationId + '-degats', JSON.stringify(degats));
       return degats;
     }
     if (local.length) {
-      const rows = local.map(d => ({ station_id: stationId, degat_id: d.id, plaque: d.plaque, chauffeur: d.chauffeur, date_incident: d.date, description: d.description || '', photos: d.photos || [] }));
+      const rows = local.map(d => ({ station_id: stationId, degat_id: d.id, plaque: d.plaque, chauffeur: d.chauffeur, date_incident: d.date, description: d.description || '', photos: d.photos || [], montant: d.montant || null, montant_valide: d.montant_valide || false }));
       await sb().from('degats').insert(rows);
     }
     return local;
@@ -650,7 +650,7 @@ window.preloadStationData = async function (stationId) {
     // Dégâts
     const { data: degData } = await sb().from('degats').select('*').eq('station_id', stationId);
     if (degData) {
-      const degats = degData.map(d => ({ id: d.degat_id, plaque: d.plaque, chauffeur: d.chauffeur, date: d.date_incident, description: d.description, photos: d.photos || [] }));
+      const degats = degData.map(d => ({ id: d.degat_id, plaque: d.plaque, chauffeur: d.chauffeur, date: d.date_incident, description: d.description, photos: d.photos || [], montant: d.montant || null, montant_valide: d.montant_valide || false }));
       localStorage.setItem(stationId + '-degats', JSON.stringify(degats));
     }
 
