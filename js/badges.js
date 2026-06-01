@@ -1,6 +1,29 @@
 ﻿/* js/badges.js — UI des badges chauffeur (SunXP Pro) */
 
-function renderBadgesTab() {
+async function saveBadgesToSupabase(stationId, chauffeurId, badgesData) {
+  if (typeof dbSave !== 'function') return;
+  const key = stationId + '-badges-' + chauffeurId;
+  dbSave('badges', key, { station_id: stationId, chauffeur_id: chauffeurId }, badgesData);
+}
+
+async function loadBadgesFromSupabase(stationId, chauffeurId) {
+  if (typeof sb !== 'function' || !sb()) return null;
+  try {
+    const { data, error } = await sb()
+      .from('badges')
+      .select('data')
+      .eq('station_id', stationId)
+      .eq('chauffeur_id', chauffeurId)
+      .maybeSingle();
+    if (error) throw error;
+    return data?.data || null;
+  } catch(e) {
+    console.warn('loadBadgesFromSupabase error:', e.message);
+    return null;
+  }
+}
+
+async function renderBadgesTab() {
   const wrap = document.createElement('div');
   wrap.style.cssText = 'padding:16px;display:flex;flex-direction:column;gap:16px;overflow-y:auto;';
 
@@ -16,6 +39,15 @@ function renderBadgesTab() {
   // Charger les badges sauvegardés
   let saved = {};
   try { const raw = localStorage.getItem(badgeKey); if (raw) saved = JSON.parse(raw); } catch (_) {}
+
+  // Si localStorage vide, essayer Supabase
+  if (!Object.keys(saved).length) {
+    const fromSupabase = await loadBadgesFromSupabase(sid, cId);
+    if (fromSupabase) {
+      saved = fromSupabase;
+      try { localStorage.setItem(badgeKey, JSON.stringify(saved)); } catch (_) {}
+    }
+  }
 
   // Calculer les badges actuels
   const computed = typeof calculateBadges === 'function' ? calculateBadges(sid, portalChauffeur) : {};
@@ -40,6 +72,7 @@ function renderBadgesTab() {
 
   // Sauvegarder
   try { localStorage.setItem(badgeKey, JSON.stringify(saved)); } catch (_) {}
+  saveBadgesToSupabase(sid, cId, saved);
 
   // Notification nouveau badge
   if (newBadges.length) {

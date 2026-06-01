@@ -808,6 +808,21 @@ window.preloadStationData = async function (stationId) {
     }
 
     updateProgress(95, '🗓 Chargement de l\'attribution...');
+
+    // Badges chauffeurs
+    try {
+      const { data: badgesData } = await sb().from('badges')
+        .select('chauffeur_id, data')
+        .eq('station_id', stationId);
+      if (badgesData && badgesData.length) {
+        badgesData.forEach(b => {
+          if (b.chauffeur_id && b.data) {
+            localStorage.setItem(stationId + '-badges-' + b.chauffeur_id, JSON.stringify(b.data));
+          }
+        });
+      }
+    } catch(e) { console.warn('Badges preload error:', e.message); }
+
     updateProgress(100, '✅ Chargement terminé !');
     setTimeout(() => {
       const screen = document.getElementById('preload-loading-screen');
