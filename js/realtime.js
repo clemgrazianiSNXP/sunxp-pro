@@ -167,11 +167,24 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /* ── Réinit quand on change de station ────────────────────── */
-const _origSetActiveStation = window.setActiveStation;
-if (typeof _origSetActiveStation === 'function') {
-  window.setActiveStation = function () {
-    _origSetActiveStation.apply(this, arguments);
-    stopRealtime();
-    setTimeout(initRealtime, 500);
-  };
+function waitAndOverrideSetActiveStation() {
+  let attempts = 0;
+  const interval = setInterval(() => {
+    attempts++;
+    if (typeof window.setActiveStation === 'function') {
+      clearInterval(interval);
+      const _orig = window.setActiveStation;
+      window.setActiveStation = function(stationId) {
+        _orig.apply(this, arguments);
+        // Reconnecter le realtime à la nouvelle station
+        if (typeof initRealtime === 'function') {
+          setTimeout(() => initRealtime(stationId), 300);
+        }
+      };
+      console.log('✅ setActiveStation overridé pour Realtime');
+    }
+    if (attempts > 30) clearInterval(interval); // 3 secondes max
+  }, 100);
 }
+
+document.addEventListener('DOMContentLoaded', waitAndOverrideSetActiveStation);
