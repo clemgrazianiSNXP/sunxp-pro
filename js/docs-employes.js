@@ -256,10 +256,10 @@ function showDocEmpForm(doc, stationId, allPersons) {
             envoye_par: typeof currentUser !== 'undefined' ? (currentUser?.email || '') : '',
             envoye_at: new Date().toISOString()
           });
-          // Envoyer la notification au chauffeur concerné
-          if (typeof sendPushToStation === 'function' && stationId && chauffeurId) {
-            sendPushToStation(stationId, '📝 Document à signer', docName + ' — Veuillez le signer dans votre espace.', chauffeurId);
-          }
+          // Notification push désactivée pour le moment
+          // if (typeof sendPushToStation === 'function' && stationId && chauffeurId) {
+          //   sendPushToStation(stationId, '📝 Document à signer', docName + ' — Veuillez le signer dans votre espace.', chauffeurId);
+          // }
         } catch(e) {
           console.warn('Erreur insertion documents_signature:', e.message);
         }
