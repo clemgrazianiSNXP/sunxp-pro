@@ -212,6 +212,30 @@ function buildPersonGrid(list, stationId, type) {
       actions.appendChild(waPassBtn);
     }
 
+    // Bouton SQL pour responsables
+    if (type === 'responsable') {
+      const sqlBtn = document.createElement('button');
+      sqlBtn.className = 'h-btn';
+      sqlBtn.style.cssText = 'font-size:10px;padding:3px 7px;color:#10b981;border-color:#10b981;';
+      sqlBtn.textContent = '🗄️ SQL';
+      sqlBtn.title = 'Copier le SQL de création de compte Supabase';
+      sqlBtn.onclick = () => {
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%';
+        let pwd = '';
+        for (let i = 0; i < 12; i++) pwd += chars[Math.floor(Math.random() * chars.length)];
+        const sql = `-- Créer le compte Auth dans Supabase Dashboard > Authentication > Users\n-- Email : ${c.email || 'email@exemple.com'}\n-- Mot de passe : ${pwd}\n\n-- Puis exécuter ce SQL pour créer le profil :\nINSERT INTO user_profiles (id, role, role_specifique, station_id, nom, prenom, statut)\nVALUES (\n  'REMPLACER_PAR_UUID_AUTH',\n  'responsable',\n  '${c.role || 'Dispatcher'}',\n  '${stationId}',\n  '${c.nom || ''}',\n  '${c.prenom || ''}',\n  'actif'\n);\n\n-- Remplacer REMPLACER_PAR_UUID_AUTH par l'UUID généré dans Authentication > Users`;
+        navigator.clipboard.writeText(sql).then(() => {
+          sqlBtn.textContent = '✅ Copié !';
+          sqlBtn.style.color = '#4ade80';
+          setTimeout(() => { sqlBtn.textContent = '🗄️ SQL'; sqlBtn.style.color = '#10b981'; }, 2000);
+        }).catch(() => {
+          const ta = document.createElement('textarea'); ta.value = sql; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove();
+          sqlBtn.textContent = '✅ Copié !'; setTimeout(() => { sqlBtn.textContent = '🗄️ SQL'; }, 2000);
+        });
+      };
+      actions.appendChild(sqlBtn);
+    }
+
     actions.appendChild(delBtn);
 
     card.appendChild(avatar);
