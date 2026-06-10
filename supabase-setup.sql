@@ -310,3 +310,6 @@ CREATE INDEX IF NOT EXISTS idx_docsig_station ON documents_signature(station_id)
 CREATE INDEX IF NOT EXISTS idx_docsig_chauffeur ON documents_signature(chauffeur_id);
 ALTER TABLE documents_signature ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "allow_all" ON documents_signature FOR ALL USING (true) WITH CHECK (true);
+
+-- Ajout colonne signed_pdf_url
+ALTER TABLE documents_signature ADD COLUMN IF NOT EXISTS signed_pdf_url TEXT;
