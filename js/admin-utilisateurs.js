@@ -20,9 +20,9 @@ async function renderAdminUtilisateurs(container) {
         div.innerHTML = `
           ${statutBadge}
           <span style="font-weight:700;flex:1;">${p.prenom || ''} ${p.nom || ''}</span>
-          <span style="color:var(--accent);">${p.role}</span>
-          <span style="color:var(--text-muted);font-size:10px;">${p.station_id || '—'}</span>
-          <span style="color:var(--text-muted);font-size:10px;">${p.chauffeur_id || ''}</span>
+          <span style="color:var(--accent);font-weight:700;min-width:80px;text-align:center;background:rgba(0,255,200,0.08);padding:3px 8px;border-radius:4px;">${p.role}</span>
+          <span style="color:var(--text-primary);font-weight:600;min-width:50px;text-align:center;background:rgba(255,255,255,0.05);padding:3px 8px;border-radius:4px;">${p.station_id || '—'}</span>
+          <span style="color:var(--text-muted);font-size:10px;min-width:90px;text-align:center;font-family:monospace;">${p.chauffeur_id || '—'}</span>
           <button class="h-btn admin-reset-pwd" data-uid="${p.id}" data-name="${(p.prenom || '') + ' ' + (p.nom || '')}" style="font-size:10px;padding:4px 8px;color:#fbbf24;border-color:#fbbf24;">🔑 Reset MDP</button>
           <button class="h-btn admin-alumni-toggle" data-uid="${p.id}" data-name="${(p.prenom || '') + ' ' + (p.nom || '')}" data-statut="${p.statut || 'actif'}" style="font-size:10px;padding:4px 8px;color:${isAlumni ? '#4ade80' : '#6b7280'};border-color:${isAlumni ? '#4ade80' : '#6b7280'};">${isAlumni ? '✅ Réactiver' : '📦 Alumni'}</button>
           <button class="h-btn admin-delete-user" data-uid="${p.id}" data-name="${(p.prenom || '') + ' ' + (p.nom || '')}" style="font-size:10px;padding:4px 8px;color:#f87171;border-color:#f87171;">🗑 Supprimer</button>
