@@ -80,7 +80,7 @@ function renderAttribution() {
     var tdAgence = document.createElement('td');
     tdAgence.style.cssText = 'padding:2px 4px;font-size:9px;color:var(--text-muted);white-space:nowrap;text-align:center;';
     var camionData = camions.find(function(c) { return c.plaque === r.plaque; });
-    tdAgence.textContent = (camionData && camionData.agence) ? camionData.agence : '—';
+    tdAgence.textContent = (camionData && camionData.agence) ? camionData.agence + (camionData.bva ? ' BVA' : '') : '—';
     tr.appendChild(tdAgence);
 
     // TP (input texte comme UTA)
