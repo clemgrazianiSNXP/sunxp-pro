@@ -82,11 +82,37 @@ async function portalDocumentsASigner() {
       signes.forEach(doc => {
         const card = document.createElement('div');
         card.className = 'portal-card';
-        card.style.cssText += 'text-align:left;border-left:3px solid #4ade80;opacity:0.8;';
+        card.style.cssText += 'text-align:left;border-left:3px solid #4ade80;';
         card.innerHTML = `
           <div style="font-size:13px;font-weight:700;">📄 ${doc.document_nom}</div>
-          <div style="font-size:11px;color:#4ade80;">✅ Signé le ${new Date(doc.signature_date).toLocaleDateString('fr-FR')} à ${new Date(doc.signature_date).toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})}</div>
+          <div style="font-size:11px;color:#4ade80;margin-top:4px;">✅ Signé le ${new Date(doc.signature_date).toLocaleDateString('fr-FR')} à ${new Date(doc.signature_date).toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})}</div>
         `;
+
+        if (doc.signed_pdf_url) {
+          const dlBtn = document.createElement('button');
+          dlBtn.className = 'rep-btn rep-btn-primary';
+          dlBtn.style.cssText = 'font-size:11px;padding:6px 12px;margin-top:8px;';
+          dlBtn.textContent = '⬇️ Télécharger le document signé';
+          dlBtn.onclick = () => window.open(doc.signed_pdf_url, '_blank');
+          card.appendChild(dlBtn);
+        }
+
+        if (doc.signature_data) {
+          const sigBtn = document.createElement('button');
+          sigBtn.className = 'h-btn';
+          sigBtn.style.cssText = 'font-size:11px;padding:4px 10px;margin-top:4px;';
+          sigBtn.textContent = '✍️ Voir ma signature';
+          sigBtn.onclick = () => {
+            const ov = document.createElement('div');
+            ov.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;';
+            ov.innerHTML = '<div style="background:var(--bg-sidebar);border-radius:12px;padding:20px;text-align:center;max-width:320px;width:90%;"><div style="font-size:13px;font-weight:700;margin-bottom:12px;">✍️ Ma signature</div><img src="' + doc.signature_data + '" style="max-width:100%;border:1px solid var(--border);border-radius:6px;background:#fff;"><button class="h-btn" style="margin-top:12px;width:100%;" id="sig-view-close">Fermer</button></div>';
+            ov.onclick = e => { if (e.target === ov) ov.remove(); };
+            document.body.appendChild(ov);
+            ov.querySelector('#sig-view-close').onclick = () => ov.remove();
+          };
+          card.appendChild(sigBtn);
+        }
+
         wrap.appendChild(card);
       });
     }
@@ -125,7 +151,7 @@ async function showSignatureModal(doc, parentWrap, sid, chauffeurId) {
 
   // Navigation pages
   const navBar = document.createElement('div');
-  navBar.style.cssText = 'display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--bg-sidebar);border-top:1px solid var(--border);flex-shrink:0;justify-content:center;flex-wrap:wrap;';
+  navBar.style.cssText = 'display:flex;align-items:center;gap:8px;padding:10px 16px;padding-bottom:calc(10px + env(safe-area-inset-bottom));background:var(--bg-sidebar);border-top:1px solid var(--border);flex-shrink:0;justify-content:center;flex-wrap:wrap;position:sticky;bottom:0;';
   overlay.appendChild(navBar);
 
   document.body.appendChild(overlay);
@@ -364,8 +390,11 @@ async function finalizeSignature(doc, parentWrap, sid, chauffeurId, overlay, pdf
     const canvasWidth = Math.min(window.innerWidth - 32, 600);
     const scale = canvasWidth / baseViewport.width;
 
+    const devicePixelRatio = window.devicePixelRatio || 1;
     const pdfX = signaturePosition.x / scale;
     const pdfY = height - (signaturePosition.y / scale) - (80 / scale);
+    const sigWidth = 200 / scale;
+    const sigHeight = 80 / scale;
 
     // Intégrer l'image de signature
     const sigImgBytes = await fetch(signatureData).then(r => r.arrayBuffer());
@@ -374,8 +403,8 @@ async function finalizeSignature(doc, parentWrap, sid, chauffeurId, overlay, pdf
     targetPage.drawImage(sigImage, {
       x: pdfX,
       y: pdfY,
-      width: 200 / scale,
-      height: 80 / scale,
+      width: sigWidth,
+      height: sigHeight,
     });
 
     // Bloc de certification
@@ -440,7 +469,7 @@ async function finalizeSignature(doc, parentWrap, sid, chauffeurId, overlay, pdf
           signedPdfUrl: signedUrl
         }
       });
-    } catch(emailErr) { console.warn('Email error:', emailErr.message); }
+    } catch(emailErr) { console.warn('Email confirmation error:', emailErr.message); }
 
     overlay.remove();
 
