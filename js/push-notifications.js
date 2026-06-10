@@ -67,6 +67,7 @@ async function savePushSubscription(subscription) {
       keys_auth: subData.keys.auth,
       station_id: stationId,
       user_id: userId,
+      chauffeur_id: (typeof currentProfile !== 'undefined' && currentProfile) ? (currentProfile.chauffeur_id || '') : '',
       updated_at: new Date().toISOString()
     }, { onConflict: 'endpoint' });
 
