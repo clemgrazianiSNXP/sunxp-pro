@@ -256,8 +256,20 @@ function showDocEmpForm(doc, stationId, allPersons) {
             envoye_par: typeof currentUser !== 'undefined' ? (currentUser?.email || '') : '',
             envoye_at: new Date().toISOString()
           });
-          if (typeof sendPushToStation === 'function' && stationId) {
-            sendPushToStation(stationId, '📝 Document à signer', docName + ' — Veuillez signer ce document dans votre espace.', chauffeurId);
+          // Envoyer la notification uniquement au chauffeur concerné
+          if (typeof sb === 'function' && sb() && chauffeurId) {
+            try {
+              const { data: subs } = await sb()
+                .from('push_subscriptions')
+                .select('subscription')
+                .eq('station_id', stationId)
+                .eq('chauffeur_id', chauffeurId);
+              if (subs && subs.length) {
+                await sb().functions.invoke('send-push', {
+                  body: { station_id: stationId, chauffeur_id: chauffeurId, title: '📝 Document à signer', body: docName + ' — Veuillez le signer dans votre espace.' }
+                });
+              }
+            } catch(pushErr) { console.warn('Push signature:', pushErr.message); }
           }
         } catch(e) {
           console.warn('Erreur insertion documents_signature:', e.message);
