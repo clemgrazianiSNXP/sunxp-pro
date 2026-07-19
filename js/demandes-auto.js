@@ -5,7 +5,8 @@
  * Écrase RSTD/REP (planning généré) mais pas les autres codes manuels.
  */
 function applyDemandeToPlanning(stationId, chauffeurNom, dateStr, code) {
-  const date = new Date(dateStr + 'T12:00:00');
+  const cleanDate = (dateStr || '').slice(0, 10);
+  const date = new Date(cleanDate + 'T12:00:00');
   const year = date.getFullYear();
   const month = date.getMonth();
   const day = date.getDate();

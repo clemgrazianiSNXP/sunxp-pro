@@ -25,11 +25,12 @@ function savePapiers(stationId, list) {
 
 /* ── Appliquer au planning ────────────────────────────────── */
 function applyPapierToPlanning(stationId, chauffeurNom, dateDebut, dateFin, code) {
-  const start = new Date(dateDebut);
-  const end = new Date(dateFin);
+  const start = new Date(dateDebut + 'T12:00:00');
+  const end = new Date(dateFin + 'T12:00:00');
   for (let dt = new Date(start); dt <= end; dt.setDate(dt.getDate() + 1)) {
     if (typeof applyDemandeToPlanning === 'function') {
-      applyDemandeToPlanning(stationId, chauffeurNom, dt.toISOString(), code);
+      const dateStr = dt.toISOString().slice(0, 10);
+      applyDemandeToPlanning(stationId, chauffeurNom, dateStr, code);
     }
   }
 }
